@@ -1,72 +1,78 @@
+import Container from "@/components/container";
 import Heading from "@/components/heading";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
+
+export const tools: {
+  section: string;
+  list: {
+    title: string;
+    href: string;
+  }[];
+}[] = [
+  {
+    section: "For talent",
+    list: [
+      {
+        title: "Resume Checker",
+        href: "/resume-checker",
+      },
+      {
+        title: "Behavioral Checker",
+        href: "/behavioral-checker",
+      },
+      {
+        title: "WPM Checker",
+        href: "/wpm-checker",
+      },
+      {
+        title: "Take-home Checker",
+        href: "/take-home-checker",
+      },
+    ],
+  },
+  {
+    section: "For companies",
+    list: [
+      {
+        title: "Contract Negotiation Tool",
+        href: "/contract-negotiation",
+      },
+    ],
+  },
+];
+
 export default function Home() {
   return (
-    <div className="container mx-auto px-4 py-16">
-      <Heading description="Open Source Software made by Silver.dev and its contributors.">
+    <Container>
+      <Heading
+        center
+        description="Open Source Software made by Silver.dev and its contributors."
+      >
         <span className="text-primary">Open</span> Silver
       </Heading>
-      <section className="mt-32 space-y-8">
-        <h1 className="text-4xl">For talent</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Link
-            href=""
-            className="hover:bg-accent transition-all duration-300 rounded-lg text-center"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Resume Checker</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-          <Link
-            href=""
-            className="hover:bg-accent transition-all duration-300 rounded-lg text-center"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Behavioral Checker</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-          <Link
-            href=""
-            className="hover:bg-accent transition-all duration-300 rounded-lg text-center"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>WPM Checker</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-          <Link
-            href=""
-            className="hover:bg-accent transition-all duration-300 rounded-lg text-center"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Takehome Checker</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-        </div>
-      </section>
-      <section className="mt-32 space-y-8">
-        <h1 className="text-4xl">For companies</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Link
-            href=""
-            className="hover:bg-accent transition-all duration-300 rounded-lg text-center"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>Contract Negotiation Tool</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-        </div>
-      </section>
-    </div>
+      {tools.map(({ section, list }) => (
+        <section key={section} className="space-y-8">
+          <Heading size="lg">{section}</Heading>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {list.map(({ title, href }) => (
+              <Link
+                href={href}
+                key={href}
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "text-4xl p-16"
+                )}
+              >
+                <section>
+                  <h1>{title}</h1>
+                </section>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
+    </Container>
   );
 }
