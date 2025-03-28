@@ -4,9 +4,9 @@ OpenSilver gathers all the OSS resources and tools that allow for user contribut
 
 It includes:
 
-* Resume Checker
-* Takehome Checker
-* Behavioral Checker
-* WPM Checker
-* Contract negotiation tool
-* Silver.dev layout
+- Resume Checker
+- Takehome Checker
+- Behavioral Checker
+- WPM Checker
+- Contract negotiation tool
+- Silver.dev layout

@@ -62,7 +62,7 @@ export default function Home() {
                 key={href}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "text-4xl p-16"
+                  "text-4xl p-16",
                 )}
               >
                 <section>
