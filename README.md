@@ -9,4 +9,3 @@ It includes:
 - Behavioral Checker
 - WPM Checker
 - Contract negotiation tool
-- Silver.dev layout
