@@ -37,7 +37,7 @@ export const tools: {
     list: [
       {
         title: "Contract Negotiation Tool",
-        href: "/contract-negotiation",
+        href: "/contract",
       },
     ],
   },
@@ -62,7 +62,7 @@ export default function Home() {
                 key={href}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "text-4xl p-16",
+                  "text-4xl p-16"
                 )}
               >
                 <section>
