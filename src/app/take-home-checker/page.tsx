@@ -1,9 +1,12 @@
+import Description from "@/components/description";
+import Heading from "@/components/heading";
+import Section from "@/components/section";
+import Space from "@/components/space";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import AuthGitHub from "@/take-home-checker/components/AuthGtihub";
-import Header from "@/take-home-checker/components/Header";
+import LogOutGithub from "@/take-home-checker/components/LogOutGithub";
 import AppQueryProvider from "@/take-home-checker/components/QueryClientProvider";
 import RepoAnalysis from "@/take-home-checker/components/RepoAnalysis";
-import { ThemeProvider } from "@/take-home-checker/components/ThemeContext";
 import { Repo } from "@/take-home-checker/types/repo";
 import { getServerSession } from "next-auth";
 import { Octokit } from "octokit";
@@ -31,23 +34,31 @@ export default async function Page() {
   }
 
   return (
-    <AppQueryProvider>
-      <ThemeProvider>
-        <div>
-          <Header />
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <AuthGitHub />
-            {isAuthenticated && (
-              <RepoAnalysis
-                repos={repos}
-                token={
-                  (session as unknown as { accessToken: string })?.accessToken
-                }
-              />
-            )}
+    <Section>
+      <Heading center>
+        <span className="text-primary">Take-home</span> Checker
+      </Heading>
+      <Space />
+      <Description center>
+        Upload your take-home and get instant feedback on the project.
+      </Description>
+      <Space size="lg" />
+      <AppQueryProvider>
+        {isAuthenticated ? (
+          <div className="flex flex-col justify-center items-center">
+            <RepoAnalysis
+              repos={repos}
+              token={
+                (session as unknown as { accessToken: string })?.accessToken
+              }
+            />
+            <Space size="lg" />
+            <LogOutGithub />
           </div>
-        </div>
-      </ThemeProvider>
-    </AppQueryProvider>
+        ) : (
+          <AuthGitHub />
+        )}
+      </AppQueryProvider>
+    </Section>
   );
 }

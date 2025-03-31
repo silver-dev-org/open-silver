@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaFlag } from "react-icons/fa";
 import { twMerge } from "tailwind-merge";
 
@@ -9,7 +10,10 @@ interface FlagCardProps {
   className?: string;
 }
 
-const flagStyles: Record<FlagType, { border: string; text: string; icon: string; label: string }> = {
+const flagStyles: Record<
+  FlagType,
+  { border: string; text: string; icon: string; label: string }
+> = {
   red: {
     border: "border-red-500",
     text: "text-red-700 dark:text-red-400",
@@ -30,23 +34,36 @@ const flagStyles: Record<FlagType, { border: string; text: string; icon: string;
   },
 };
 
-const FlagCard: React.FC<FlagCardProps> = ({ type = "green", flags = [], className }) => {
+const FlagCard: React.FC<FlagCardProps> = ({
+  type = "green",
+  flags = [],
+  className,
+}) => {
   const { border, text, icon, label } = flagStyles[type];
 
   return (
-    <div className={twMerge("bg-white dark:bg-gray-800 border-l-4 p-4 rounded shadow-sm", border, className)}>
-      <div className={twMerge("flex items-center font-medium mb-2", text)}>
-        <FaFlag className={twMerge("mr-2", icon)} />
-        {label} ({flags.length})
-      </div>
-      <ul className="space-y-2 text-gray-600 dark:text-gray-300">
-        {flags.length > 0 ? (
-          flags.map((flag, index) => <li key={index}>• {flag}</li>)
-        ) : (
-          <li className="italic text-gray-400">No flags</li>
-        )}
-      </ul>
-    </div>
+    <Card className={twMerge(border, className)}>
+      <CardHeader className={text}>
+        <CardTitle className="flex items-center gap-2">
+          <FaFlag className={icon} />
+          {label} ({flags.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul>
+          {flags.length > 0 ? (
+            flags.map((flag, index) => (
+              <li key={index} className="list-disc list-inside">
+                {" "}
+                {flag}
+              </li>
+            ))
+          ) : (
+            <li className="italic">No flags</li>
+          )}
+        </ul>
+      </CardContent>
+    </Card>
   );
 };
 

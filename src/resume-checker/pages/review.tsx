@@ -1,3 +1,8 @@
+import Description from "@/components/description";
+import Heading from "@/components/heading";
+import Section from "@/components/section";
+import Space from "@/components/space";
+import { buttonVariants } from "@/components/ui/button";
 import FeedbackForm from "@/resume-checker/components/feedback-form";
 import Flags from "@/resume-checker/components/flags";
 import PDF from "@/resume-checker/components/pdf";
@@ -81,10 +86,10 @@ export default function Review() {
 
   return (
     <>
-      <div className="mt-6 animate-fly-in container mx-auto px-4 grid lg:grid-cols-2 gap-6">
+      <section className="mt-6 animate-fly-in container mx-auto px-4 grid lg:grid-cols-2 gap-6">
         <PDF />
         <div>
-          <h2 className="text-2xl mb-4">El Puntaje de tu CV</h2>
+          <h1 className="text-2xl mb-4">Puntaje de tu CV</h1>
           <div className="mb-8">
             <Score letter={mutation?.data?.grade} />
           </div>
@@ -92,7 +97,7 @@ export default function Review() {
             {mutation.isPending ? <Skeleton /> : null}
             {!mutation.isPending && isVictorVigon ? (
               <p>
-                Este resume fue elaborado en{" "}
+                Este CV fue elaborado en{" "}
                 <Link
                   href="https://ready.silver.dev"
                   className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -107,6 +112,7 @@ export default function Review() {
                 >
                   guía
                 </Link>
+                .
               </p>
             ) : null}
             {mutation.data && mutation.data?.red_flags.length > 0 ? (
@@ -135,7 +141,7 @@ export default function Review() {
             <div className="flex flex-col gap-4">
               <Link
                 href="/resume-checker"
-                className="px-10 py-2 text-center block rounded-lg bg-indigo-800 font-bold hover:bg-indigo-600 cursor-pointer text-white"
+                className={buttonVariants({ variant: "default" })}
               >
                 Probá otra vez
               </Link>
@@ -148,33 +154,7 @@ export default function Review() {
             </div>
           )}
         </div>
-        <hr className="w-full my-8 lg:col-span-2" />
-        <h2 className="w-full my-6 text-3xl text-center lg:col-span-2">
-          Resume Checker es de{" "}
-          <Link
-            href="https://ready.silver.dev"
-            className="text-indigo-400 hover:text-indigo-300 cursor-pointer"
-          >
-            Interview Ready
-          </Link>
-        </h2>
-        <p className="mt-0 text-center lg:col-span-2">
-          Esta herramienta es parte de un programa integral de preparación de
-          entrevistas.
-          <br />
-          Podes ver el formato y más contenido en el video.
-        </p>
-        <iframe
-          className="rounded-lg shadow-lg mt-4 max-w-xs md:max-w-none mx-auto lg:col-span-2"
-          width="560"
-          height="315"
-          src="https://www.youtube.com/embed/D-OYA2UzlJQ?si=p3dHHaOvHH8VrN1Z"
-          title="YouTube video player"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerPolicy="strict-origin-when-cross-origin"
-          allowFullScreen
-        ></iframe>
-      </div>
+      </section>
       {mutation.isSuccess ? (
         <FeedbackForm
           data={mutation.data}

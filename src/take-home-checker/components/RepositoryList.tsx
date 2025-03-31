@@ -14,7 +14,7 @@ export default function RepositoryList({ repos, onSelect }: RepositoryListProps)
   };
 
   return (
-    <div className="w-full mx-auto flex-1">
+    <div className="w-full flex-grow">
       {repos?.length > 0 ? (
         <RepoSelector repos={repos} onChange={handleSelect} />
       ) : (

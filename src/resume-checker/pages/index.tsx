@@ -1,9 +1,14 @@
 "use client";
 
+import Description from "@/components/description";
+import Grid from "@/components/grid";
+import Heading from "@/components/heading";
+import Section from "@/components/section";
+import Space, { spaceSizes } from "@/components/space";
+import { Button } from "@/components/ui/button";
 import ErrorBadge from "@/resume-checker/components/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import { useMutationState } from "@tanstack/react-query";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChangeEvent,
@@ -102,40 +107,26 @@ export default function Home() {
   return (
     <>
       <ErrorBadge error={error || mutationError} />
-
-      <div
-        className={"container grid w-full h-full p-8 relative justify-center"}
-      >
-        <div className="grid gap-8 md:grid-cols-4 lg:self-center max-w-4xl">
-          <div className="md:col-span-4 md:mb-8">
-            <h1 className="text-center text-3xl lg:text-5xl font-bold mb-4">
-              Subí tu CV y recibí feedback inmediato
-            </h1>
-            <p className="text-center text-black/80 dark:text-white/80">
-              Resume checker está entrenado por recruiters e ingenieros de{" "}
-              <Link
-                href="https://silver.dev/"
-                className="text-indigo-400 cursor-pointer hover:text-indigo-300"
-              >
-                Silver.dev
-              </Link>
-              .
-            </p>
-          </div>
+      <Section>
+        <Heading center>
+          <span className="text-primary">Resume</span> Checker
+        </Heading>
+        <Space />
+        <Description center>
+          Subí tu CV y recibí feedback inmediato.
+        </Description>
+        <Space size="lg" />
+        <Grid className="grid-cols-1 md:grid-cols-4">
           <form
             {...getRootProps()}
             onSubmit={prevent}
             method="POST"
             action="/api/grade"
             encType="multipart/form-data"
-            className={`w-full overflow-hidden md:col-span-3 h-full p-8 relative border-2 rounded-lg ${isDragActive ? "cursor-grabbing dark:border-gray-400 border-gray-800" : "border-gray-400 dark:border-gray-500"}  border-dashed flex items-center justify-center flex-col gap-1`}
+            className={`w-full overflow-hidden md:col-span-3 h-full p-8 relative border-2 rounded-lg  ${isDragActive ? "cursor-grabbing border-foreground " : "border-foreground/50"}  border-dashed flex items-center justify-center flex-col gap-1`}
           >
-            <span className="px-10 py-2 text-center block rounded-lg bg-indigo-800 font-bold hover:bg-indigo-600 cursor-pointer text-white">
-              Hacé click para subir tu CV
-            </span>
-            <span className="text-gray-700 dark:text-gray-300 mt-4 text-center">
-              o arrastrá tu CV
-            </span>
+            <Button>Hacé click para subir tu CV</Button>
+            <span className="mt-4 text-center">o arrastrá tu CV</span>
             <input
               className="sr-only"
               onChange={handleFormSubmission}
@@ -146,9 +137,10 @@ export default function Home() {
             {/* honeypot */}
             <input className="hidden" type="text" name="name" />
           </form>
-          <div className="self-end">
-            <p className="mb-4 text-center md:text-left">O usá un ejemplo:</p>
-            <div className="grid grid-cols-1 gap-6 justify-center lg:justify-start">
+          <div>
+            <p className="text-center md:text-left">O usá un ejemplo:</p>
+            <Space />
+            <div className={`flex flex-col ${spaceSizes.sm.gap}`}>
               {[
                 { letter: "s", name: "Victor Vigon" },
                 { letter: "a", name: "Gabriel Benmergui" },
@@ -163,7 +155,9 @@ export default function Home() {
                   <div
                     className={`${letter} absolute transition-colors inset-0 rounded-lg`}
                   ></div>
-                  <div className="m-1 pointer-events-none flex flex-col gap-2 text-center items-center justify-center rounded-lg p-4 relative bg-[var(--background)]">
+                  <div
+                    className={`m-1 pointer-events-none flex flex-col gap-2 text-center items-center justify-center rounded-lg ${spaceSizes.sm.p} relative bg-[var(--background)]`}
+                  >
                     <span className="font-semibold tracking-wider">{name}</span>
                     <span>Grade: {letter.toUpperCase()}</span>
                   </div>
@@ -171,8 +165,8 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </Grid>
+      </Section>
     </>
   );
 }

@@ -1,7 +1,13 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Repo } from "@/take-home-checker/types/repo";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 
 interface RepoSelectorProps {
   repos: Repo[];
@@ -17,28 +23,20 @@ export default function RepoSelector({ repos, onChange }: RepoSelectorProps) {
   };
 
   return (
-    <div className="w-full mx-auto">
-      <Select onValueChange={handleValueChange}>
-        <SelectTrigger className="w-full p-2 border rounded-md bg-white dark:bg-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500 min-h-[64px] dark:border-gray-700 dark:text-white">
-          <SelectValue placeholder="Select a repository" />
-        </SelectTrigger>
-        <SelectContent className="bg-white dark:bg-gray-700 shadow-lg rounded-md min-h-[64px]">
-          {repos.map((repo) => (
-            <SelectItem key={repo.id} value={repo.id.toString()}>
-              <div className="text-base cursor-pointer text-left text-gray-700 dark:text-white">
-                {repo.name}
-                <div className="text-sm text-gray-500 truncate dark:text-gray-400">
-                  {repo.description
-                    ? repo.description.length > 100
-                      ? `${repo.description.slice(0, 100)}...`
-                      : repo.description
-                    : "No description"}
-                </div>
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select onValueChange={handleValueChange}>
+      <SelectTrigger className="py-8 text-left w-full">
+        <SelectValue placeholder="Select a repository" />
+      </SelectTrigger>
+      <SelectContent>
+        {repos.map((repo) => (
+          <SelectItem key={repo.id} value={repo.id.toString()}>
+            <div className="flex flex-col">
+              <strong>{repo.name}</strong>
+              <span>{repo.description}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

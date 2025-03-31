@@ -1,16 +1,17 @@
 import { Result } from "@/behavioral-checker/client-assistance/core/domain/Action";
-import { NAME } from "@/behavioral-checker/constants";
 import { Question, questions } from "@/behavioral-checker/data/questions";
 import { companyOptions, roleOptions } from "@/behavioral-checker/data/selects";
-import Container from "@/components/container";
+import Description from "@/components/description";
 import Heading from "@/components/heading";
+import Section from "@/components/section";
+import Space from "@/components/space";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import Select from "react-select";
 import ConsentDialog from "./ConsentDialog";
-import { Button } from "./ui/button";
-import { Card, CardContent } from "./ui/card";
-import { Checkbox } from "./ui/checkbox";
 
 const customClassNames = {
   control: (state: any) =>
@@ -290,16 +291,18 @@ const Step1: React.FC<{
   };
 
   return (
-    <Container>
-      <Heading
-        center
-        description="  Get instant feedback from answering classical behavioral questions
-          with Silver.dev's themed auto-response. Great for practicing
-          English & Storytelling."
-      >
-        {NAME}
+    <Section>
+      <Heading center>
+        <span className="text-primary">Behavioral</span> Checker
       </Heading>
-      <Card className="max-w-[1000px] w-full mx-auto my-20">
+      <Space />
+      <Description center>
+        Get instant feedback from answering classical behavioral questions with
+        Silver.dev's themed auto-response. Great for practicing English &
+        Storytelling.
+      </Description>
+      <Space size="lg" />
+      <Card className="max-w-[1000px] w-full mx-auto">
         <CardContent className="py-4 px-8">
           {/* Sección Pregunta - Ancho completo */}
           <div className="border-b border-gray-200 dark:border-gray-700 pb-8">
@@ -640,7 +643,7 @@ const Step1: React.FC<{
         onAccept={handleAcceptConsent}
         onDecline={handleDeclineConsent}
       />
-    </Container>
+    </Section>
   );
 };
 

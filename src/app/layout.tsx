@@ -1,4 +1,6 @@
+import Footer from "@/components/footer";
 import Header from "@/components/header";
+import Space from "@/components/space";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import SessionProvider from "@/providers/SessionProvider";
 import type { Metadata } from "next";
@@ -39,7 +41,11 @@ export default async function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <Header />
-          <main className="min-h-screen">{children}</main>
+          <main>
+            <Space size="lg" />
+            {children}
+          </main>
+          <Footer />
           <Script
             id="vtag-ai-js"
             async

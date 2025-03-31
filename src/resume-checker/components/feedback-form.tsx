@@ -56,7 +56,7 @@ export default function FeedbackForm({
   }
 
   return (
-    <div
+    <section
       className={`fixed inset-0 transition bg-gray-900/20 dark:bg-gray-100/20 ${isFeedbackFormOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
       onClick={close}
     >
@@ -95,9 +95,9 @@ export default function FeedbackForm({
           name="red_flags"
           value={JSON.stringify(data.red_flags)}
         />
-        <h3 className="text-center text-2xl font-bold mb-auto sm:mb-6">
+        <h1 className="text-center text-2xl font-bold mb-auto sm:mb-6">
           Gracias por tu feedback
-        </h3>
+        </h1>
         <div>
           <textarea
             aria-label="Descripción"
@@ -130,6 +130,6 @@ export default function FeedbackForm({
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
