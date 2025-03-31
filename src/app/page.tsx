@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-export const tools: {
+const tools: {
   section: string;
   list: {
     title: string;

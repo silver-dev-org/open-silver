@@ -41,7 +41,7 @@ export class OpenAISdkAIClient implements AIClient {
         questionId,
         response,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw error;
     }
   }
@@ -51,7 +51,7 @@ export class OpenAISdkAIClient implements AIClient {
     response: string,
     exampleResponses: string[]
   ): ChatCompletionSystemMessageParam {
-    let examplesPrompt = this.getExamplesPrompt(exampleResponses);
+    const examplesPrompt = this.getExamplesPrompt(exampleResponses);
 
     return {
       role: "system",
