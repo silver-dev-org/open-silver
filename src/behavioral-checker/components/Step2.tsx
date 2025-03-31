@@ -33,7 +33,7 @@ const Step2: FC<{
           </p>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 w-full">
             <p className="text-gray-700 dark:text-gray-200 text-lg text-center italic">
-              "{response}"
+              &ldquo;{response}&rdquo;
             </p>
           </div>
         </div>

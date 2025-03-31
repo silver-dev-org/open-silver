@@ -43,7 +43,7 @@ export default function Privacy() {
         <li className="mb-4">
           <p className="font-bold mb-2">Third-party services</p>
           <p>
-            {NAME} uses OpenAI's services for speech-to-text processing and
+            {NAME} uses OpenAI&apos;s services for speech-to-text processing and
             response analysis. OpenAI operates under its own privacy and
             security policies, which are designed to handle data responsibly.
           </p>

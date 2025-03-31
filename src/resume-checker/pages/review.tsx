@@ -71,7 +71,6 @@ export default function Review() {
     } else {
       router.push("/resume-checker");
     }
-    /* eslint-disable-next-line */
   }, [formState.formData, formState.url, urlFromQuery]);
 
   const isExample = (url: string) => {
