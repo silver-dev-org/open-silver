@@ -1,39 +1,66 @@
-import Container from "@/components/container";
+import Description from "@/components/description";
+import Grid from "@/components/grid";
 import Heading from "@/components/heading";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import Section from "@/components/section";
+import Space from "@/components/space";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import Link from "next/link";
 
 const tools: {
-  section: string;
+  section: React.ReactNode;
+  slug: string;
   list: {
     title: string;
+    description: string;
     href: string;
   }[];
 }[] = [
   {
-    section: "For talent",
+    slug: "for-talent",
+    section: (
+      <span>
+        For <span className="text-primary">talent</span>
+      </span>
+    ),
     list: [
       {
         title: "Resume Checker",
+        description: "Subí tu CV y recibí feedback inmediato.",
         href: "/resume-checker",
       },
       {
         title: "Behavioral Checker",
+        description:
+          "Get instant feedback from answering classical behavioral questions.",
         href: "/behavioral-checker",
       },
       {
         title: "Take-home Checker",
+        description:
+          "Upload your take-home and get instant feedback on the project.",
         href: "/take-home-checker",
       },
     ],
   },
   {
-    section: "For companies",
+    slug: "for-employers",
+    section: (
+      <span>
+        For <span className="text-primary">employers</span>
+      </span>
+    ),
     list: [
       {
-        title: "Contract Negotiation Tool",
-        href: "/contract",
+        title: "Fees Calculator",
+        description:
+          "Adjust terms, explore options, and share your estimate with Silver.",
+        href: "/fees-calculator",
       },
     ],
   },
@@ -41,35 +68,33 @@ const tools: {
 
 export default function Home() {
   return (
-    <Container>
-      <Heading
-        center
-        description="Open Source Software made by Silver.dev and its contributors."
-      >
+    <Section>
+      <Heading size="lg" center>
         <span className="text-primary">Open</span> Silver
       </Heading>
-      {tools.map(({ section, list }) => (
-        <section key={section} className="space-y-8">
-          <Heading size="lg">{section}</Heading>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {list.map(({ title, href }) => (
-              <Link
-                href={href}
-                key={href}
-                prefetch={true}
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "text-4xl p-16"
-                )}
-              >
-                <section>
-                  <h1>{title}</h1>
-                </section>
+      <Space />
+      <Description center>
+        Open Source Software made by Silver.dev and its contributors.
+      </Description>
+      {tools.map(({ slug, section, list }, index) => (
+        <Section key={index} id={slug} space={null}>
+          <Space size="lg" />
+          <Heading>{section}</Heading>
+          <Space />
+          <Grid>
+            {list.map(({ title, description, href }) => (
+              <Link href={href} key={href} prefetch={true}>
+                <Card className="hover:bg-foreground/10 transition-all duration-300">
+                  <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                  </CardHeader>
+                </Card>
               </Link>
             ))}
-          </div>
-        </section>
+          </Grid>
+        </Section>
       ))}
-    </Container>
+    </Section>
   );
 }

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -5,9 +6,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/behavioral-checker/components/ui/dialog";
+} from "@/components/ui/dialog";
 import React from "react";
-import { Button } from "./ui/button";
 
 interface ConsentDialogProps {
   open: boolean;

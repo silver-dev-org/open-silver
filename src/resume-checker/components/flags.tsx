@@ -1,3 +1,4 @@
+import Section from "@/components/section";
 import Markdown from "react-markdown";
 
 function Flag({ color }: { color: string }) {
@@ -39,12 +40,12 @@ export default function Flags({
   label: string;
 }) {
   return (
-    <>
-      <h3 className="text-xl mt-4 mb-2 flex gap-2 items-center">
+    <section>
+      <h1 className="text-xl mt-4 mb-2 flex gap-2 items-center uppercase">
         <Flag color={color} />
         {label} ({flags.length})
-      </h3>
-      <ul className="pl-6">
+      </h1>
+      <ul className="pl-4">
         {flags.map((flag) => (
           <li className="list-disc mb-2 last:mb-0" key={flag}>
             <Markdown
@@ -67,6 +68,6 @@ export default function Flags({
           </li>
         ))}
       </ul>
-    </>
+    </section>
   );
 }

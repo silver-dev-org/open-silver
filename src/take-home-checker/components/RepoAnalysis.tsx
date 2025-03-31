@@ -10,6 +10,7 @@ import LoadingBanner from "./LoadingBanner";
 import ProjectAnalysis from "./ProjectAnalysis";
 import ReadmeViewer from "./ReadmeViewer";
 import RepositoryList from "./RepositoryList";
+import { Button } from "@/components/ui/button";
 
 interface RepoAnalysisProps {
   repos: Repo[];
@@ -30,20 +31,20 @@ export default function RepoAnalysis({ repos, token }: RepoAnalysisProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto pt-6 px-4">
+    <div className="max-w-7xl pt-6 px-4 w-full">
       <div className="w-full flex flex-col sm:flex-row gap-4">
         <RepositoryList repos={repos} onSelect={setSelectedRepo} />
-        <button
+        <Button
+          className="py-8"
           onClick={handleAnalyzeClick}
-          className="p-3 w-full sm:w-auto bg-blue-500 text-white rounded-md disabled:bg-gray-300"
           disabled={!selectedRepo || isLoading}
         >
           {isLoading ? "Analyzing..." : "Analyze Project"}
-        </button>
+        </Button>
       </div>
 
       {isLoading && (
-        <div className="text-center mb-6 text-gray-600 dark:text-gray-300 mt-6">
+        <div className="text-center my-6">
           {loadingMessage}
         </div>
       )}
@@ -72,12 +73,6 @@ export default function RepoAnalysis({ repos, token }: RepoAnalysisProps) {
             </div>
             <div>{analysis && <ProjectAnalysis {...analysis} />}</div>
           </motion.div>
-
-          <hr className="w-full my-8" />
-          <AppInfoWithVideo
-            appName="Take Home Checker"
-            videoUrl="https://www.youtube.com/embed/aeyAG2DPWz0?si=IeayRmBlEt0Iv2-T"
-          />
         </>
       )}
     </div>
