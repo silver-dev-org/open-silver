@@ -56,6 +56,7 @@ export default function Home() {
               <Link
                 href={href}
                 key={href}
+                prefetch={true}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
                   "text-4xl p-16"
