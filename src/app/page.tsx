@@ -23,10 +23,6 @@ const tools: {
         href: "/behavioral-checker",
       },
       {
-        title: "WPM Checker",
-        href: "/wpm-checker",
-      },
-      {
         title: "Take-home Checker",
         href: "/take-home-checker",
       },
