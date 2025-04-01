@@ -120,16 +120,11 @@
 }
 
 @font-face {
-  font-family: "Bodoni Moda";
-  src: url("/fonts/BodoniModa-VariableFont_opsz,wght.ttf") format("ttf");
-  font-weight: 100 900;
-}
-
-@font-face {
   font-family: "CerebriSans";
   src: url("/fonts/CerebriSans-Light.woff2") format("woff2");
   font-weight: 300;
-  font-style: light;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -137,27 +132,31 @@
   src: url("/fonts/CerebriSans-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: "CerebriSans";
   src: url("/fonts/CerebriSans-SemiBold.woff2") format("woff2");
   font-weight: 600;
-  font-style: semibold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: "CerebriSans";
   src: url("/fonts/CerebriSans-Bold.woff2") format("woff2");
   font-weight: 700;
-  font-style: bold;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: "CerebriSans";
   src: url("/fonts/CerebriSans-ExtraBold.woff2") format("woff2");
   font-weight: 800;
-  font-style: extrabold;
+  font-style: normal;
+  font-display: swap;
 }
 
 body,
@@ -166,7 +165,7 @@ body,
 }
 
 .font-serif {
-  font-family: "Bodoni Moda", serif;
+  font-family: serif;
 }
 
 @keyframes shimmer {
