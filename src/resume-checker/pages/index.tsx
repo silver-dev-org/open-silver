@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import ErrorBadge from "@/resume-checker/components/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import { useMutationState } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChangeEvent,
@@ -113,7 +114,16 @@ export default function Home() {
         </Heading>
         <Space />
         <Description center>
-          Subí tu CV y recibí feedback inmediato.
+          Armá tu CV con el{" "}
+          <Link
+            href="https://typst.app/app?template=silver-dev-cv"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-primary"
+          >
+            template de Silver
+          </Link>
+          . Subilo acá y recibí feedback de inmediato.
         </Description>
         <Space size="lg" />
         <Grid className="grid-cols-1 md:grid-cols-4">
