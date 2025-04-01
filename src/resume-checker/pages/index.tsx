@@ -176,6 +176,15 @@ export default function Home() {
             </div>
           </div>
         </Grid>
+        <Space size="lg" />
+        <div className="text-center">
+          <Link
+            href="/resume-checker/privacy"
+            className="text-primary underline"
+          >
+            Política de Privacidad
+          </Link>
+        </div>
       </Section>
     </>
   );
