@@ -27,7 +27,7 @@ const Step2: FC<{
       <Space />
       <Description center>
         Get instant feedback from answering classical behavioral questions with
-        Silver.dev's themed auto-response. Great for practicing English &
+        Silver.dev&lsquo;s themed auto-response. Great for practicing English &
         Storytelling.
       </Description>
       <Space size="lg" />
