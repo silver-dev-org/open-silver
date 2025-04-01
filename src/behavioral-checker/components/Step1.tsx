@@ -419,6 +419,7 @@ const Step1: React.FC<{
               )}
               <Button
                 className="mt-4 w-full"
+                variant="secondary"
                 onClick={handleEvaluate}
                 disabled={
                   !recorded ||

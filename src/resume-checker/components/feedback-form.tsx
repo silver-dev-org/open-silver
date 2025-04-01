@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import { FormState } from "@/resume-checker/types";
 import { useMutation } from "@tanstack/react-query";
@@ -122,12 +123,13 @@ export default function FeedbackForm({
               onChange={(e) => setHasConsented(e.target.checked)}
             />
           </div>
-          <button
+          <Button
             disabled={feedbackMutation.isPending || !hasConsented}
-            className="w-full px-10 disabled:bg-indigo-800/50 disabled:cursor-not-allowed disabled:text-gray-300 py-2 text-center block rounded bg-indigo-800 font-bold hover:bg-indigo-600 cursor-pointer text-white"
+            variant="secondary"
+            className="w-full"
           >
             Enviar Feedback
-          </button>
+          </Button>
         </div>
       </form>
     </section>

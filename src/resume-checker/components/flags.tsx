@@ -55,7 +55,7 @@ export default function Flags({
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-indigo-500 hover:text-indigo-400 dark:text-indigo-300 dark:hover-text-indigo-400 underline"
+                    className="link"
                     {...props}
                   >
                     {children}

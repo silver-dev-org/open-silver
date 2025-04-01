@@ -36,6 +36,7 @@ export default function RepoAnalysis({ repos, token }: RepoAnalysisProps) {
         <RepositoryList repos={repos} onSelect={setSelectedRepo} />
         <Button
           className="py-8"
+          variant="secondary"
           onClick={handleAnalyzeClick}
           disabled={!selectedRepo || isLoading}
         >

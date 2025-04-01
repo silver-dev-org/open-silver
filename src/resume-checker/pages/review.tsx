@@ -1,8 +1,4 @@
-import Description from "@/components/description";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Space from "@/components/space";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import FeedbackForm from "@/resume-checker/components/feedback-form";
 import Flags from "@/resume-checker/components/flags";
 import PDF from "@/resume-checker/components/pdf";
@@ -98,17 +94,14 @@ export default function Review() {
             {!mutation.isPending && isVictorVigon ? (
               <p>
                 Este CV fue elaborado en{" "}
-                <Link
-                  href="https://ready.silver.dev"
-                  className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                >
+                <Link href="https://ready.silver.dev" className="link">
                   Interview Ready
                 </Link>{" "}
                 con la siguiente{" "}
                 <Link
                   target="_blank"
                   href="https://docs.silver.dev/interview-ready/soft-fundamentals/preparando-el-cv"
-                  className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                  className="link"
                 >
                   guía
                 </Link>
@@ -134,23 +127,20 @@ export default function Review() {
 
           {mutation.isPending ? (
             <p className="opacity-0 animate-[fadeIn_200ms_ease-in_3s_forwards] px-4 py-2 text-center bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-md border border-gray-300 dark:border-gray-700">
-              <span className="mr-2 text-blue-500 dark:text-blue-400">●</span>
+              <span className="mr-2 text-secondary">●</span>
               El proceso puede tardar un hasta 2 minutos...
             </p>
           ) : (
             <div className="flex flex-col gap-4">
               <Link
                 href="/resume-checker"
-                className={buttonVariants({ variant: "default" })}
+                className={buttonVariants({ variant: "secondary" })}
               >
                 Probá otra vez
               </Link>
-              <button onClick={() => setFeedbackFormOpen(true)}>
-                Dijo cualquiera?{" "}
-                <span className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200 cursor-pointer">
-                  Avisanos...
-                </span>
-              </button>
+              <Button variant="ghost" onClick={() => setFeedbackFormOpen(true)}>
+                Dijo cualquiera? Avisanos
+              </Button>
             </div>
           )}
         </div>

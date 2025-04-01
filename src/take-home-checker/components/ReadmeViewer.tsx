@@ -27,7 +27,7 @@ const ReadmeViewer = ({ markdown }: { markdown: string }) => {
             a: ({ ...props }) => (
               <a
                 target="_blank"
-                className="hover:underline text-blue-400"
+                className="hover:underline text-secondary"
                 {...props}
               />
             ),
