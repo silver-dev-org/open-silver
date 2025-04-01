@@ -6,7 +6,6 @@ import SessionProvider from "@/providers/SessionProvider";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,13 +45,6 @@ export default async function RootLayout({
             {children}
           </main>
           <Footer />
-          <Script
-            id="vtag-ai-js"
-            async
-            src="https://r2.leadsy.ai/tag.js"
-            data-pid="1b5bbykqSgzcEEnU3"
-            data-version="062024"
-          />
         </body>
       </SessionProvider>
     </html>
