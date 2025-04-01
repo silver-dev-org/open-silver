@@ -1,5 +1,7 @@
-import Section from "@/components/section";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FaFlag } from "react-icons/fa";
 import Markdown from "react-markdown";
+import { twMerge } from "tailwind-merge";
 
 function Flag({ color }: { color: string }) {
   return (
@@ -39,35 +41,69 @@ export default function Flags({
   color: string;
   label: string;
 }) {
+  const getColorStyles = (color: string) => {
+    const colorMap: Record<
+      string,
+      { border: string; text: string; icon: string }
+    > = {
+      red: {
+        border: "border-red-500",
+        text: "text-red-500",
+        icon: "text-red-500",
+      },
+      yellow: {
+        border: "border-yellow-500",
+        text: "text-yellow-500",
+        icon: "text-yellow-500",
+      },
+      green: {
+        border: "border-green-500",
+        text: "text-green-500",
+        icon: "text-green-500",
+      },
+    };
+    return colorMap[color.toLowerCase()] || colorMap.green;
+  };
+
+  const { border, text, icon } = getColorStyles(color);
+
   return (
-    <section>
-      <h1 className="text-xl mt-4 mb-2 flex gap-2 items-center uppercase">
-        <Flag color={color} />
-        {label} ({flags.length})
-      </h1>
-      <ul className="pl-4">
-        {flags.map((flag) => (
-          <li className="list-disc mb-2 last:mb-0" key={flag}>
-            <Markdown
-              components={{
-                a: ({ children, href, ...props }) => (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link"
-                    {...props}
-                  >
-                    {children}
-                  </a>
-                ),
-              }}
-            >
-              {flag}
-            </Markdown>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Card className={twMerge(border)}>
+      <CardHeader className={text}>
+        <CardTitle className="flex items-center gap-2">
+          <FaFlag className={icon} />
+          {label} ({flags.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul>
+          {flags.length > 0 ? (
+            flags.map((flag) => (
+              <li key={flag} className="list-disc ml-4 mb-2 last:mb-0">
+                <Markdown
+                  components={{
+                    a: ({ children, href, ...props }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link"
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    ),
+                  }}
+                >
+                  {flag}
+                </Markdown>
+              </li>
+            ))
+          ) : (
+            <li className="italic">No flags</li>
+          )}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
