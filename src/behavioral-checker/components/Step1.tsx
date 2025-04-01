@@ -8,56 +8,16 @@ import Space from "@/components/space";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
-import Select from "react-select";
 import ConsentDialog from "./ConsentDialog";
-
-const customClassNames = {
-  control: (state: any) =>
-    `p-2 rounded border ${
-      state.isFocused
-        ? "border-blue-500 ring-2 ring-blue-400 dark:border-blue-300 dark:ring-blue-300"
-        : "border-gray-300 dark:border-gray-300"
-    } bg-white dark:bg-transparent text-gray-800 dark:text-white`,
-  menu: () => "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200",
-  option: (state: any) =>
-    `p-2 cursor-pointer ${
-      state.isSelected
-        ? "bg-blue-500 dark:bg-blue-600 text-white font-bold"
-        : state.isFocused
-          ? "bg-blue-100 dark:bg-blue-500/30 text-gray-900 dark:text-gray-100"
-          : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
-    }`,
-};
-
-const ThemedSelect = (props: any) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-
-  return (
-    <Select
-      {...props}
-      classNames={{
-        control: customClassNames.control,
-        menu: customClassNames.menu,
-        option: customClassNames.option,
-      }}
-      theme={(theme) => ({
-        ...theme,
-        borderRadius: 4,
-        colors: {},
-      })}
-    />
-  );
-};
 
 const Step1: React.FC<{
   question: Question;
@@ -78,22 +38,18 @@ const Step1: React.FC<{
   isLoading,
   loadingExampleId,
 }) => {
-  const [company, setCompany] = useState<{ value: string; label: string }>(
-    companyOptions[0]
-  );
-  const [role, setRole] = useState<{ value: string; label: string }>(
-    roleOptions[0]
-  );
+  const [company, setCompany] = useState<string>(companyOptions[0].value);
+  const [role, setRole] = useState<string>(roleOptions[0].value);
 
   const questionToText = () => {
     let q = question.text;
 
     if (question.tags?.includes("company")) {
-      q += ` ${company.value}`;
+      q += ` ${company}`;
     }
 
     if (question.tags?.includes("role")) {
-      q += `, ${role.value}`;
+      q += `, ${role}`;
     }
 
     return q;
@@ -303,70 +259,74 @@ const Step1: React.FC<{
       </Description>
       <Space size="lg" />
       <Card className="max-w-[1000px] w-full mx-auto">
-        <CardContent className="py-4 px-8">
+        <CardContent>
           {/* Sección Pregunta - Ancho completo */}
-          <div className="border-b border-gray-200 dark:border-gray-700 pb-8">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
-              Question
-            </h2>
-            <ThemedSelect
-              options={questions.map((q) => ({ value: q.id, label: q.text }))}
-              value={{ value: question.id, label: question.text }}
-              onChange={(value: { value: string; label: string }) =>
-                onSelectQuestion(value.value)
-              }
-              className="w-full"
-              styles={{
-                control: (base: any) => ({
-                  ...base,
-                  fontSize: "1.25rem",
-                  fontWeight: "bold",
-                }),
-              }}
-            />
+          <div className="border-b border-foreground pb-6">
+            <h2 className="text-xl font-bold mb-4">Question</h2>
+            <Select
+              value={question.id}
+              onValueChange={(value) => onSelectQuestion(value)}
+            >
+              <SelectTrigger className="w-full text-lg">
+                <SelectValue placeholder="Select a question" />
+              </SelectTrigger>
+              <SelectContent>
+                {questions.map((q) => (
+                  <SelectItem key={q.id} value={q.id}>
+                    {q.text}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Contenedor flex para Respuesta y Ejemplos */}
-          <div className="flex gap-8 pt-8">
+          <div className="flex gap-8 pt-6">
             {/* Sección Respuesta - Mitad izquierda */}
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
-                Your answer
-              </h2>
+              <h2 className="text-xl font-bold mb-4">Your answer</h2>
               {question.tags?.includes("company") && (
                 <>
-                  <label className="block text-gray-700 dark:text-gray-200 text-lg mb-2">
-                    Company
-                  </label>
-                  <ThemedSelect
-                    options={companyOptions}
+                  <label className="block text-lg mb-1">Company</label>
+                  <Select
                     value={company}
-                    onChange={(value: { value: string; label: string }) =>
-                      setCompany(value)
-                    }
-                    className="mb-4"
-                  />
+                    onValueChange={(value) => setCompany(value)}
+                  >
+                    <SelectTrigger className="w-full mb-4">
+                      <SelectValue placeholder="Select a company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companyOptions.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </>
               )}
               {question.tags?.includes("role") && (
                 <>
-                  <label className="block text-gray-700 dark:text-gray-200 text-lg mb-2">
-                    Role
-                  </label>
-                  <ThemedSelect
-                    options={roleOptions}
+                  <label className="block text-lg mb-1">Role</label>
+                  <Select
                     value={role}
-                    onChange={(value: { value: string; label: string }) =>
-                      setRole(value)
-                    }
-                    className="mb-4"
-                  />
+                    onValueChange={(value) => setRole(value)}
+                  >
+                    <SelectTrigger className="w-full mb-4">
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>
+                          {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </>
               )}
-              <div className="mb-2">
-                <label className="block text-gray-700 dark:text-gray-200 text-lg mb-2">
-                  Audio
-                </label>
+              <div className="mb-4">
+                <label className="block text-lg mb-1">Audio</label>
                 <div
                   className={`flex items-center justify-between w-full p-4 border rounded-lg ${
                     invalidLength
@@ -423,7 +383,7 @@ const Step1: React.FC<{
                         />
                       )}
                     </div>
-                    <span className="text-lg font-bold text-gray-800 dark:text-gray-200 ml-4">
+                    <span className="text-lg font-bold ml-4">
                       {isActive && "Recording ("}
                       {recorded ? `${formatTime(reproduced)}/` : ""}
                       {formatTime(counter)}
@@ -436,9 +396,7 @@ const Step1: React.FC<{
                     </Button>
                   )}
                   {!recorded && (
-                    <p className="text-gray-700 dark:text-gray-200 text-sm text-center">
-                      {question.maxTime}s
-                    </p>
+                    <p className=" text-sm text-center">{question.maxTime}s</p>
                   )}
                 </div>
                 {invalidLength && (
@@ -454,16 +412,13 @@ const Step1: React.FC<{
                     checked={isHelping}
                     onCheckedChange={handleConsentChange}
                   />
-                  <label
-                    htmlFor="consent"
-                    className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-                  >
+                  <label htmlFor="consent" className="text-sm cursor-pointer">
                     Ayudar a mejorar el modelo con mi respuesta
                   </label>
                 </div>
               )}
               <Button
-                className="mt-4 w-full bg-indigo-800 hover:bg-indigo-600 text-white"
+                className="mt-4 w-full"
                 onClick={handleEvaluate}
                 disabled={
                   !recorded ||
@@ -500,18 +455,14 @@ const Step1: React.FC<{
 
             {/* Línea divisoria vertical */}
             <div className="flex flex-col items-center">
-              <div className="flex-1 w-[1px] bg-gray-200 dark:bg-gray-700"></div>
-              <span className="text-gray-500 dark:text-gray-400 text-sm font-medium my-4">
-                ó
-              </span>
-              <div className="flex-1 w-[1px] bg-gray-200 dark:bg-gray-700"></div>
+              <div className="flex-1 w-[1px] bg-foreground"></div>
+              <span className="text-sm font-medium my-4">o</span>
+              <div className="flex-1 w-[1px] bg-foreground"></div>
             </div>
 
             {/* Sección Ejemplos - Mitad derecha */}
             <div className="w-[250px]">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-6">
-                Examples
-              </h2>
+              <h2 className="text-xl font-bold mb-3">Examples</h2>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => onExample(question.id, "Strong yes")}
