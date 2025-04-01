@@ -1,6 +1,10 @@
 import { Result } from "@/behavioral-checker/client-assistance/core/domain/Action";
 import { Question, questions } from "@/behavioral-checker/data/questions";
-import { companyOptions, roleOptions } from "@/behavioral-checker/data/selects";
+import {
+  companyOptions,
+  roleOptions,
+  valueOptions,
+} from "@/behavioral-checker/data/selects";
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
@@ -40,6 +44,7 @@ const Step1: React.FC<{
 }) => {
   const [company, setCompany] = useState<string>(companyOptions[0].value);
   const [role, setRole] = useState<string>(roleOptions[0].value);
+  const [value, setValue] = useState<string>(valueOptions[0].value);
 
   const questionToText = () => {
     let q = question.text;
@@ -267,10 +272,10 @@ const Step1: React.FC<{
               value={question.id}
               onValueChange={(value) => onSelectQuestion(value)}
             >
-              <SelectTrigger className="w-full text-lg">
+              <SelectTrigger className="w-full text-lg whitespace-normal text-left py-8">
                 <SelectValue placeholder="Select a question" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-[var(--radix-select-trigger-width)]">
                 {questions.map((q) => (
                   <SelectItem key={q.id} value={q.id}>
                     {q.text}
@@ -319,6 +324,26 @@ const Step1: React.FC<{
                       {roleOptions.map((r) => (
                         <SelectItem key={r.value} value={r.value}>
                           {r.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+              {question.tags?.includes("value") && (
+                <>
+                  <label className="block text-lg mb-1">Value</label>
+                  <Select
+                    value={value}
+                    onValueChange={(value) => setValue(value)}
+                  >
+                    <SelectTrigger className="w-full mb-4">
+                      <SelectValue placeholder="Select a value" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {valueOptions.map((v) => (
+                        <SelectItem key={v.value} value={v.value}>
+                          {v.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
