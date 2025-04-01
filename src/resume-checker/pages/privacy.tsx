@@ -1,9 +1,11 @@
+import Heading from "@/components/heading";
+import Section from "@/components/section";
+import Space from "@/components/space";
 export default function Privacy() {
   return (
-    <div className="container max-w-screen-md">
-      <h1 className="text-xl lg:text-3xl font-bold mb-4">
-        Política de Privacidad
-      </h1>
+    <Section>
+      <Heading>Política de Privacidad</Heading>
+      <Space />
       <p className="mb-6">
         Gracias por utilizar Resume Checker. Su privacidad es muy importante
         para nosotros, y estamos comprometidos a ser transparentes sobre cómo
@@ -57,6 +59,6 @@ export default function Privacy() {
           </p>
         </li>
       </ul>
-    </div>
+    </Section>
   );
 }
