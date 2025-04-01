@@ -8,14 +8,27 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { spaceSizes } from "./space";
 
+interface Link {
+  href: string;
+  label: string;
+}
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const hrefPrefix = pathname?.startsWith("/hire") ? "" : "/";
 
-  const heroLinks = [
+  const anchorLinks: Link[] = [
     { href: hrefPrefix + "#for-talent", label: "For Talent" },
     { href: hrefPrefix + "#for-employers", label: "For Employers" },
+  ];
+
+  const externalLinks: Link[] = [
+    { href: "https://ready.silver.dev", label: "Interview Ready" },
+    {
+      href: "https://jobs.ashbyhq.com/Silver?utm_source=Pedw1mQEZd",
+      label: "Jobs",
+    },
   ];
 
   return (
@@ -50,12 +63,25 @@ export default function Header() {
               : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
           }`}
         >
-          {heroLinks.map(({ href, label }) => (
+          {anchorLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               className={buttonVariants({ variant: "link" })}
               onClick={() => setIsMenuOpen(false)}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+        <div className="flex flex-row gap-2">
+          {externalLinks.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "outline" })}
             >
               {label}
             </Link>
