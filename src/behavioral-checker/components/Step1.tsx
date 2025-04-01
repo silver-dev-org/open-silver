@@ -448,7 +448,7 @@ const Step1: React.FC<{
                         fill="currentColor"
                       />
                     </svg>
-                    Loading...
+                    Processing audio...
                   </div>
                 )}
               </Button>
