@@ -119,7 +119,7 @@ export default function Home() {
             href="https://typst.app/app?template=silver-dev-cv"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline text-primary"
+            className="link"
           >
             template de Silver
           </Link>
@@ -135,7 +135,7 @@ export default function Home() {
             encType="multipart/form-data"
             className={`w-full overflow-hidden md:col-span-3 h-full p-8 relative border-2 rounded-lg  ${isDragActive ? "cursor-grabbing border-foreground " : "border-foreground/50"}  border-dashed flex items-center justify-center flex-col gap-1`}
           >
-            <Button>Hacé click para subir tu CV</Button>
+            <Button variant="secondary">Hacé click para subir tu CV</Button>
             <span className="mt-4 text-center">o arrastrá tu CV</span>
             <input
               className="sr-only"
@@ -180,7 +180,7 @@ export default function Home() {
         <div className="text-center">
           <Link
             href="/resume-checker/privacy"
-            className="text-primary underline"
+            className="link"
           >
             Política de Privacidad
           </Link>

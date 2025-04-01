@@ -82,7 +82,7 @@ const Step2: FC<{
             <Button className="flex-1/2" variant="outline" onClick={onTryAgain}>
               Try again
             </Button>
-            <Button className="flex-1/2" onClick={onNext}>
+            <Button className="flex-1/2" variant="secondary" onClick={onNext}>
               Next question
             </Button>
           </div>
