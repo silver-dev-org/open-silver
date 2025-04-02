@@ -11,6 +11,7 @@ import { spaceSizes } from "./space";
 interface Link {
   href: string;
   label: string;
+  target?: string;
 }
 
 export default function Header() {
@@ -24,12 +25,41 @@ export default function Header() {
   ];
 
   const externalLinks: Link[] = [
-    { href: "https://ready.silver.dev", label: "Interview Ready" },
+    {
+      href: "https://ready.silver.dev",
+      label: "Interview Ready",
+      target: "_blank",
+    },
     {
       href: "https://jobs.ashbyhq.com/Silver?utm_source=Pedw1mQEZd",
       label: "Jobs",
+      target: "_blank",
     },
   ];
+
+  function LinksGroup({ links }: { links: Link[] }) {
+    return (
+      <div
+        className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${
+          isMenuOpen
+            ? `flex flex-col max-h-screen ${spaceSizes.sm.mt}`
+            : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
+        }`}
+      >
+        {links.map(({ href, label, target }) => (
+          <Link
+            key={href}
+            href={href}
+            target={target}
+            onClick={() => setIsMenuOpen(false)}
+            className={buttonVariants({ variant: "link" })}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <header
@@ -56,37 +86,8 @@ export default function Header() {
             )}
           </Button>
         </div>
-        <div
-          className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${
-            isMenuOpen
-              ? `flex flex-col max-h-screen ${spaceSizes.sm.mt}`
-              : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
-          }`}
-        >
-          {anchorLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={buttonVariants({ variant: "link" })}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-        <div className="flex flex-row gap-2">
-          {externalLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={buttonVariants({ variant: "link" })}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
+        <LinksGroup links={anchorLinks} />
+        <LinksGroup links={externalLinks} />
       </div>
     </header>
   );
