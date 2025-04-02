@@ -57,6 +57,10 @@ const Step1: React.FC<{
       q += `, ${role}`;
     }
 
+    if (question.tags?.includes("value")) {
+      q += `, ${value}`;
+    }
+
     return q;
   };
 
