@@ -6,7 +6,7 @@ import Section from "@/components/section";
 import Space, { spaceSizes } from "@/components/space";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { FaFlag } from "react-icons/fa";
 import RatingBar from "./RatingBar";
 
@@ -19,6 +19,21 @@ const Step2: FC<{
   onNext,
   onTryAgain,
 }) => {
+  useEffect(() => {
+    const handleBackButton = (e: PopStateEvent) => {
+      e.preventDefault();
+      onTryAgain();
+    };
+
+    window.history.pushState(null, "", window.location.pathname);
+
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, [onTryAgain]);
+
   return (
     <Section>
       <Heading center>
