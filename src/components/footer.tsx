@@ -48,6 +48,7 @@ export default function Footer() {
                   <li key={href}>
                     <Link
                       href={href}
+                      target="_blank"
                       className={buttonVariants({ variant: "link" })}
                     >
                       {label}
