@@ -286,7 +286,7 @@ const Step1: React.FC<{
           </div>
 
           {/* Contenedor flex para Respuesta y Ejemplos */}
-          <div className="flex gap-8 pt-6">
+          <div className="flex flex-col lg:flex-row gap-8 pt-6">
             {/* Sección Respuesta - Mitad izquierda */}
             <div className="flex-1">
               <h2 className="text-xl font-bold mb-4">Your answer</h2>
@@ -359,11 +359,11 @@ const Step1: React.FC<{
                       : "border-gray-300 dark:border-gray-300"
                   }`}
                 >
-                  <div className="flex items-center">
-                    <div className="w-[36px] h-[36px] flex justify-center items-center">
+                  <div className="flex items-center w-full sm:w-auto">
+                    <div className="size-10 flex justify-center items-center">
                       {!isActive && recorded ? (
                         <div
-                          className="w-[36px] h-[36px] bg-indigo-800 dark:bg-indigo-500 rounded-full flex items-center justify-center cursor-pointer"
+                          className="size-10 bg-secondary rounded-full flex items-center justify-center cursor-pointer"
                           onClick={reproducing ? handleStop : handlePlay}
                         >
                           {reproducing ? (
@@ -415,14 +415,16 @@ const Step1: React.FC<{
                       {isActive && ")"}
                     </span>
                   </div>
-                  {recorded && (
-                    <Button variant="destructive" onClick={deleteRecording}>
-                      Retry
-                    </Button>
-                  )}
-                  {!recorded && (
-                    <p className=" text-sm text-center">{question.maxTime}s</p>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {recorded && (
+                      <Button variant="destructive" onClick={deleteRecording}>
+                        Retry
+                      </Button>
+                    )}
+                    {!recorded && (
+                      <p className="text-sm text-center">{question.maxTime}s</p>
+                    )}
+                  </div>
                 </div>
                 {invalidLength && (
                   <p className="text-red-500 text-sm text-center mt-2">
@@ -480,16 +482,16 @@ const Step1: React.FC<{
             </div>
 
             {/* Línea divisoria vertical */}
-            <div className="flex flex-col items-center">
+            <div className="hidden lg:flex flex-col items-center">
               <div className="flex-1 w-[1px] bg-foreground"></div>
               <span className="text-sm font-medium my-4">o</span>
               <div className="flex-1 w-[1px] bg-foreground"></div>
             </div>
 
             {/* Sección Ejemplos - Mitad derecha */}
-            <div className="w-[250px]">
+            <div className="w-full lg:w-[250px]">
               <h2 className="text-xl font-bold mb-3">Examples</h2>
-              <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
                 <button
                   onClick={() => onExample(question.id, "Strong yes")}
                   disabled={isLoading || loadingExampleId !== null}
