@@ -77,7 +77,7 @@ const Step1: React.FC<{
   const reproducingTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [showConsent, setShowConsent] = useState(false);
-  const [isHelping, setIsHelping] = useState<boolean>(false);
+  const [isHelping, setIsHelping] = useState<boolean>(true);
   const [pendingSubmission, setPendingSubmission] = useState<{
     id: string;
     question: string;
@@ -201,7 +201,7 @@ const Step1: React.FC<{
 
   useEffect(() => {
     const consent = localStorage.getItem("consent");
-    setIsHelping(consent === "true");
+    setIsHelping(consent === "true" || consent === null);
     setHasExistingConsent(consent !== null);
   }, []);
 
@@ -436,18 +436,16 @@ const Step1: React.FC<{
                   </p>
                 )}
               </div>
-              {hasExistingConsent && (
-                <div className="flex items-center space-x-2 mt-4">
-                  <Checkbox
-                    id="consent"
-                    checked={isHelping}
-                    onCheckedChange={handleConsentChange}
-                  />
-                  <label htmlFor="consent" className="text-sm cursor-pointer">
-                    Ayudar a mejorar el modelo con mi respuesta
-                  </label>
-                </div>
-              )}
+              <div className="flex items-center space-x-2 mt-4">
+                <Checkbox
+                  id="consent"
+                  checked={isHelping}
+                  onCheckedChange={handleConsentChange}
+                />
+                <label htmlFor="consent" className="text-sm cursor-pointer">
+                  Help improve the model with my answer
+                </label>
+              </div>
               <Button
                 className="mt-4 w-full"
                 variant="secondary"
