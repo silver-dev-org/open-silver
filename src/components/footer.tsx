@@ -12,13 +12,17 @@ const links: {
       { href: "https://silver.dev", label: "Website" },
       { href: "https://silver.dev/about", label: "About" },
       { href: "mailto:info@silver.dev", label: "Contact" },
+      {
+        href: "https://github.com/silver-dev-org/open-silver",
+        label: "Source code",
+      },
     ],
   },
-
   {
     group: "For talent",
     links: [
-      { href: "https://ready.silver.dev/blog", label: "Blog" },
+      { href: "https://ready.silver.dev/blog", label: "Career Blog" },
+      { href: "https://docs.silver.dev", label: "Silver Docs" },
       { href: "https://silver.dev/podcast", label: "Podcast" },
       { href: "https://silver.dev/ed", label: "SilverEd" },
       { href: "https://silver.dev/community", label: "Community" },
@@ -28,7 +32,7 @@ const links: {
   },
   {
     group: "For employers",
-    links: [{ href: "https://blog.silver.dev", label: "Blog" }],
+    links: [{ href: "https://blog.silver.dev", label: "Hiring Blog" }],
   },
 ];
 
