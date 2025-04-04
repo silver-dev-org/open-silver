@@ -58,7 +58,11 @@ export default function Page() {
   }
   const booleanProps = [
     ["x", "Exclusivity", "Each role is handled by only one agency."],
-    ["p", "Payroll", "We handle payments and contracts. You pay once."],
+    [
+      "p",
+      "Payroll",
+      "We handle payments and contracts. You pay once per cycle for all hired staff.",
+    ],
     ["d", "Deferred payment", "Pay 6 months after the hire was made."],
     ["g", "Pay as you go", "Pay the fee in monthly installments."],
     [
