@@ -1,3 +1,4 @@
+import { PreppingData } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 const letterColors = {
@@ -32,6 +33,7 @@ export default function Score({ letter }: { letter?: string }) {
   useEffect(() => {
     const index = letterKeys.indexOf(letter as Letter);
     if (index !== -1) {
+      PreppingData.setToolData("resume-checker", letter as string);
       setIdx(index);
     }
   }, [letter]);

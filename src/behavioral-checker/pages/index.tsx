@@ -6,6 +6,7 @@ import Notification from "@/behavioral-checker/components/Notification";
 import Step1 from "@/behavioral-checker/components/Step1";
 import Step2 from "@/behavioral-checker/components/Step2";
 import { Question, questions } from "@/behavioral-checker/data/questions";
+import { PreppingData } from "@/lib/utils";
 import { useState } from "react";
 
 export default function Home() {
@@ -22,9 +23,6 @@ export default function Home() {
     question: string,
     audioBlob: Blob | null
   ) => {
-    console.log("audioBlob", audioBlob);
-    console.log("question", question);
-    console.log("id", id);
     if (!audioBlob) return;
 
     try {
@@ -45,7 +43,10 @@ export default function Home() {
         throw new Error(error.error || "Error analyzing audio");
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as AssistanceResponse;
+      const preppingData = PreppingData.getToolData("behavioral-checker");
+      preppingData[id] = data.result;
+      PreppingData.setToolData("behavioral-checker", preppingData);
       setResult(data);
     } catch (error: any) {
       console.error("Error during audio analysis:", error.message);

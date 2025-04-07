@@ -1,11 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PreppingData } from "@/lib/utils";
 import useLoadingMessage from "@/take-home-checker/hooks/useLoadingMessage";
 import { useProjectAnalysis } from "@/take-home-checker/hooks/useProjectAnalysis";
 import { Repo } from "@/take-home-checker/types/repo";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LoadingBanner from "./LoadingBanner";
 import ProjectAnalysis from "./ProjectAnalysis";
 import ReadmeViewer from "./ReadmeViewer";
@@ -28,6 +29,14 @@ export default function RepoAnalysis({ repos, token }: RepoAnalysisProps) {
   const handleAnalyzeClick = () => {
     refetch();
   };
+
+  useEffect(() => {
+    if (selectedRepo && analysis?.grade) {
+      const preppingData = PreppingData.getToolData("take-home-checker");
+      preppingData[selectedRepo.full_name] = analysis.grade;
+      PreppingData.setToolData("take-home-checker", preppingData);
+    }
+  }, [selectedRepo, analysis]);
 
   return (
     <div className="max-w-7xl pt-6 px-4 w-full">
