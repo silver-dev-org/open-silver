@@ -151,7 +151,7 @@ export default function Page() {
                   <Card
                     className={`transition-colors hover:bg-foreground/10 cursor-pointer ${
                       contractProps[key as keyof ContractProps] &&
-                      "border-primary"
+                      "border-foreground"
                     }`}
                   >
                     <CardHeader className="p-4">
@@ -162,6 +162,7 @@ export default function Page() {
                             setContractProp(key, checked)
                           }
                           checked={contractProps[key as keyof ContractProps]}
+                          className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
                         />
                         {label}
                       </CardTitle>
@@ -212,7 +213,7 @@ Link: ${window.location.origin}?${queryString}`
           <div className="flex gap-1.5 mb-12">
             <Card className="w-1/2 text-center">
               <CardHeader className="h-full">
-                <CardTitle className="text-3xl sm:text-6xl my-auto font-serif">
+                <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
                   <NumberFlow prefix="$" value={cost || 0} />
                 </CardTitle>
                 <CardDescription>Expected contract cost</CardDescription>
@@ -220,7 +221,7 @@ Link: ${window.location.origin}?${queryString}`
             </Card>
             <Card className="w-1/2 text-center">
               <CardHeader className="h-full">
-                <CardTitle className="text-3xl sm:text-6xl my-auto font-serif">
+                <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
                   <NumberFlow
                     suffix="%"
                     value={contractProps.f * (1 - discountPercentage)}
@@ -288,7 +289,7 @@ function CardRadioGroup({
           key={value}
           className={cn(
             "flex-grow flex items-center justify-center gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all",
-            currentValue === value ? "border-primary" : "border-border"
+            currentValue === value ? "border-foreground" : "border-border"
           )}
           onClick={() => onValueChange(value)}
         >
