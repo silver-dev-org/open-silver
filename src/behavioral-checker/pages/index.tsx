@@ -32,6 +32,7 @@ export default function Home() {
       formData.append("audio", audioBlob, "audio.wav");
       formData.append("id", id);
       formData.append("question", question);
+      formData.append("consent", localStorage.getItem("consent") || "false");
 
       const response = await fetch("/api/analysis", {
         method: "POST",
