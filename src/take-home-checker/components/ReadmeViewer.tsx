@@ -8,7 +8,7 @@ const ReadmeViewer = ({ markdown }: { markdown: string }) => {
   const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
   return (
-    <Card className="h-full">
+    <Card className="h-full overflow-x-auto">
       <CardContent>
         <ReactMarkdown
           components={{
