@@ -30,7 +30,9 @@ export class PreppingData {
 
   static setToolData(tool: keyof typeof this.tools, value: Object | string) {
     const domain =
-      typeof window !== "undefined" ? window.location.hostname : "localhost";
+      typeof window !== "undefined"
+        ? window.location.hostname.replace("open.", "")
+        : "localhost";
     const data = this.getCookieData();
     data[this.tools[tool]] = value;
     document.cookie = `${this.cookieName}=${encodeURIComponent(JSON.stringify(data))}; domain=${domain}; path=/; max-age=31536000; samesite=none; secure`;
