@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import ConsentDialog from "./ConsentDialog";
 
@@ -264,7 +265,15 @@ const Step1: React.FC<{
       <Description center>
         Get instant feedback from answering classical behavioral questions with
         Silver.dev&lsquo;s themed auto-response. Great for practicing English &
-        Storytelling.
+        Storytelling. Check{" "}
+        <Link
+          className="link"
+          href="https://docs.silver.dev/interview-ready/soft-fundamentals/pasando-entrevistas/behavioral-preguntas-clasicas#tips"
+          target="_blank"
+        >
+          our tips
+        </Link>{" "}
+        for more guidance.
       </Description>
       <Space size="lg" />
       <Card className="max-w-[1000px] w-full mx-auto">
