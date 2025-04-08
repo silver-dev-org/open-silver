@@ -17,19 +17,18 @@ export const addFeedbackToNotion = async (
     const res = await notion.pages.create({
       parent: { database_id: DATABASE_ID },
       properties: {
-        Fecha: { date: { start: new Date().toISOString() } },
-        Id: { rich_text: [{ text: { content: data.questionId } }] },
-        Pregunta: { title: [{ text: { content: data.question } }] },
-        Respuesta: { rich_text: [{ text: { content: data.response } }] },
-        Resultado: { select: { name: data.result } },
-        "Resultado Corregido": { select: { name: data.result } },
-        "Green Flags": {
+        ID: { select: { name: data.questionId } },
+        Date: { date: { start: new Date().toISOString() } },
+        Question: { title: [{ text: { content: data.question } }] },
+        Answer: { rich_text: [{ text: { content: data.response } }] },
+        Score: { select: { name: data.result } },
+        Length: { number: data.response.length },
+        "Green flags": {
           rich_text: [{ text: { content: data.greenFlags.join(", ") } }],
         },
-        "Red Flags": {
+        "Red flags": {
           rich_text: [{ text: { content: data.redFlags.join(", ") } }],
         },
-        Longitud: { number: data.response.length },
       },
     });
 
@@ -49,13 +48,13 @@ export const getStrongYesFeedback = async (
       filter: {
         and: [
           {
-            property: "Id",
-            rich_text: {
+            property: "ID",
+            select: {
               equals: questionId,
             },
           },
           {
-            property: "Resultado Corregido",
+            property: "Score",
             select: {
               equals: "Strong yes",
             },
@@ -64,7 +63,7 @@ export const getStrongYesFeedback = async (
       },
       sorts: [
         {
-          property: "Fecha",
+          property: "Date",
           direction: "descending",
         },
       ],
@@ -75,10 +74,10 @@ export const getStrongYesFeedback = async (
       if (r.object === "page") {
         const page = r as PageObjectResponse;
         if (
-          page.properties.Respuesta !== undefined &&
-          page.properties.Respuesta.type === "rich_text"
+          page.properties.Answer !== undefined &&
+          page.properties.Answer.type === "rich_text"
         ) {
-          return page.properties.Respuesta.rich_text[0].plain_text;
+          return page.properties.Answer.rich_text[0].plain_text;
         }
       }
       return "No response found";
@@ -99,28 +98,22 @@ export const getLastFeedback = async (
       filter: {
         and: [
           {
-            property: "Id",
-            rich_text: {
+            property: "ID",
+            select: {
               equals: questionId,
             },
           },
           {
-            property: "Resultado Corregido",
+            property: "Revised score",
             select: {
               equals: result,
-            },
-          },
-          {
-            property: "Longitud",
-            number: {
-              greater_than_or_equal_to: 100,
             },
           },
         ],
       },
       sorts: [
         {
-          property: "Fecha",
+          property: "Date",
           direction: "descending",
         },
       ],
@@ -133,29 +126,29 @@ export const getLastFeedback = async (
     const properties = page.properties;
 
     if (
-      properties.Id.type !== "rich_text" ||
-      properties.Pregunta.type !== "title" ||
-      properties.Respuesta.type !== "rich_text" ||
-      properties.Resultado.type !== "select" ||
-      properties.Resultado.select === null ||
-      properties["Green Flags"].type !== "rich_text" ||
-      properties["Red Flags"].type !== "rich_text"
+      properties.ID.type !== "select" ||
+      properties.Question.type !== "title" ||
+      properties.Answer.type !== "rich_text" ||
+      properties.Score.type !== "select" ||
+      properties.Score.select === null ||
+      properties["Green flags"].type !== "rich_text" ||
+      properties["Red flags"].type !== "rich_text"
     ) {
       console.error("Propiedades de Notion con formato incorrecto");
       return null;
     }
 
     const greenFlagsText =
-      properties["Green Flags"].rich_text[0].plain_text.trim();
-    const redFlagsText = properties["Red Flags"].rich_text[0].plain_text.trim();
+      properties["Green flags"].rich_text[0].plain_text.trim();
+    const redFlagsText = properties["Red flags"].rich_text[0].plain_text.trim();
     const greenFlags = greenFlagsText ? greenFlagsText.split(", ") : [];
     const redFlags = redFlagsText ? redFlagsText.split(", ") : [];
 
     return {
-      questionId: properties.Id.rich_text[0].plain_text,
-      question: properties.Pregunta.title[0].plain_text,
-      response: properties.Respuesta.rich_text[0].plain_text,
-      result: properties.Resultado.select.name as Result,
+      questionId: properties.ID.select?.name || "",
+      question: properties.Question.title[0].plain_text,
+      response: properties.Answer.rich_text[0].plain_text,
+      result: properties.Score.select?.name as Result,
       greenFlags,
       redFlags,
     };
