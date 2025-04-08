@@ -25,12 +25,12 @@ export const questions: Question[] = [
   },
   {
     id: "disagreement-with-leadership",
-    text: "Sometimes there are disagreements with leadership. Can you give me an example of a time when you had disagreements with your manager or company leadership, and what did you do?",
+    text: "How do you handle disagreements with your manager or company leadership?",
     maxTime: 45,
   },
   {
     id: "handling-underperformance",
-    text: "If a colleague or direct report is not performing according to expectations, and this starts negatively impacting the company roadmap or teamwork, how would you handle this situation?",
+    text: "How do you handle underperformance in your team?",
     maxTime: 45,
   },
   {
