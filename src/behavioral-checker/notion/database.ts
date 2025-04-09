@@ -22,7 +22,6 @@ export const addFeedbackToNotion = async (
         Question: { title: [{ text: { content: data.question } }] },
         Answer: { rich_text: [{ text: { content: data.response } }] },
         Score: { select: { name: data.result } },
-        Length: { number: data.response.length },
         "Green flags": {
           rich_text: [{ text: { content: data.greenFlags.join(", ") } }],
         },
