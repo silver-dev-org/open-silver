@@ -43,9 +43,18 @@ const Step1: React.FC<{
   isLoading,
   loadingExampleId,
 }) => {
-  const [company, setCompany] = useState<string>(companyOptions[0].value);
-  const [role, setRole] = useState<string>(roleOptions[0].value);
-  const [value, setValue] = useState<string>(valueOptions[0].value);
+  const [company, setCompany] = useState<string>(() => {
+    const savedCompany = localStorage.getItem("behavioral-company");
+    return savedCompany || companyOptions[0].value;
+  });
+  const [role, setRole] = useState<string>(() => {
+    const savedRole = localStorage.getItem("behavioral-role");
+    return savedRole || roleOptions[0].value;
+  });
+  const [value, setValue] = useState<string>(() => {
+    const savedValue = localStorage.getItem("behavioral-value");
+    return savedValue || valueOptions[0].value;
+  });
 
   const questionToText = () => {
     let q = question.text;
@@ -55,11 +64,11 @@ const Step1: React.FC<{
     }
 
     if (question.tags?.includes("role")) {
-      q += `, ${role}`;
+      q += ` ${role}`;
     }
 
     if (question.tags?.includes("value")) {
-      q += `, ${value}`;
+      q += ` ${value}`;
     }
 
     return q;
@@ -256,6 +265,21 @@ const Step1: React.FC<{
     }
   };
 
+  const handleCompanyChange = (value: string) => {
+    setCompany(value);
+    localStorage.setItem("behavioral-company", value);
+  };
+
+  const handleRoleChange = (value: string) => {
+    setRole(value);
+    localStorage.setItem("behavioral-role", value);
+  };
+
+  const handleValueChange = (value: string) => {
+    setValue(value);
+    localStorage.setItem("behavioral-value", value);
+  };
+
   return (
     <Section>
       <Heading center>
@@ -306,10 +330,7 @@ const Step1: React.FC<{
               {question.tags?.includes("company") && (
                 <>
                   <label className="block text-lg mb-1">Company</label>
-                  <Select
-                    value={company}
-                    onValueChange={(value) => setCompany(value)}
-                  >
+                  <Select value={company} onValueChange={handleCompanyChange}>
                     <SelectTrigger className="w-full mb-4">
                       <SelectValue placeholder="Select a company" />
                     </SelectTrigger>
@@ -326,10 +347,7 @@ const Step1: React.FC<{
               {question.tags?.includes("role") && (
                 <>
                   <label className="block text-lg mb-1">Role</label>
-                  <Select
-                    value={role}
-                    onValueChange={(value) => setRole(value)}
-                  >
+                  <Select value={role} onValueChange={handleRoleChange}>
                     <SelectTrigger className="w-full mb-4">
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
@@ -346,10 +364,7 @@ const Step1: React.FC<{
               {question.tags?.includes("value") && (
                 <>
                   <label className="block text-lg mb-1">Value</label>
-                  <Select
-                    value={value}
-                    onValueChange={(value) => setValue(value)}
-                  >
+                  <Select value={value} onValueChange={handleValueChange}>
                     <SelectTrigger className="w-full mb-4">
                       <SelectValue placeholder="Select a value" />
                     </SelectTrigger>
