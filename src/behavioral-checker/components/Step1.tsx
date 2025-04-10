@@ -1,3 +1,5 @@
+"use client";
+
 import { Result } from "@/behavioral-checker/client-assistance/core/domain/Action";
 import { Question, questions } from "@/behavioral-checker/data/questions";
 import {
@@ -44,16 +46,25 @@ const Step1: React.FC<{
   loadingExampleId,
 }) => {
   const [company, setCompany] = useState<string>(() => {
-    const savedCompany = localStorage.getItem("behavioral-company");
-    return savedCompany || companyOptions[0].value;
+    if (typeof window !== "undefined") {
+      const savedCompany = localStorage.getItem("behavioral-company");
+      return savedCompany || companyOptions[0].value;
+    }
+    return companyOptions[0].value;
   });
   const [role, setRole] = useState<string>(() => {
-    const savedRole = localStorage.getItem("behavioral-role");
-    return savedRole || roleOptions[0].value;
+    if (typeof window !== "undefined") {
+      const savedRole = localStorage.getItem("behavioral-role");
+      return savedRole || roleOptions[0].value;
+    }
+    return roleOptions[0].value;
   });
   const [value, setValue] = useState<string>(() => {
-    const savedValue = localStorage.getItem("behavioral-value");
-    return savedValue || valueOptions[0].value;
+    if (typeof window !== "undefined") {
+      const savedValue = localStorage.getItem("behavioral-value");
+      return savedValue || valueOptions[0].value;
+    }
+    return valueOptions[0].value;
   });
 
   const questionToText = () => {
@@ -521,7 +532,7 @@ const Step1: React.FC<{
                 <button
                   onClick={() => onExample(question.id, "Strong yes")}
                   disabled={isLoading || loadingExampleId !== null}
-                  className="w-full p-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingExampleId === "Strong yes" ? (
                     <div className="flex items-center justify-center">
@@ -551,7 +562,7 @@ const Step1: React.FC<{
                 <button
                   onClick={() => onExample(question.id, "Yes")}
                   disabled={isLoading || loadingExampleId !== null}
-                  className="w-full p-4 rounded-lg text-sm font-medium text-white bg-lime-600 hover:bg-lime-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-lime-600 hover:bg-lime-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingExampleId === "Yes" ? (
                     <div className="flex items-center justify-center">
@@ -581,7 +592,7 @@ const Step1: React.FC<{
                 <button
                   onClick={() => onExample(question.id, "No")}
                   disabled={isLoading || loadingExampleId !== null}
-                  className="w-full p-4 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingExampleId === "No" ? (
                     <div className="flex items-center justify-center">
@@ -611,7 +622,7 @@ const Step1: React.FC<{
                 <button
                   onClick={() => onExample(question.id, "Strong no")}
                   disabled={isLoading || loadingExampleId !== null}
-                  className="w-full p-4 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loadingExampleId === "Strong no" ? (
                     <div className="flex items-center justify-center">
