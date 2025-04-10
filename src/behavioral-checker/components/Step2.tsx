@@ -182,8 +182,10 @@ const Step2: FC<{
                 />
                 <Label
                   htmlFor="strong-no"
-                  className={`px-3 py-2 rounded-md w-full text-center bg-red-600 text-white cursor-pointer transition-opacity ${
-                    feedbackScore === "Strong no" ? "opacity-100" : "opacity-50"
+                  className={`border-2 px-3 py-2 rounded-md w-full text-center bg-red-600 text-white cursor-pointer transition-all ${
+                    feedbackScore === "Strong no"
+                      ? "border-foreground opacity-100"
+                      : "border-transparent opacity-90"
                   }`}
                 >
                   Strong no
@@ -193,8 +195,10 @@ const Step2: FC<{
                 <RadioGroupItem value="No" id="no" className="hidden" />
                 <Label
                   htmlFor="no"
-                  className={`px-3 py-2 rounded-md w-full text-center bg-orange-500 text-white cursor-pointer transition-opacity ${
-                    feedbackScore === "No" ? "opacity-100" : "opacity-50"
+                  className={`border-2 px-3 py-2 rounded-md w-full text-center bg-orange-500 text-white cursor-pointer transition-all ${
+                    feedbackScore === "No"
+                      ? "border-foreground opacity-100"
+                      : "border-transparent opacity-90"
                   }`}
                 >
                   No
@@ -204,8 +208,10 @@ const Step2: FC<{
                 <RadioGroupItem value="Yes" id="yes" className="hidden" />
                 <Label
                   htmlFor="yes"
-                  className={`px-3 py-2 rounded-md w-full text-center bg-lime-600 text-white cursor-pointer transition-opacity ${
-                    feedbackScore === "Yes" ? "opacity-100" : "opacity-50"
+                  className={`border-2 px-3 py-2 rounded-md w-full text-center bg-lime-600 text-white cursor-pointer transition-all ${
+                    feedbackScore === "Yes"
+                      ? "border-foreground opacity-100"
+                      : "border-transparent opacity-90"
                   }`}
                 >
                   Yes
@@ -219,10 +225,10 @@ const Step2: FC<{
                 />
                 <Label
                   htmlFor="strong-yes"
-                  className={`px-3 py-2 rounded-md w-full text-center bg-green-600 text-white cursor-pointer transition-opacity ${
+                  className={`border-2 px-3 py-2 rounded-md w-full text-center bg-green-600 text-white cursor-pointer transition-all ${
                     feedbackScore === "Strong yes"
-                      ? "opacity-100"
-                      : "opacity-50"
+                      ? "border-foreground opacity-100"
+                      : "border-transparent opacity-90"
                   }`}
                 >
                   Strong yes
