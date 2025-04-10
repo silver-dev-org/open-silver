@@ -45,9 +45,7 @@ export const addFeedbackToNotion = async (
   }
 };
 
-export const getStrongYesFeedback = async (
-  questionId: Question["id"]
-): Promise<any[]> => {
+export const getPromptExamples = async (questionId: Question["id"]) => {
   try {
     const response = await notion.databases.query({
       database_id: DATABASE_ID,
@@ -60,9 +58,9 @@ export const getStrongYesFeedback = async (
             },
           },
           {
-            property: "Score",
+            property: "Revised score",
             select: {
-              equals: "Strong yes",
+              is_not_empty: true,
             },
           },
         ],
@@ -73,7 +71,7 @@ export const getStrongYesFeedback = async (
           direction: "descending",
         },
       ],
-      page_size: 10,
+      page_size: 20,
     });
 
     return response.results.map((r) => {
@@ -81,12 +79,18 @@ export const getStrongYesFeedback = async (
         const page = r as PageObjectResponse;
         if (
           page.properties.Answer !== undefined &&
-          page.properties.Answer.type === "rich_text"
+          page.properties.Answer.type === "rich_text" &&
+          page.properties.Score !== undefined &&
+          page.properties.Score.type === "select" &&
+          page.properties.Score.select !== null
         ) {
-          return page.properties.Answer.rich_text[0].plain_text;
+          return {
+            response: page.properties.Answer.rich_text[0].plain_text,
+            score: page.properties.Score.select.name,
+          };
         }
       }
-      return "No response found";
+      return { response: "No response found", score: "Unknown" };
     });
   } catch (error: any) {
     console.error("Error al obtener respuestas:", error.message);

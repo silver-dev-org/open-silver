@@ -17,7 +17,7 @@ export class OpenAISdkAIClient implements AIClient {
     questionId: Question["id"],
     question: string,
     response: string,
-    exampleResponses: string[]
+    exampleResponses: { response: string; score: string }[]
   ): Promise<AssistanceResponse> {
     try {
       const message = this.getInitialMessage(
@@ -49,7 +49,7 @@ export class OpenAISdkAIClient implements AIClient {
   private getInitialMessage(
     question: string,
     response: string,
-    exampleResponses: string[]
+    exampleResponses: { response: string; score: string }[]
   ): ChatCompletionSystemMessageParam {
     const examplesPrompt = this.getExamplesPrompt(exampleResponses);
 
@@ -71,10 +71,10 @@ export class OpenAISdkAIClient implements AIClient {
 **DON'T**: Expect the company to explain what they do if the information is publicly available.
 
 **Company Values**:
-**DO**: Research the company’s values and demonstrate alignment through personal stories and experiences.
+**DO**: Research the company's values and demonstrate alignment through personal stories and experiences.
 **DO**: Prepare examples that showcase your ability to align with and embody these values.
 **DON'T**: Expect the company to present or explain their values.
-**DON'T**: Dismiss the importance of the company’s values.
+**DON'T**: Dismiss the importance of the company's values.
 
 **Professional Experience Stories**:
 **DO**: Use concise and clear stories to showcase your personal contributions and impact.
@@ -97,7 +97,7 @@ Follow the STAR method to clearly explain:
 **Action**: The steps you took to address the task.
 **Result**: The outcome of your actions and what you learned.
 Provide specific examples and focus on outcomes achieved.
-Highlight personal contributions and avoid using \"we\" unless referring to specific team dynamics.
+Highlight personal contributions and avoid using "we" unless referring to specific team dynamics.
 Demonstrate reflection, learning, and professional growth.
 
 **Evaluation Metrics**:
@@ -108,7 +108,7 @@ Misalignment with company values or the role's requirements.
 **greenFlags**: Highlight strengths in the response, such as:
 Provides specific, measurable examples.
 Follows the STAR method effectively.
-Demonstrates alignment with the company’s values and mission.
+Demonstrates alignment with the company's values and mission.
 **result**: Categorize the response into one of the following:
 **Strong no**: The response is completely misaligned with expectations.
 **No**: The response is below average but shows some potential.
@@ -123,24 +123,39 @@ Here is an example of the expected output:
 \`\`\`
 
 ${examplesPrompt}
+
 The user answered this question: "${question}". 
 The user responded with: "${response}".
 
-Analyze the response and provide the JSON output as specified.
-`,
+Analyze the response and provide the JSON output as specified.`,
     };
   }
 
-  private getExamplesPrompt(exampleResponses: string[]): string {
-    if (exampleResponses.length === 0) {
+  private getExamplesPrompt(
+    exampleResponses: { response: string; score: string }[]
+  ): string {
+    if (exampleResponses.length === undefined) {
       return "";
     }
 
     let examplesPrompt =
-      "Use these Strong yes examples to help the AI understand how a strong yes response looks like:\n";
+      "Here are examples for each evaluation level to help understand the quality of responses:\n\n";
 
-    exampleResponses.forEach((response, index) => {
-      examplesPrompt += `Strong yes Example ${index + 1}: ${response}\n`;
+    const examplesByLevel = {
+      "Strong no": exampleResponses.filter((r) => r.score === "Strong no"),
+      No: exampleResponses.filter((r) => r.score === "No"),
+      Yes: exampleResponses.filter((r) => r.score === "Yes"),
+      "Strong yes": exampleResponses.filter((r) => r.score === "Strong yes"),
+    };
+
+    Object.entries(examplesByLevel).forEach(([level, examples]) => {
+      if (examples.length > 0) {
+        examplesPrompt += `${level} Examples:\n`;
+        examples.forEach((example, index) => {
+          examplesPrompt += `Example ${index + 1}: ${example.response}\n`;
+        });
+        examplesPrompt += "\n";
+      }
     });
 
     return examplesPrompt;
