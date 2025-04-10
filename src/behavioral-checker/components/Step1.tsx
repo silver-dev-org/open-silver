@@ -219,6 +219,13 @@ const Step1: React.FC<{
     if (isActive) {
       stopRecording();
     }
+    setAudioBlob(null);
+    setRecorded(false);
+    setReproduced(0);
+    setCounter(0);
+    setReproducing(false);
+    setIsActive(false);
+    setCanStopRecording(false);
   }, [question.id]);
 
   const handleCompanyChange = (value: string) => {
@@ -378,7 +385,7 @@ const Step1: React.FC<{
                       </div>
                     ) : (
                       <motion.div
-                        className={`${canStopRecording || !isActive ? "bg-red-500" : "bg-red-300  "}`}
+                        className={`${canStopRecording || !isActive ? "bg-red-500" : "bg-red-400  "}`}
                         onClick={() => {
                           isActive ? stopRecording() : startRecording();
                         }}
