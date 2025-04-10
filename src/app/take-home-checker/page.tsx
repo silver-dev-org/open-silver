@@ -1,7 +1,7 @@
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space from "@/components/space";
+import Spacer from "@/components/spacer";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import AuthGitHub from "@/take-home-checker/components/AuthGtihub";
 import LogOutGithub from "@/take-home-checker/components/LogOutGithub";
@@ -38,11 +38,11 @@ export default async function Page() {
       <Heading center>
         <span className="text-primary">Take-home</span> Checker
       </Heading>
-      <Space />
+      <Spacer />
       <Description center>
         Upload your take-home and get instant feedback on the project.
       </Description>
-      <Space size="lg" />
+      <Spacer size="lg" />
       <AppQueryProvider>
         {isAuthenticated ? (
           <div className="flex flex-col justify-center items-center">
@@ -52,7 +52,7 @@ export default async function Page() {
                 (session as unknown as { accessToken: string })?.accessToken
               }
             />
-            <Space size="lg" />
+            <Spacer size="lg" />
             <LogOutGithub />
           </div>
         ) : (

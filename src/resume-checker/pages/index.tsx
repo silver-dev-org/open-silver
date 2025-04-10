@@ -4,7 +4,7 @@ import Description from "@/components/description";
 import Grid from "@/components/grid";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space, { spaceSizes } from "@/components/space";
+import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import ErrorBadge from "@/resume-checker/components/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
@@ -112,7 +112,7 @@ export default function Home() {
         <Heading center>
           <span className="text-primary">Resume</span> Checker
         </Heading>
-        <Space />
+        <Spacer />
         <Description center>
           Armá tu CV con el{" "}
           <Link
@@ -125,7 +125,7 @@ export default function Home() {
           </Link>
           . Subilo acá y recibí feedback de inmediato.
         </Description>
-        <Space size="lg" />
+        <Spacer size="lg" />
         <Grid className="grid-cols-1 md:grid-cols-4">
           <form
             {...getRootProps()}
@@ -149,7 +149,7 @@ export default function Home() {
           </form>
           <div>
             <p className="text-center md:text-left">O usá un ejemplo:</p>
-            <Space />
+            <Spacer />
             <div className={`flex flex-col ${spaceSizes.sm.gap}`}>
               {[
                 { letter: "s", name: "Victor Vigon" },
@@ -176,12 +176,9 @@ export default function Home() {
             </div>
           </div>
         </Grid>
-        <Space size="lg" />
+        <Spacer size="lg" />
         <div className="text-center">
-          <Link
-            href="/resume-checker/privacy"
-            className="link"
-          >
+          <Link href="/resume-checker/privacy" className="link">
             Política de Privacidad
           </Link>
         </div>

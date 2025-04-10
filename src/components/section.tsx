@@ -1,4 +1,4 @@
-import Space from "./space";
+import Spacer from "./spacer";
 
 export default function Section({
   children,
@@ -14,9 +14,9 @@ export default function Section({
   return (
     <div className="mx-4 sm:mx-0">
       <section id={id} className={`container mx-auto ${className}`}>
-        {space && <Space size={space} />}
+        {space && <Spacer size={space} />}
         {children}
-        {space && <Space size={space} loose />}
+        {space && <Spacer size={space} loose />}
       </section>
     </div>
   );
