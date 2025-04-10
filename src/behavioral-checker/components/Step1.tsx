@@ -97,6 +97,7 @@ const Step1: React.FC<{
   const [recorded, setRecorded] = useState<boolean>(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [reproducing, setReproducing] = useState<boolean>(false);
+  const [canStopRecording, setCanStopRecording] = useState<boolean>(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioURLRef = useRef<string | null>(null);
@@ -118,11 +119,15 @@ const Step1: React.FC<{
     let timer: NodeJS.Timeout | undefined;
     if (isActive) {
       setCounter(0);
+      setCanStopRecording(false);
       timer = setInterval(() => {
         setCounter((prev) => {
           if (prev >= question.maxTime) {
             stopRecording();
             return prev;
+          }
+          if (prev >= question.minTime) {
+            setCanStopRecording(true);
           }
           return prev + 1;
         });
@@ -131,7 +136,7 @@ const Step1: React.FC<{
       clearInterval(timer);
     }
     return () => clearInterval(timer);
-  }, [isActive, question.maxTime]);
+  }, [isActive, question.maxTime, question.minTime]);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -160,6 +165,7 @@ const Step1: React.FC<{
   };
 
   const stopRecording = () => {
+    if (!canStopRecording) return;
     mediaRecorderRef.current?.stop();
     setIsActive(false);
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
@@ -434,22 +440,30 @@ const Step1: React.FC<{
                       </div>
                     ) : (
                       <motion.div
-                        className="bg-red-500"
+                        className={`${canStopRecording || !isActive ? "bg-red-500" : "bg-red-300  "}`}
                         onClick={() => {
                           isActive ? stopRecording() : startRecording();
                         }}
                         initial={false}
                         animate={{
                           borderRadius: isActive ? "6px" : "50%",
-                          width: isActive ? "24px" : "36px",
-                          height: isActive ? "24px" : "36px",
+                          width: isActive ? "30px" : "36px",
+                          height: isActive ? "30px" : "36px",
                         }}
                         transition={{
                           duration: 0.2,
                           ease: "easeInOut",
                         }}
+                        title={
+                          isActive && !canStopRecording
+                            ? `Minimum ${question.minTime} seconds. Keep talking!`
+                            : "Pause recording"
+                        }
                         style={{
-                          cursor: "pointer",
+                          cursor:
+                            isActive && !canStopRecording
+                              ? "not-allowed"
+                              : "pointer",
                         }}
                       />
                     )}
@@ -468,7 +482,9 @@ const Step1: React.FC<{
                     </Button>
                   )}
                   {!recorded && (
-                    <p className="text-sm text-center">{question.maxTime}s</p>
+                    <p className="text-sm text-center">
+                      {question.minTime >= 60 ? `${Math.floor(question.minTime / 60)}m ` : ''}{question.minTime % 60 !== 0 ? `${question.minTime % 60}s ` : ''}— {question.maxTime >= 60 ? `${Math.floor(question.maxTime / 60)}m ` : ''}{question.maxTime % 60 !== 0 ? `${question.maxTime % 60}s` : ''}
+                    </p>
                   )}
                 </div>
               </div>
