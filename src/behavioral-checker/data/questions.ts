@@ -22,7 +22,7 @@ export const questions: Question[] = [
   },
   {
     id: "company-values",
-    text: "We care a lot about this value. Can you tell me a time when you demonstrated it?",
+    text: "Can you tell me a time when you demonstrated this value?",
     tags: ["value"],
     minTime: 15,
     maxTime: 120,
