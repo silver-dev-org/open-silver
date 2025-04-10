@@ -7,7 +7,7 @@ export interface AIClient {
     questionId: Question["id"],
     question: string,
     response: string,
-    exampleResponses: string[]
+    exampleResponses: { response: string; score: string }[]
   ): Promise<AssistanceResponse>;
 }
 

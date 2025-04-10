@@ -1,5 +1,5 @@
 import { Question } from "@/behavioral-checker/data/questions";
-import { getStrongYesFeedback } from "@/behavioral-checker/notion/database";
+import { getPromptExamples } from "@/behavioral-checker/notion/database";
 import { AssistanceResponse } from "./Action";
 import { aiClient, AIClient } from "./AIClient";
 
@@ -11,7 +11,7 @@ export class ClientAssistanceService {
     question: string,
     response: string
   ): Promise<AssistanceResponse> {
-    const exampleResponses = await getStrongYesFeedback(questionId);
+    const exampleResponses = await getPromptExamples(questionId);
     return await this.aiClient.consult(
       questionId,
       question,
