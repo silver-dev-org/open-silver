@@ -290,10 +290,8 @@ const Step1: React.FC<{
           </CardDescription>
         </CardHeader>
         <CardContent
-          className={`flex ${spaceSizes.sm.gap} ${spaceSizes.sm.mt}`}
+          className={`flex flex-col lg:flex-row ${spaceSizes.sm.gap} ${spaceSizes.sm.mt}`}
         >
-          {/* Contenedor flex para Respuesta y Ejemplos */}
-          {/* Sección Respuesta - Mitad izquierda */}
           <div className="flex-grow">
             <h2 className="text-xl font-bold mb-3">Your answer</h2>
             {question.tags?.includes("company") && (
@@ -356,7 +354,7 @@ const Step1: React.FC<{
                     : "border-gray-300 dark:border-gray-300"
                 }`}
               >
-                <div className="flex items-center w-full sm:w-auto">
+                <div className="flex items-center sm:w-auto">
                   <div className="size-10 flex justify-center items-center">
                     {!isActive && recorded ? (
                       <div
