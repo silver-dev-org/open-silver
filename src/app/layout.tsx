@@ -44,6 +44,7 @@ export default async function RootLayout({
           <main>
             <Spacer size="lg" />
             {children}
+            <Spacer size="lg" />
           </main>
           <Footer />
         </body>
