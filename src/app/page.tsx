@@ -9,8 +9,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  description:
+    "Open Source Software made by Silver.dev and its contributors. Explore our collection of tools for talent and employers.",
+  openGraph: {
+    title: "Open Silver",
+    description: "Open Source Software made by Silver.dev and its contributors",
+    type: "website",
+  },
+};
 
 const tools: {
   section: React.ReactNode;
