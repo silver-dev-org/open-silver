@@ -19,7 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -30,7 +29,6 @@ import {
 import { motion } from "framer-motion";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
-import ConsentDialog from "./ConsentDialog";
 
 const Step1: React.FC<{
   question: Question;
@@ -104,15 +102,6 @@ const Step1: React.FC<{
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const reproducingTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
-  const [showConsent, setShowConsent] = useState(false);
-  const [isHelping, setIsHelping] = useState<boolean>(true);
-  const [pendingSubmission, setPendingSubmission] = useState<{
-    id: string;
-    question: string;
-    audioBlob: Blob;
-  } | null>(null);
-  const [hasExistingConsent, setHasExistingConsent] = useState(false);
-
   const invalidLength = recorded && counter > question.maxTime;
 
   useEffect(() => {
@@ -230,63 +219,7 @@ const Step1: React.FC<{
     if (isActive) {
       stopRecording();
     }
-  }, [question.id]); // Usamos question.id como dependencia para evitar re-renders innecesarios
-
-  useEffect(() => {
-    const consent = localStorage.getItem("consent");
-    setIsHelping(consent === "true" || consent === null);
-    setHasExistingConsent(consent !== null);
-  }, []);
-
-  const handleConsentChange = (checked: boolean) => {
-    localStorage.setItem("consent", checked.toString());
-    setIsHelping(checked);
-  };
-
-  const handleEvaluate = () => {
-    if (isLoading || !audioBlob) return;
-
-    onSubmit(question.id, questionToText(), audioBlob);
-
-    // const hasConsent = localStorage.getItem("consent");
-
-    // if (hasConsent === null) {
-    //   setPendingSubmission({
-    //     id: question.id,
-    //     question: questionToText(),
-    //     audioBlob,
-    //   });
-    //   setShowConsent(true);
-    // } else {
-    //   setShowConsent(false);
-    // }
-  };
-
-  const handleAcceptConsent = () => {
-    localStorage.setItem("consent", "true");
-    setShowConsent(false);
-    if (pendingSubmission) {
-      onSubmit(
-        pendingSubmission.id,
-        pendingSubmission.question,
-        pendingSubmission.audioBlob
-      );
-      setPendingSubmission(null);
-    }
-  };
-
-  const handleDeclineConsent = () => {
-    localStorage.setItem("consent", "false");
-    setShowConsent(false);
-    if (pendingSubmission) {
-      onSubmit(
-        pendingSubmission.id,
-        pendingSubmission.question,
-        pendingSubmission.audioBlob
-      );
-      setPendingSubmission(null);
-    }
-  };
+  }, [question.id]);
 
   const handleCompanyChange = (value: string) => {
     setCompany(value);
@@ -303,8 +236,13 @@ const Step1: React.FC<{
     localStorage.setItem("behavioral-value", value);
   };
 
+  const handleEvaluate = () => {
+    if (isLoading || !audioBlob) return;
+    onSubmit(question.id, questionToText(), audioBlob);
+  };
+
   return (
-    <Section>
+    <Section id="step-1">
       <Heading size="lg" center>
         <span className="text-primary">Behavioral</span> Checker
       </Heading>
@@ -483,7 +421,19 @@ const Step1: React.FC<{
                   )}
                   {!recorded && (
                     <p className="text-sm text-center">
-                      {question.minTime >= 60 ? `${Math.floor(question.minTime / 60)}m ` : ''}{question.minTime % 60 !== 0 ? `${question.minTime % 60}s ` : ''}— {question.maxTime >= 60 ? `${Math.floor(question.maxTime / 60)}m ` : ''}{question.maxTime % 60 !== 0 ? `${question.maxTime % 60}s` : ''}
+                      {question.minTime >= 60
+                        ? `${Math.floor(question.minTime / 60)}m `
+                        : ""}
+                      {question.minTime % 60 !== 0
+                        ? `${question.minTime % 60}s `
+                        : ""}
+                      —{" "}
+                      {question.maxTime >= 60
+                        ? `${Math.floor(question.maxTime / 60)}m `
+                        : ""}
+                      {question.maxTime % 60 !== 0
+                        ? `${question.maxTime % 60}s`
+                        : ""}
                     </p>
                   )}
                 </div>
@@ -493,16 +443,6 @@ const Step1: React.FC<{
                   Answer time must be less than {question.maxTime}s
                 </p>
               )}
-            </div>
-            <div className="flex items-center space-x-2 mt-4">
-              <Checkbox
-                id="consent"
-                checked={isHelping}
-                onCheckedChange={handleConsentChange}
-              />
-              <label htmlFor="consent" className="text-sm cursor-pointer">
-                Help improve the model with my answer
-              </label>
             </div>
             <Button
               className="mt-4 w-full"
@@ -669,11 +609,6 @@ const Step1: React.FC<{
           </div>
         </CardContent>
       </Card>
-      <ConsentDialog
-        open={showConsent}
-        onAccept={handleAcceptConsent}
-        onDecline={handleDeclineConsent}
-      />
     </Section>
   );
 };
