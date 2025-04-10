@@ -109,7 +109,7 @@ export default function Home() {
     <>
       <ErrorBadge error={error || mutationError} />
       <Section>
-        <Heading center>
+        <Heading size="lg" center>
           <span className="text-primary">Resume</span> Checker
         </Heading>
         <Spacer />
