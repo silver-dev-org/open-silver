@@ -2,7 +2,7 @@ import Description from "@/components/description";
 import Grid from "@/components/grid";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space from "@/components/space";
+import Spacer from "@/components/spacer";
 import {
   Card,
   CardDescription,
@@ -77,15 +77,15 @@ export default function Home() {
       <Heading size="lg" center>
         <span className="text-primary">Open</span> Silver
       </Heading>
-      <Space />
+      <Spacer />
       <Description center>
         Open Source Software made by Silver.dev and its contributors.
       </Description>
       {tools.map(({ slug, section, list }, index) => (
         <Section key={index} id={slug} space={null}>
-          <Space size="lg" />
+          <Spacer size="lg" />
           <Heading>{section}</Heading>
-          <Space />
+          <Spacer />
           <Grid>
             {list.map(({ title, description, href }) => (
               <Link href={href} key={href} prefetch={true}>

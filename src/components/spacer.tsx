@@ -6,27 +6,30 @@ export const spaceSizes: {
     px: string;
     py: string;
     mt: string;
+    scrollMt: string;
   };
 } = {
   sm: {
-    gap: "gap-8",
-    h: "h-8",
-    p: "p-8",
-    px: "px-8",
-    py: "py-8",
-    mt: "mt-8",
+    gap: "gap-6",
+    h: "h-6",
+    p: "p-6",
+    px: "px-6",
+    py: "py-6",
+    mt: "mt-6",
+    scrollMt: "scroll-mt-30",
   },
   lg: {
-    gap: "gap-32",
-    h: "h-32",
-    p: "p-32",
-    px: "px-32",
-    py: "py-32",
-    mt: "mt-32",
+    gap: "gap-24",
+    h: "h-24",
+    p: "p-24",
+    px: "px-24",
+    py: "py-24",
+    mt: "mt-24",
+    scrollMt: "scroll-mt-48",
   },
 };
 
-export default function Space({
+export default function Spacer({
   size = "sm",
   loose,
 }: {

@@ -10,7 +10,7 @@ import {
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space, { spaceSizes } from "@/components/space";
+import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -302,7 +302,7 @@ const Step1: React.FC<{
       <Heading center>
         <span className="text-primary">Behavioral</span> Checker
       </Heading>
-      <Space />
+      <Spacer />
       <Description center>
         Get instant feedback from answering classical behavioral questions with
         Silver.dev&lsquo;s themed auto-response. Great for practicing English &
@@ -316,7 +316,7 @@ const Step1: React.FC<{
         </Link>{" "}
         for more guidance.
       </Description>
-      <Space size="lg" />
+      <Spacer size="lg" />
       <Card className="max-w-4xl w-full mx-auto">
         <CardHeader>
           <CardTitle>Question</CardTitle>
@@ -338,7 +338,9 @@ const Step1: React.FC<{
             </Select>
           </CardDescription>
         </CardHeader>
-        <CardContent className={`flex ${spaceSizes.sm.gap} ${spaceSizes.sm.mt}`}>
+        <CardContent
+          className={`flex ${spaceSizes.sm.gap} ${spaceSizes.sm.mt}`}
+        >
           {/* Contenedor flex para Respuesta y Ejemplos */}
           {/* Sección Respuesta - Mitad izquierda */}
           <div className="flex-grow">

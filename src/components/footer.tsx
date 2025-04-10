@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
-import { spaceSizes } from "./space";
+import { spaceSizes } from "./spacer";
 
 const links: {
   group: string;

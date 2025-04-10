@@ -1,4 +1,4 @@
-import Space from "@/components/space";
+import Spacer from "@/components/spacer";
 import { Button, buttonVariants } from "@/components/ui/button";
 import FeedbackForm from "@/resume-checker/components/feedback-form";
 import Flags from "@/resume-checker/components/flags";
@@ -88,7 +88,7 @@ export default function Review() {
         <div>
           <h1 className="text-2xl mb-4">Puntaje de tu CV</h1>
           <Score letter={mutation?.data?.grade} />
-          <Space />
+          <Spacer />
           <div>
             {mutation.isPending ? <Skeleton /> : null}
             {!mutation.isPending && isVictorVigon ? (
@@ -108,7 +108,7 @@ export default function Review() {
                 .
               </p>
             ) : null}
-            <Space />
+            <Spacer />
             {mutation.data && mutation.data?.red_flags.length > 0 ? (
               <Flags
                 flags={mutation.data.red_flags}
@@ -117,7 +117,7 @@ export default function Review() {
                 flag${mutation.data.red_flags.length > 1 ? "s" : ""}`}
               />
             ) : null}
-            <Space />
+            <Spacer />
             {mutation.data && mutation.data?.yellow_flags.length > 0 ? (
               <Flags
                 flags={mutation.data.yellow_flags}
@@ -126,7 +126,7 @@ export default function Review() {
               />
             ) : null}
           </div>
-          <Space />
+          <Spacer />
           {mutation.isPending ? (
             <p className="opacity-0 animate-[fadeIn_200ms_ease-in_3s_forwards] px-4 py-2 text-center bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-md border border-gray-300 dark:border-gray-700">
               <span className="mr-2 text-secondary">●</span>

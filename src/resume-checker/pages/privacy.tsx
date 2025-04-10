@@ -1,11 +1,11 @@
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space from "@/components/space";
+import Spacer from "@/components/spacer";
 export default function Privacy() {
   return (
     <Section>
       <Heading>Política de Privacidad</Heading>
-      <Space />
+      <Spacer />
       <p className="mb-6">
         Gracias por utilizar Resume Checker. Su privacidad es muy importante
         para nosotros, y estamos comprometidos a ser transparentes sobre cómo

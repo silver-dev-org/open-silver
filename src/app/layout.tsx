@@ -1,6 +1,6 @@
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import Space from "@/components/space";
+import Spacer from "@/components/spacer";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import SessionProvider from "@/providers/SessionProvider";
 import type { Metadata } from "next";
@@ -42,7 +42,7 @@ export default async function RootLayout({
         >
           <Header />
           <main>
-            <Space size="lg" />
+            <Spacer size="lg" />
             {children}
           </main>
           <Footer />

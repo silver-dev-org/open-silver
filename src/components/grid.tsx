@@ -1,4 +1,4 @@
-import { spaceSizes } from "./space";
+import { spaceSizes } from "./spacer";
 
 export default function Grid({
   children,

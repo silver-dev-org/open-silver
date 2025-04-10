@@ -30,7 +30,7 @@ import { ContractProps, getDiscountPercentage } from "./utils";
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space from "@/components/space";
+import Spacer from "@/components/spacer";
 import { calculateContractCost, payrollCost } from "./utils";
 
 export default function Page() {
@@ -111,11 +111,11 @@ export default function Page() {
       <Heading center>
         Agency Fees <span className="text-primary">Explained</span>
       </Heading>
-      <Space />
+      <Spacer />
       <Description center>
         Adjust terms, explore options, and share your estimate with Silver.
       </Description>
-      <Space size="lg" />
+      <Spacer size="lg" />
       <div className="flex flex-col lg:flex-row gap-12 flex-grow p-4 sm:container sm:mx-auto">
         <div className="flex flex-col gap-4 lg:max-w-xs">
           <div className="flex flex-col gap-2">
