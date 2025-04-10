@@ -8,8 +8,20 @@ import LogOutGithub from "@/take-home-checker/components/LogOutGithub";
 import AppQueryProvider from "@/take-home-checker/components/QueryClientProvider";
 import RepoAnalysis from "@/take-home-checker/components/RepoAnalysis";
 import { Repo } from "@/take-home-checker/types/repo";
+import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Octokit } from "octokit";
+
+export const metadata: Metadata = {
+  title: "Take-home Checker",
+  description:
+    "Upload your take-home project and get instant feedback to improve your technical interview performance.",
+  openGraph: {
+    title: "Take-home Checker • Open Silver",
+    description: "Get instant feedback on your take-home project submissions",
+    type: "website",
+  },
+};
 
 export default async function Page() {
   const session = await getServerSession(authOptions);
