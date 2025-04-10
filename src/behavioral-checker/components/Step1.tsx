@@ -10,9 +10,15 @@ import {
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Space from "@/components/space";
+import Space, { spaceSizes } from "@/components/space";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -311,11 +317,10 @@ const Step1: React.FC<{
         for more guidance.
       </Description>
       <Space size="lg" />
-      <Card className="max-w-[1000px] w-full mx-auto">
-        <CardContent>
-          {/* Sección Pregunta - Ancho completo */}
-          <div className="border-b border-foreground pb-6">
-            <h2 className="text-xl font-bold mb-4">Question</h2>
+      <Card className="max-w-4xl w-full mx-auto">
+        <CardHeader>
+          <CardTitle>Question</CardTitle>
+          <CardDescription>
             <Select
               value={question.id}
               onValueChange={(value) => onSelectQuestion(value)}
@@ -331,169 +336,203 @@ const Step1: React.FC<{
                 ))}
               </SelectContent>
             </Select>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className={`flex ${spaceSizes.sm.gap} ${spaceSizes.sm.mt}`}>
+          {/* Contenedor flex para Respuesta y Ejemplos */}
+          {/* Sección Respuesta - Mitad izquierda */}
+          <div className="flex-grow">
+            <h2 className="text-xl font-bold mb-3">Your answer</h2>
+            {question.tags?.includes("company") && (
+              <>
+                <label className="block text-lg mb-1">Company</label>
+                <Select value={company} onValueChange={handleCompanyChange}>
+                  <SelectTrigger className="w-full mb-4">
+                    <SelectValue placeholder="Select a company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companyOptions.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            {question.tags?.includes("role") && (
+              <>
+                <label className="block text-lg mb-1">Role</label>
+                <Select value={role} onValueChange={handleRoleChange}>
+                  <SelectTrigger className="w-full mb-4">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roleOptions.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            {question.tags?.includes("value") && (
+              <>
+                <label className="block text-lg mb-1">Value</label>
+                <Select value={value} onValueChange={handleValueChange}>
+                  <SelectTrigger className="w-full mb-4">
+                    <SelectValue placeholder="Select a value" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {valueOptions.map((v) => (
+                      <SelectItem key={v.value} value={v.value}>
+                        {v.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
+            <div className="mb-4">
+              <label className="block text-lg mb-1">Audio</label>
+              <div
+                className={`flex items-center justify-between w-full p-4 border rounded-lg ${
+                  invalidLength
+                    ? "border-red-600"
+                    : "border-gray-300 dark:border-gray-300"
+                }`}
+              >
+                <div className="flex items-center w-full sm:w-auto">
+                  <div className="size-10 flex justify-center items-center">
+                    {!isActive && recorded ? (
+                      <div
+                        className="size-10 bg-secondary rounded-full flex items-center justify-center cursor-pointer"
+                        onClick={reproducing ? handleStop : handlePlay}
+                      >
+                        {reproducing ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="white"
+                            viewBox="0 0 24 24"
+                            className="w-6 h-6"
+                          >
+                            <rect x="6" y="6" width="12" height="12" rx="2" />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="white"
+                            viewBox="-1 0 24 24"
+                            className="w-6 h-6"
+                          >
+                            <path d="M5.25 5.25l13.5 6.75-13.5 6.75V5.25z" />
+                          </svg>
+                        )}
+                      </div>
+                    ) : (
+                      <motion.div
+                        className="bg-red-500"
+                        onClick={() => {
+                          isActive ? stopRecording() : startRecording();
+                        }}
+                        initial={false}
+                        animate={{
+                          borderRadius: isActive ? "6px" : "50%",
+                          width: isActive ? "24px" : "36px",
+                          height: isActive ? "24px" : "36px",
+                        }}
+                        transition={{
+                          duration: 0.2,
+                          ease: "easeInOut",
+                        }}
+                        style={{
+                          cursor: "pointer",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span className="text-lg font-bold ml-4">
+                    {isActive && "Recording ("}
+                    {recorded ? `${formatTime(reproduced)}/` : ""}
+                    {formatTime(counter)}
+                    {isActive && ")"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {recorded && (
+                    <Button variant="destructive" onClick={deleteRecording}>
+                      Retry
+                    </Button>
+                  )}
+                  {!recorded && (
+                    <p className="text-sm text-center">{question.maxTime}s</p>
+                  )}
+                </div>
+              </div>
+              {invalidLength && (
+                <p className="text-red-500 text-sm text-center mt-2">
+                  Answer time must be less than {question.maxTime}s
+                </p>
+              )}
+            </div>
+            <div className="flex items-center space-x-2 mt-4">
+              <Checkbox
+                id="consent"
+                checked={isHelping}
+                onCheckedChange={handleConsentChange}
+              />
+              <label htmlFor="consent" className="text-sm cursor-pointer">
+                Help improve the model with my answer
+              </label>
+            </div>
+            <Button
+              className="mt-4 w-full"
+              variant="secondary"
+              onClick={handleEvaluate}
+              disabled={
+                !recorded ||
+                counter > question.maxTime ||
+                isLoading ||
+                loadingExampleId !== null
+              }
+            >
+              {!isLoading && "Evaluate Answer"}
+              {isLoading && (
+                <div className="flex items-center justify-center">
+                  <svg
+                    aria-hidden="true"
+                    role="status"
+                    className="inline w-4 h-4 me-3 text-white animate-spin"
+                    viewBox="0 0 100 101"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                      fill="#E5E7EB"
+                    />
+                    <path
+                      d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Processing audio...
+                </div>
+              )}
+            </Button>
           </div>
 
-          {/* Contenedor flex para Respuesta y Ejemplos */}
-          <div className="flex flex-col lg:flex-row gap-8 pt-6">
-            {/* Sección Respuesta - Mitad izquierda */}
-            <div className="flex-1">
-              <h2 className="text-xl font-bold mb-4">Your answer</h2>
-              {question.tags?.includes("company") && (
-                <>
-                  <label className="block text-lg mb-1">Company</label>
-                  <Select value={company} onValueChange={handleCompanyChange}>
-                    <SelectTrigger className="w-full mb-4">
-                      <SelectValue placeholder="Select a company" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companyOptions.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>
-                          {c.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-              {question.tags?.includes("role") && (
-                <>
-                  <label className="block text-lg mb-1">Role</label>
-                  <Select value={role} onValueChange={handleRoleChange}>
-                    <SelectTrigger className="w-full mb-4">
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roleOptions.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-              {question.tags?.includes("value") && (
-                <>
-                  <label className="block text-lg mb-1">Value</label>
-                  <Select value={value} onValueChange={handleValueChange}>
-                    <SelectTrigger className="w-full mb-4">
-                      <SelectValue placeholder="Select a value" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {valueOptions.map((v) => (
-                        <SelectItem key={v.value} value={v.value}>
-                          {v.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-              <div className="mb-4">
-                <label className="block text-lg mb-1">Audio</label>
-                <div
-                  className={`flex items-center justify-between w-full p-4 border rounded-lg ${
-                    invalidLength
-                      ? "border-red-600"
-                      : "border-gray-300 dark:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center w-full sm:w-auto">
-                    <div className="size-10 flex justify-center items-center">
-                      {!isActive && recorded ? (
-                        <div
-                          className="size-10 bg-secondary rounded-full flex items-center justify-center cursor-pointer"
-                          onClick={reproducing ? handleStop : handlePlay}
-                        >
-                          {reproducing ? (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="white"
-                              viewBox="0 0 24 24"
-                              className="w-6 h-6"
-                            >
-                              <rect x="6" y="6" width="12" height="12" rx="2" />
-                            </svg>
-                          ) : (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="white"
-                              viewBox="-1 0 24 24"
-                              className="w-6 h-6"
-                            >
-                              <path d="M5.25 5.25l13.5 6.75-13.5 6.75V5.25z" />
-                            </svg>
-                          )}
-                        </div>
-                      ) : (
-                        <motion.div
-                          className="bg-red-500"
-                          onClick={() => {
-                            isActive ? stopRecording() : startRecording();
-                          }}
-                          initial={false}
-                          animate={{
-                            borderRadius: isActive ? "6px" : "50%",
-                            width: isActive ? "24px" : "36px",
-                            height: isActive ? "24px" : "36px",
-                          }}
-                          transition={{
-                            duration: 0.2,
-                            ease: "easeInOut",
-                          }}
-                          style={{
-                            cursor: "pointer",
-                          }}
-                        />
-                      )}
-                    </div>
-                    <span className="text-lg font-bold ml-4">
-                      {isActive && "Recording ("}
-                      {recorded ? `${formatTime(reproduced)}/` : ""}
-                      {formatTime(counter)}
-                      {isActive && ")"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {recorded && (
-                      <Button variant="destructive" onClick={deleteRecording}>
-                        Retry
-                      </Button>
-                    )}
-                    {!recorded && (
-                      <p className="text-sm text-center">{question.maxTime}s</p>
-                    )}
-                  </div>
-                </div>
-                {invalidLength && (
-                  <p className="text-red-500 text-sm text-center mt-2">
-                    Answer time must be less than {question.maxTime}s
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center space-x-2 mt-4">
-                <Checkbox
-                  id="consent"
-                  checked={isHelping}
-                  onCheckedChange={handleConsentChange}
-                />
-                <label htmlFor="consent" className="text-sm cursor-pointer">
-                  Help improve the model with my answer
-                </label>
-              </div>
-              <Button
-                className="mt-4 w-full"
-                variant="secondary"
-                onClick={handleEvaluate}
-                disabled={
-                  !recorded ||
-                  counter > question.maxTime ||
-                  isLoading ||
-                  loadingExampleId !== null
-                }
+          {/* Sección Ejemplos - Mitad derecha */}
+          <div className="w-full lg:w-[250px]">
+            <h2 className="text-xl font-bold mb-3">Examples</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+              <button
+                onClick={() => onExample(question.id, "Strong yes")}
+                disabled={isLoading || loadingExampleId !== null}
+                className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {!isLoading && "Evaluate Answer"}
-                {isLoading && (
+                {loadingExampleId === "Strong yes" ? (
                   <div className="flex items-center justify-center">
                     <svg
                       aria-hidden="true"
@@ -512,144 +551,102 @@ const Step1: React.FC<{
                         fill="currentColor"
                       />
                     </svg>
-                    Processing audio...
+                    Loading...
                   </div>
+                ) : (
+                  "Strong yes"
                 )}
-              </Button>
-            </div>
-
-            {/* Línea divisoria vertical */}
-            <div className="hidden lg:flex flex-col items-center">
-              <div className="flex-1 w-[1px] bg-foreground"></div>
-              <span className="text-sm font-medium my-4">o</span>
-              <div className="flex-1 w-[1px] bg-foreground"></div>
-            </div>
-
-            {/* Sección Ejemplos - Mitad derecha */}
-            <div className="w-full lg:w-[250px]">
-              <h2 className="text-xl font-bold mb-3">Examples</h2>
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
-                <button
-                  onClick={() => onExample(question.id, "Strong yes")}
-                  disabled={isLoading || loadingExampleId !== null}
-                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingExampleId === "Strong yes" ? (
-                    <div className="flex items-center justify-center">
-                      <svg
-                        aria-hidden="true"
-                        role="status"
-                        className="inline w-4 h-4 me-3 text-white animate-spin"
-                        viewBox="0 0 100 101"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                          fill="#E5E7EB"
-                        />
-                        <path
-                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      Loading...
-                    </div>
-                  ) : (
-                    "Strong yes"
-                  )}
-                </button>
-                <button
-                  onClick={() => onExample(question.id, "Yes")}
-                  disabled={isLoading || loadingExampleId !== null}
-                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-lime-600 hover:bg-lime-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingExampleId === "Yes" ? (
-                    <div className="flex items-center justify-center">
-                      <svg
-                        aria-hidden="true"
-                        role="status"
-                        className="inline w-4 h-4 me-3 text-white animate-spin"
-                        viewBox="0 0 100 101"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                          fill="#E5E7EB"
-                        />
-                        <path
-                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      Loading...
-                    </div>
-                  ) : (
-                    "Yes"
-                  )}
-                </button>
-                <button
-                  onClick={() => onExample(question.id, "No")}
-                  disabled={isLoading || loadingExampleId !== null}
-                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingExampleId === "No" ? (
-                    <div className="flex items-center justify-center">
-                      <svg
-                        aria-hidden="true"
-                        role="status"
-                        className="inline w-4 h-4 me-3 text-white animate-spin"
-                        viewBox="0 0 100 101"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                          fill="#E5E7EB"
-                        />
-                        <path
-                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      Loading...
-                    </div>
-                  ) : (
-                    "No"
-                  )}
-                </button>
-                <button
-                  onClick={() => onExample(question.id, "Strong no")}
-                  disabled={isLoading || loadingExampleId !== null}
-                  className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingExampleId === "Strong no" ? (
-                    <div className="flex items-center justify-center">
-                      <svg
-                        aria-hidden="true"
-                        role="status"
-                        className="inline w-4 h-4 me-3 text-white animate-spin"
-                        viewBox="0 0 100 101"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                          fill="#E5E7EB"
-                        />
-                        <path
-                          d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                          fill="currentColor"
-                        />
-                      </svg>
-                      Loading...
-                    </div>
-                  ) : (
-                    "Strong no"
-                  )}
-                </button>
-              </div>
+              </button>
+              <button
+                onClick={() => onExample(question.id, "Yes")}
+                disabled={isLoading || loadingExampleId !== null}
+                className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-lime-600 hover:bg-lime-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingExampleId === "Yes" ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      aria-hidden="true"
+                      role="status"
+                      className="inline w-4 h-4 me-3 text-white animate-spin"
+                      viewBox="0 0 100 101"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"
+                      />
+                      <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    Loading...
+                  </div>
+                ) : (
+                  "Yes"
+                )}
+              </button>
+              <button
+                onClick={() => onExample(question.id, "No")}
+                disabled={isLoading || loadingExampleId !== null}
+                className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-orange-500 hover:bg-orange-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingExampleId === "No" ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      aria-hidden="true"
+                      role="status"
+                      className="inline w-4 h-4 me-3 text-white animate-spin"
+                      viewBox="0 0 100 101"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"
+                      />
+                      <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    Loading...
+                  </div>
+                ) : (
+                  "No"
+                )}
+              </button>
+              <button
+                onClick={() => onExample(question.id, "Strong no")}
+                disabled={isLoading || loadingExampleId !== null}
+                className="cursor-pointer w-full p-4 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingExampleId === "Strong no" ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      aria-hidden="true"
+                      role="status"
+                      className="inline w-4 h-4 me-3 text-white animate-spin"
+                      viewBox="0 0 100 101"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"
+                      />
+                      <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    Loading...
+                  </div>
+                ) : (
+                  "Strong no"
+                )}
+              </button>
             </div>
           </div>
         </CardContent>
