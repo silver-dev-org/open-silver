@@ -1,8 +1,5 @@
 import { AssistanceResponse } from "@/behavioral-checker/client-assistance/core/domain/Action";
 
-import Description from "@/components/description";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
 import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +17,8 @@ const Step2: FC<{
   onTryAgain,
 }) => {
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+
     const handleBackButton = (e: PopStateEvent) => {
       e.preventDefault();
       onTryAgain();
