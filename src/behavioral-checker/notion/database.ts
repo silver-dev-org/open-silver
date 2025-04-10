@@ -14,27 +14,30 @@ export const addFeedbackToNotion = async (
   data: AssistanceResponse & { feedbackScore?: string; feedbackText?: string }
 ): Promise<string> => {
   try {
+    const properties: any = {
+      ID: { select: { name: data.questionId } },
+      Date: { date: { start: new Date().toISOString() } },
+      Question: { title: [{ text: { content: data.question } }] },
+      Answer: { rich_text: [{ text: { content: data.response } }] },
+      Score: { select: { name: data.result } },
+      "Green flags": {
+        rich_text: [{ text: { content: data.greenFlags.join(", ") } }],
+      },
+      "Red flags": {
+        rich_text: [{ text: { content: data.redFlags.join(", ") } }],
+      },
+      Feedback: {
+        rich_text: [{ text: { content: data.feedbackText || "" } }],
+      },
+    };
+
+    if (data.feedbackScore) {
+      properties["Feedback score"] = { select: { name: data.feedbackScore } };
+    }
+
     const res = await notion.pages.create({
       parent: { database_id: DATABASE_ID },
-      properties: {
-        ID: { select: { name: data.questionId } },
-        Date: { date: { start: new Date().toISOString() } },
-        Question: { title: [{ text: { content: data.question } }] },
-        Answer: { rich_text: [{ text: { content: data.response } }] },
-        Score: { select: { name: data.result } },
-        "Green flags": {
-          rich_text: [{ text: { content: data.greenFlags.join(", ") } }],
-        },
-        "Red flags": {
-          rich_text: [{ text: { content: data.redFlags.join(", ") } }],
-        },
-        "Feedback score": {
-          select: { name: data.feedbackScore || "" },
-        },
-        Feedback: {
-          rich_text: [{ text: { content: data.feedbackText || "" } }],
-        },
-      },
+      properties,
     });
 
     console.log("Registro añadido:", res.id);
