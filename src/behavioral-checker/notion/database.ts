@@ -11,8 +11,8 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const DATABASE_ID = process.env.NOTION_DATABASE_ID as string;
 
 export const addFeedbackToNotion = async (
-  data: AssistanceResponse
-): Promise<void> => {
+  data: AssistanceResponse & { feedbackScore?: string }
+): Promise<string> => {
   try {
     const res = await notion.pages.create({
       parent: { database_id: DATABASE_ID },
@@ -28,10 +28,14 @@ export const addFeedbackToNotion = async (
         "Red flags": {
           rich_text: [{ text: { content: data.redFlags.join(", ") } }],
         },
+        "Feedback score": {
+          select: { name: data.feedbackScore || "" },
+        },
       },
     });
 
     console.log("Registro añadido:", res.id);
+    return res.id;
   } catch (error: any) {
     console.error("Error añadiendo registro:", error.message);
     throw new Error("Failed to add feedback to Notion");
@@ -154,5 +158,24 @@ export const getLastFeedback = async (
   } catch (error: any) {
     console.error("Error al obtener respuestas:", error.message);
     throw new Error("Failed to fetch feedback from Notion");
+  }
+};
+
+export const updateFeedbackInNotion = async (
+  pageId: string,
+  feedbackScore: string
+): Promise<void> => {
+  try {
+    await notion.pages.update({
+      page_id: pageId,
+      properties: {
+        "Feedback score": { select: { name: feedbackScore } },
+      },
+    });
+
+    console.log("Registro actualizado:", pageId);
+  } catch (error: any) {
+    console.error("Error actualizando registro:", error.message);
+    throw new Error("Failed to update feedback in Notion");
   }
 };
