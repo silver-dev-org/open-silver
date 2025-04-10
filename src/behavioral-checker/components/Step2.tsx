@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { FC, useEffect, useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { ChangeEvent, FC, useEffect, useState } from "react";
 import { FaFlag } from "react-icons/fa";
 import RatingBar from "./RatingBar";
 
@@ -27,6 +28,7 @@ const Step2: FC<{
 }) => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackScore, setFeedbackScore] = useState<string>("");
+  const [feedbackText, setFeedbackText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pageId, setPageId] = useState<string | null>(null);
@@ -50,6 +52,7 @@ const Step2: FC<{
 
   const handleSubmitFeedback = async () => {
     if (!feedbackScore) return;
+    if (feedbackScore === result && !feedbackText.trim()) return;
 
     try {
       setIsSubmitting(true);
@@ -69,6 +72,7 @@ const Step2: FC<{
           greenFlags,
           redFlags,
           feedbackScore,
+          feedbackText: feedbackText.trim(),
         }),
       });
 
@@ -83,6 +87,7 @@ const Step2: FC<{
 
       setShowFeedback(false);
       setFeedbackScore("");
+      setFeedbackText("");
     } catch (error) {
       setError("Failed to submit feedback. Please try again.");
     } finally {
@@ -168,7 +173,7 @@ const Step2: FC<{
               What do you think should be the correct score for this answer?
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-2">
             <RadioGroup
               value={feedbackScore}
               onValueChange={setFeedbackScore}
@@ -235,21 +240,41 @@ const Step2: FC<{
                 </Label>
               </div>
             </RadioGroup>
+            <div className="mt-4">
+              <Label htmlFor="feedback-text">Additional Feedback</Label>
+              <Textarea
+                id="feedback-text"
+                value={feedbackText}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                  setFeedbackText(e.target.value)
+                }
+                placeholder="Please provide additional context for your feedback..."
+                className="mt-2"
+              />
+              {feedbackScore === result && !feedbackText.trim() && (
+                <p className="text-red-500 text-sm mt-2">
+                  Please provide additional feedback when selecting the same
+                  score
+                </p>
+              )}
+            </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
           <DialogFooter>
             <Button
               onClick={handleSubmitFeedback}
               disabled={
-                !feedbackScore || isSubmitting || feedbackScore === result
+                !feedbackScore ||
+                isSubmitting ||
+                (feedbackScore === result && !feedbackText.trim())
               }
               variant="secondary"
               className="w-full"
             >
               {isSubmitting
                 ? "Submitting..."
-                : feedbackScore === result
-                  ? "Same as current score"
+                : feedbackScore === result && !feedbackText.trim()
+                  ? "Please provide feedback"
                   : "Submit Feedback"}
             </Button>
           </DialogFooter>

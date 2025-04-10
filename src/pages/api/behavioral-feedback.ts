@@ -13,7 +13,7 @@ export default async function handler(
   }
 
   try {
-    const { pageId, feedbackScore, ...feedbackData } = req.body;
+    const { pageId, feedbackScore, feedbackText, ...feedbackData } = req.body;
 
     if (!feedbackScore) {
       return res.status(400).json({ message: "Feedback score is required" });
@@ -22,12 +22,13 @@ export default async function handler(
     let recordId: string;
 
     if (pageId) {
-      await updateFeedbackInNotion(pageId, feedbackScore);
+      await updateFeedbackInNotion(pageId, feedbackScore, feedbackText);
       recordId = pageId;
     } else {
       recordId = await addFeedbackToNotion({
         ...feedbackData,
         feedbackScore,
+        feedbackText,
       });
     }
 
