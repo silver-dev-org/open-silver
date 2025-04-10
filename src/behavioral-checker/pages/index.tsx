@@ -97,10 +97,12 @@ export default function Home() {
 
   const handleNext = () => {
     setResult(undefined);
+    scrollTo({ top: 350, behavior: "instant" });
     setQuestionIndex((prev) => (prev + 1) % questions.length);
   };
 
   const handleTryAgain = () => {
+    scrollTo({ top: 350, behavior: "instant" });
     setResult(undefined);
   };
 
