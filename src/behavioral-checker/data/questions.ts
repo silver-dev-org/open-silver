@@ -15,7 +15,6 @@ export const questions: Question[] = [
   {
     id: "about-yourself",
     text: "Tell me a bit about yourself.",
-    tags: ["company", "role"],
     maxTime: 90,
   },
   {

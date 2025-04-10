@@ -59,7 +59,7 @@ export class OpenAISdkAIClient implements AIClient {
 
 **Introduction and Presentation**:
 **DO**: Highlight relevant technical experience, personal projects, open-source contributions, and key skills.
-**DO**: Mention specific achievements and how they align with the company's mission.
+**DO**: Mention specific achievements.
 **DON'T**: Mention irrelevant personal projects or outdated experience.
 **DON'T**: Talk about hobbies or personal stories that are not relevant to the role.
 
