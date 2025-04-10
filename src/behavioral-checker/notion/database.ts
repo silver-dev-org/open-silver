@@ -11,7 +11,7 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const DATABASE_ID = process.env.NOTION_DATABASE_ID as string;
 
 export const addFeedbackToNotion = async (
-  data: AssistanceResponse & { feedbackScore?: string }
+  data: AssistanceResponse & { feedbackScore?: string; feedbackText?: string }
 ): Promise<string> => {
   try {
     const res = await notion.pages.create({
@@ -30,6 +30,9 @@ export const addFeedbackToNotion = async (
         },
         "Feedback score": {
           select: { name: data.feedbackScore || "" },
+        },
+        Feedback: {
+          rich_text: [{ text: { content: data.feedbackText || "" } }],
         },
       },
     });
@@ -163,13 +166,15 @@ export const getLastFeedback = async (
 
 export const updateFeedbackInNotion = async (
   pageId: string,
-  feedbackScore: string
+  feedbackScore: string,
+  feedbackText?: string
 ): Promise<void> => {
   try {
     await notion.pages.update({
       page_id: pageId,
       properties: {
         "Feedback score": { select: { name: feedbackScore } },
+        Feedback: { rich_text: [{ text: { content: feedbackText || "" } }] },
       },
     });
 
