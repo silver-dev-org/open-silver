@@ -35,16 +35,7 @@ const Step2: FC<{
   }, [onTryAgain]);
 
   return (
-    <Section>
-      <Heading center>
-        <span className="text-primary">Behavioral</span> Checker
-      </Heading>
-      <Spacer />
-      <Description center>
-        Get instant feedback from answering classical behavioral questions with
-        Silver.dev&lsquo;s themed auto-response. Great for practicing English &
-        Storytelling.
-      </Description>
+    <>
       <Spacer size="lg" />
       <div
         className={`w-full flex flex-col lg:flex-row items-center lg:items-start justify-center ${spaceSizes.sm.gap}`}
@@ -103,7 +94,7 @@ const Step2: FC<{
           </div>
         </div>
       </div>
-    </Section>
+    </>
   );
 };
 

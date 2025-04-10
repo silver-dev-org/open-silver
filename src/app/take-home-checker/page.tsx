@@ -35,7 +35,7 @@ export default async function Page() {
 
   return (
     <Section>
-      <Heading center>
+      <Heading size="lg" center>
         <span className="text-primary">Take-home</span> Checker
       </Heading>
       <Spacer />

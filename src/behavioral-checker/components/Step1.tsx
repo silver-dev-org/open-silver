@@ -299,7 +299,7 @@ const Step1: React.FC<{
 
   return (
     <Section>
-      <Heading center>
+      <Heading size="lg" center>
         <span className="text-primary">Behavioral</span> Checker
       </Heading>
       <Spacer />
