@@ -50,17 +50,18 @@ const tools: {
           "Get instant feedback from answering classical behavioral questions.",
         href: "/behavioral-checker",
       },
-      {
-        title: "Take-home Checker",
-        description:
-          "Upload your take-home and get instant feedback on the project.",
-        href: "/take-home-checker",
-      },
-      {
-        title: "WPM Game",
-        description: "Test your speed and practice typing code.",
-        href: "https://wpm.silver.dev",
-      },
+      // Not ready yet
+      // {
+      //   title: "Take-home Checker",
+      //   description:
+      //     "Upload your take-home and get instant feedback on the project.",
+      //   href: "/take-home-checker",
+      // },
+      // {
+      //   title: "WPM Game",
+      //   description: "Test your speed and practice typing code.",
+      //   href: "https://wpm.silver.dev",
+      // },
     ],
   },
   {
