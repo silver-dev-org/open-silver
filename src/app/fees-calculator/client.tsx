@@ -200,7 +200,7 @@ Expected contract cost: ${new Intl.NumberFormat("en-US", {
                   maximumFractionDigits: 0,
                 }).format(cost || 0)}
 ${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
-Link: ${window.location.origin}?${queryString}`
+Link: ${window.location.origin}/${window.location.pathname}?${queryString}`
               );
               const shareLink = `mailto:gabriel@silver.dev?subject=${emailSubject}&body=${emailBody}`;
               setShareLink(shareLink);
