@@ -19,6 +19,10 @@ const links: {
     ],
   },
   {
+    group: "For employers",
+    links: [{ href: "https://blog.silver.dev", label: "Hiring Blog" }],
+  },
+  {
     group: "For talent",
     links: [
       { href: "https://ready.silver.dev/blog", label: "Career Blog" },
@@ -29,10 +33,6 @@ const links: {
       { href: "https://silver.dev/jobs", label: "Jobs" },
       { href: "https://silver.dev/job-alerts", label: "New Job Alerts" },
     ],
-  },
-  {
-    group: "For employers",
-    links: [{ href: "https://blog.silver.dev", label: "Hiring Blog" }],
   },
 ];
 
