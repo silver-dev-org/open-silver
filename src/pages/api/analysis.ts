@@ -34,9 +34,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const result = await consultByAudio.invoke(id, question, filePath);
 
-    if (req.body.consent === "true") {
-      addFeedbackToNotion(result);
-    }
+    addFeedbackToNotion(result);
 
     res.status(200).json(result);
   } catch (error) {
