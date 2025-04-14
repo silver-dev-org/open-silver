@@ -36,7 +36,7 @@ const Step1: React.FC<{
   onSubmit: (
     id: Question["id"],
     question: string,
-    audioBlob: Blob | null
+    audioBlob: Blob | null,
   ) => void;
   onExample: (id: Question["id"], result: Result) => void;
   isLoading: boolean;
@@ -255,9 +255,7 @@ const Step1: React.FC<{
       </Heading>
       <Spacer />
       <Description center>
-        Get instant feedback from answering classical behavioral questions with
-        Silver.dev&lsquo;s themed auto-response. Great for practicing English &
-        Storytelling. Check{" "}
+        Practice English & Storytelling and get instant feedback. Check{" "}
         <Link
           className="link"
           href="https://docs.silver.dev/interview-ready/soft-fundamentals/pasando-entrevistas/behavioral-preguntas-clasicas#tips"
