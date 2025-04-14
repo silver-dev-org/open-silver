@@ -134,12 +134,26 @@ export default function Review() {
             </p>
           ) : (
             <div className="flex flex-col gap-4">
-              <Link
-                href="/resume-checker"
-                className={buttonVariants({ variant: "secondary" })}
-              >
-                Probá otra vez
-              </Link>
+              <div className="flex gap-4 w-full">
+                <Link
+                  href="/resume-checker"
+                  className={buttonVariants({
+                    variant: "outline",
+                    className: "flex-grow",
+                  })}
+                >
+                  Probar otra vez
+                </Link>
+                <Link
+                  href="https://app.silver.dev"
+                  className={buttonVariants({
+                    variant: "secondary",
+                    className: "flex-grow",
+                  })}
+                >
+                  Subir en Silver
+                </Link>
+              </div>
               <Button variant="ghost" onClick={() => setFeedbackFormOpen(true)}>
                 Dijo cualquiera? Avisanos
               </Button>
