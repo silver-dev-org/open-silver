@@ -38,7 +38,7 @@ export default async function handler(
     } else {
       const { url } = req.query;
       if (!url || typeof url !== "string") {
-        throw new Error("Tenes que proveer un archivo pdf o un url");
+        throw new Error("Tenés que proveer un archivo PDF o un URL.");
       }
 
       if (url.startsWith("public")) {
@@ -67,7 +67,7 @@ export default async function handler(
 
     if (!completion) {
       throw new Error(
-        "No se pudo completar la llamada a la inteligencia artificial"
+        "No se pudo completar el proceso de evaluación de currículum."
       );
     }
 
@@ -76,9 +76,10 @@ export default async function handler(
     res.status(200).json(sanitized);
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .send({ error: err instanceof Error ? err.message : "Error inesperado" });
+    res.status(500).send({
+      error:
+        err instanceof Error ? err.message : "Ocurrió un error inesperado.",
+    });
   }
 }
 
