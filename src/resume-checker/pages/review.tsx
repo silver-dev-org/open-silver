@@ -145,7 +145,7 @@ export default function Review() {
                   Probar otra vez
                 </Link>
                 <Link
-                  href="https://app.silver.dev"
+                  href="https://app.silver.dev/prepping"
                   className={buttonVariants({
                     variant: "secondary",
                     className: "flex-grow",
