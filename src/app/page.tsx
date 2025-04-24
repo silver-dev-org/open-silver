@@ -35,7 +35,7 @@ const tools: {
     slug: "for-talent",
     section: (
       <span>
-        For <span className="text-primary">talent</span>
+        For <span className="text-primary">Talent</span>
       </span>
     ),
     list: [
@@ -68,7 +68,7 @@ const tools: {
     slug: "for-employers",
     section: (
       <span>
-        For <span className="text-primary">employers</span>
+        For <span className="text-primary">Employers</span>
       </span>
     ),
     list: [
