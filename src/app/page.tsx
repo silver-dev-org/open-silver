@@ -50,6 +50,12 @@ const tools: {
           "Get instant feedback from answering classical behavioral questions.",
         href: "/behavioral-checker",
       },
+      {
+        title: "Github Repo",
+        description:
+          "A repository with dozens of challenges for interview practice",
+        href: "http://silver.dev/repo",
+      },
       // Not ready yet
       // {
       //   title: "Take-home Checker",
@@ -77,6 +83,11 @@ const tools: {
         description:
           "Adjust terms, explore options, and share your estimate with Silver.",
         href: "/fees-calculator",
+      },
+      {
+        title: "Model Agreement",
+        description: "See our standard agreement",
+        href: "/contract",
       },
     ],
   },
