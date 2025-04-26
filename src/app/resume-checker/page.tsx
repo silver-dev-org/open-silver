@@ -1,5 +1,5 @@
+import Home from "@/resume-checker/pages/index";
 import { Metadata } from "next";
-import ResumeCheckerClient from "./client";
 
 export const metadata: Metadata = {
   title: "Resume Checker",
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function ResumeCheckerPage() {
-  return <ResumeCheckerClient />;
+  return <Home />;
 }
