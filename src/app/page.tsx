@@ -87,7 +87,7 @@ const tools: {
       {
         title: "Model Agreement",
         description: "See our standard agreement",
-        href: "/contract",
+        href: "https://silver.dev/contract",
       },
     ],
   },
