@@ -3,6 +3,7 @@ import Header from "@/components/header";
 import Spacer from "@/components/spacer";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import SessionProvider from "@/providers/SessionProvider";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -35,6 +36,7 @@ export default async function RootLayout({
 
   return (
     <html className="scroll-smooth dark" lang="en">
+      <GoogleAnalytics gaId="G-QFVTDBRTP4" />
       <SessionProvider>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
