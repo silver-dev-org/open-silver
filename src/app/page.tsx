@@ -51,9 +51,9 @@ const tools: {
         href: "/behavioral-checker",
       },
       {
-        title: "Github Repo",
+        title: "GitHub Repo",
         description:
-          "A repository with dozens of challenges for interview practice",
+          "A repository with dozens of challenges for interview practice.",
         href: "http://silver.dev/repo",
       },
       // Not ready yet
@@ -86,7 +86,7 @@ const tools: {
       },
       {
         title: "Model Agreement",
-        description: "See our standard agreement",
+        description: "See our standard agreement.",
         href: "https://silver.dev/contract",
       },
     ],
