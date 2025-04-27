@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AssistanceResponse,
   Result,
@@ -7,7 +9,6 @@ import Step1 from "@/behavioral-checker/components/Step1";
 import Step2 from "@/behavioral-checker/components/Step2";
 import { Question, questions } from "@/behavioral-checker/data/questions";
 import { PreppingData } from "@/lib/utils";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { useState } from "react";
 
 export default function Home() {
@@ -139,7 +140,6 @@ export default function Home() {
           loadingExampleId={loadingExampleId}
         />
       )}
-      <GoogleAnalytics gaId="G-QFVTDBRTP4" />
     </div>
   );
 }

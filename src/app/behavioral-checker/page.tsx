@@ -1,5 +1,5 @@
+import Home from "@/behavioral-checker/pages/index";
 import { Metadata } from "next";
-import BehavioralCheckerClient from "./client";
 
 export const metadata: Metadata = {
   title: "Behavioral Checker",
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function BehavioralCheckerPage() {
-  return <BehavioralCheckerClient />;
+  return <Home />;
 }

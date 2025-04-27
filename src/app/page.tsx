@@ -35,7 +35,7 @@ const tools: {
     slug: "for-talent",
     section: (
       <span>
-        For <span className="text-primary">talent</span>
+        For <span className="text-primary">Talent</span>
       </span>
     ),
     list: [
@@ -56,6 +56,12 @@ const tools: {
           "Run a custom investigation for a company you are interested in.",
         href: "/company-checker",
       },
+      {
+        title: "GitHub Repo",
+        description:
+          "A repository with dozens of challenges for interview practice.",
+        href: "http://silver.dev/repo",
+      },
       // Not ready yet
       // {
       //   title: "Take-home Checker",
@@ -74,7 +80,7 @@ const tools: {
     slug: "for-employers",
     section: (
       <span>
-        For <span className="text-primary">employers</span>
+        For <span className="text-primary">Employers</span>
       </span>
     ),
     list: [
@@ -83,6 +89,11 @@ const tools: {
         description:
           "Adjust terms, explore options, and share your estimate with Silver.",
         href: "/fees-calculator",
+      },
+      {
+        title: "Model Agreement",
+        description: "See our standard agreement.",
+        href: "https://silver.dev/contract",
       },
     ],
   },
