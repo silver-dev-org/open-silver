@@ -50,6 +50,12 @@ const tools: {
           "Get instant feedback from answering classical behavioral questions.",
         href: "/behavioral-checker",
       },
+      {
+        title: "Company Checker",
+        description:
+          "Run a custom investigation for a company you are interested in.",
+        href: "/company-checker",
+      },
       // Not ready yet
       // {
       //   title: "Take-home Checker",

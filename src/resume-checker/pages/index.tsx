@@ -6,7 +6,7 @@ import Heading from "@/components/heading";
 import Section from "@/components/section";
 import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
-import ErrorBadge from "@/resume-checker/components/error-badge";
+import ErrorBadge from "@/components/ui/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import { useMutationState } from "@tanstack/react-query";
 import Link from "next/link";
@@ -46,7 +46,7 @@ export default function Home() {
       setFormState({ formData });
       router.push("/resume-checker/review");
     },
-    [router, setFormState]
+    [router, setFormState],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -65,7 +65,7 @@ export default function Home() {
     const url = data.getData("text").toString();
     if (!url.startsWith("https") || !url.endsWith(".pdf")) {
       setError(
-        new Error("El URL tiene que empezar con 'https' y terminar con 'pdf'")
+        new Error("El URL tiene que empezar con 'https' y terminar con 'pdf'"),
       );
       return;
     }

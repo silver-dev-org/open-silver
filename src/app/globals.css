@@ -236,3 +236,7 @@ body,
     opacity: 1;
   }
 }
+
+.markdown-container * {
+  all: revert;
+}
