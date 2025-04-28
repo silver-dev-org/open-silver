@@ -1,7 +1,7 @@
 "use client";
 
 import { SilverDev } from "@/components/logos";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,6 +12,7 @@ interface Link {
   href: string;
   label: string;
   target?: string;
+  asButton?: boolean;
 }
 
 export default function Header() {
@@ -35,6 +36,12 @@ export default function Header() {
       label: "Jobs",
       target: "_blank",
     },
+    {
+      href: "https://typst.app/app?template=silver-dev-cv",
+      label: "Resume Template",
+      target: "_blank",
+      asButton: true,
+    },
   ];
 
   function LinksGroup({ links }: { links: Link[] }) {
@@ -46,16 +53,21 @@ export default function Header() {
             : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
         }`}
       >
-        {links.map(({ href, label, target }) => (
-          <Link
-            key={href}
-            href={href}
-            target={target}
-            onClick={() => setIsMenuOpen(false)}
-            className={buttonVariants({ variant: "link" })}
+        {links.map(({ href, label, target, asButton }) => (
+          <Button
+            asChild
+            variant={asButton ? "default" : "link"}
+            className={`${asButton && "mx-4"}`}
           >
-            {label}
-          </Link>
+            <Link
+              key={href}
+              href={href}
+              target={target}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {label}
+            </Link>
+          </Button>
         ))}
       </div>
     );
