@@ -4,7 +4,7 @@ import FeedbackForm from "@/resume-checker/components/feedback-form";
 import Flags from "@/resume-checker/components/flags";
 import PDF from "@/resume-checker/components/pdf";
 import Score from "@/resume-checker/components/score";
-import Skeleton from "@/resume-checker/components/skeleton";
+import Skeleton from "@/components/skeleton";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import type { FormState } from "@/resume-checker/types";
 import { sendGAEvent } from "@next/third-parties/google";
