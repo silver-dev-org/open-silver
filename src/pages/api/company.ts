@@ -71,7 +71,7 @@ export default async function handler(
     }
 
     res.writeHead(200, corsHeaders);
-    res.end(JSON.stringify({ text: prompt }));
+    res.end(JSON.stringify({ text }));
   } catch (error) {
     console.error('Error procesando la solicitud:', error);
     const statusCode = error instanceof Error && error.message.includes('Company name') ? 400 : 500;
