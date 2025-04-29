@@ -12,6 +12,7 @@ import ReactMarkdown from "react-markdown";
 import Spinner from "@/components/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { createPrompt } from "@/company-checker/utils/prompts";
+import { sendGAEvent } from "@next/third-parties/google";
 
 function removeTripleBackticks(text: string): string {
   // Trim leading/trailing whitespace
@@ -57,18 +58,21 @@ export default function Home() {
     navigator.clipboard.writeText(createPrompt(company));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    sendGAEvent("event", "company-checker-copy-prompt", { company });
   };
 
   const investigateCompany = async () => {
     const company = inputRef?.current?.value;
     if (!company) {
       setError(new Error('Por favor ingresa el nombre de una empresa'));
+      sendGAEvent("event", "company-checker-error", { error: "empty_company" });
       return;
     }
 
     setText("");
     setError(null);
     setIsLoading(true);
+    sendGAEvent("event", "company-checker-search", { company });
     
     try {
       const response = await fetch(`/api/company?company=${encodeURIComponent(company)}`);
@@ -79,8 +83,14 @@ export default function Home() {
       
       const json = await response.json();
       setText(removeMarkdown(removeTripleBackticks(json.text)));
+      sendGAEvent("event", "company-checker-success", { company });
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error al buscar información de la empresa'));
+      const error = err instanceof Error ? err : new Error('Error al buscar información de la empresa');
+      setError(error);
+      sendGAEvent("event", "company-checker-error", { 
+        error: error.message,
+        company 
+      });
     } finally {
       setIsLoading(false);
     }
