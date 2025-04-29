@@ -74,13 +74,13 @@ export default function Home() {
       const response = await fetch(`/api/company?company=${encodeURIComponent(company)}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error('Error al buscar información de la empresa');
+        throw new Error(errorData.error || 'Error al buscar información de la empresa');
       }
       
       const json = await response.json();
       setText(removeMarkdown(removeTripleBackticks(json.text)));
     } catch (err) {
-      setError(new Error('Error al buscar información de la empresa'));
+      setError(err instanceof Error ? err : new Error('Error al buscar información de la empresa'));
     } finally {
       setIsLoading(false);
     }

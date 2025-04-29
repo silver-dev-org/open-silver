@@ -1,10 +1,7 @@
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createPrompt } from '@/company-checker/utils/prompts';
 import { rateLimit } from '@/company-checker/utils/rate-limiter';
 import { sanitizeCompanyName } from '@/company-checker/utils/sanitize';
-import { google } from "@ai-sdk/google";
-import { generateText } from "ai";
 
 // CORS configuration
 const corsHeaders = {
@@ -58,26 +55,16 @@ export default async function handler(
     // Create the prompt
     const prompt = createPrompt(sanitizedCompany);
 
-    const { text } = await generateText({
-      model: google("gemini-2.0-flash"),
-      system: "You are a helpful assistant.",
-      prompt: createPrompt(company),
-    });
-
-    if (!text) {
-      throw new Error(
-        "No se pudo completar el proceso de investigación de empresa.",
-      );
-    }
-
+    // Here you would typically make an API call to your AI service
+    // For now, we'll return the prompt as a placeholder
     res.writeHead(200, corsHeaders);
     res.end(JSON.stringify({ text: prompt }));
   } catch (error) {
-    console.error('Error procesando la solicitud:', error);
+    console.error('Error processing company request:', error);
     const statusCode = error instanceof Error && error.message.includes('Company name') ? 400 : 500;
     res.writeHead(statusCode, corsHeaders);
-    res.end(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Un error inesperado ocurrió mientras se procesaba la solicitud'
+    res.end(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'An unexpected error occurred while processing your request' 
     }));
   }
 } 

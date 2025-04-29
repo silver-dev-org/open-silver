@@ -3,6 +3,12 @@ export const createPrompt = (company: string) => `
 
   Please provide the following information organized by sections, and format the response in real raw Markdown (#, ##, -, etc.) so it's easy to read and structured.
 
+  IMPORTANT FORMATTING RULES:
+  1. Each section should be 200-400 characters maximum
+  2. Use proper Markdown formatting (# for main sections, ## for subsections, - for bullet points)
+  3. Keep responses concise and factual
+  4. If information is not available, simply state "Information not available"
+
   Sections to include:
 
   Company Overview:
@@ -13,9 +19,9 @@ export const createPrompt = (company: string) => `
   Industry Context:
   - In which industry does the company operate?
   - Briefly describe current trends, challenges, and opportunities in this industry.
-  - Company History and Status:
 
-  When was the company founded?
+  Company History and Status:
+  - When was the company founded?
   - Who are the founders and what is their background?
   - How big is the company today (number of employees, main offices)?
 
@@ -44,4 +50,7 @@ export const createPrompt = (company: string) => `
   1) the response should be in real raw Markdown (#, ##, -, etc.) as if you were writing a .md file.
   2) dont add any introductary or ending explanations or talkative information.
   3) this is not a placeholder you should fill with actual information. If you don't have any information to share, just note it briefly.
+
+  DISCLAIMER:
+  This information is AI-generated and should be verified independently. Some details may be outdated or inaccurate.
 `; 
