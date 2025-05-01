@@ -53,8 +53,9 @@ export default function Header() {
             : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
         }`}
       >
-        {links.map(({ href, label, target, asButton }) => (
+        {links.map(({ href, label, target, asButton }, index) => (
           <Button
+            key={index}
             asChild
             variant={asButton ? "default" : "link"}
             className={`${asButton && "mx-4"}`}
