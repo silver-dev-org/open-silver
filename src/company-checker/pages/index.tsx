@@ -10,7 +10,7 @@ import { Input } from "@/fees-calculator/components/ui/input";
 import { useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import Spinner from "@/components/spinner";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPrompt } from "@/company-checker/utils/prompts";
 import { sendGAEvent } from "@next/third-parties/google";
 
@@ -42,6 +42,32 @@ function removeMarkdown(text: string): string {
   return text;
 }
 
+function parseMarkdownSections(
+  text: string,
+): { title: string; content: string }[] {
+  // Split the text by headers (## or ###)
+  const sections = text.split(/(?=^#{1,3}\s)/m);
+
+  return sections
+    .filter((section) => section.trim())
+    .map((section) => {
+      const lines = section.split("\n");
+      const title = lines[0].replace(/^#{1,3}\s/, "").trim();
+      const content = lines.slice(1).join("\n").trim();
+      return { title, content };
+    });
+}
+
+// Add color variations for cards
+const cardColors = [
+  "bg-gradient-to-br from-blue-50/30 to-blue-100/20 dark:from-blue-950/20 dark:to-blue-900/10 border-blue-100/50 dark:border-blue-800/30",
+  "bg-gradient-to-br from-purple-50/30 to-purple-100/20 dark:from-purple-950/20 dark:to-purple-900/10 border-purple-100/50 dark:border-purple-800/30",
+  "bg-gradient-to-br from-green-50/30 to-green-100/20 dark:from-green-950/20 dark:to-green-900/10 border-green-100/50 dark:border-green-800/30",
+  "bg-gradient-to-br from-amber-50/30 to-amber-100/20 dark:from-amber-950/20 dark:to-amber-900/10 border-amber-100/50 dark:border-amber-800/30",
+  "bg-gradient-to-br from-rose-50/30 to-rose-100/20 dark:from-rose-950/20 dark:to-rose-900/10 border-rose-100/50 dark:border-rose-800/30",
+  "bg-gradient-to-br from-cyan-50/30 to-cyan-100/20 dark:from-cyan-950/20 dark:to-cyan-900/10 border-cyan-100/50 dark:border-cyan-800/30",
+];
+
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
@@ -64,7 +90,7 @@ export default function Home() {
   const investigateCompany = async () => {
     const company = inputRef?.current?.value;
     if (!company) {
-      setError(new Error('Por favor ingresa el nombre de una empresa'));
+      setError(new Error("Por favor ingresa el nombre de una empresa"));
       sendGAEvent("event", "company-checker-error", { error: "empty_company" });
       return;
     }
@@ -73,23 +99,30 @@ export default function Home() {
     setError(null);
     setIsLoading(true);
     sendGAEvent("event", "company-checker-search", { company });
-    
+
     try {
-      const response = await fetch(`/api/company?company=${encodeURIComponent(company)}`);
+      const response = await fetch(
+        `/api/company?company=${encodeURIComponent(company)}`,
+      );
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Error al buscar información de la empresa');
+        throw new Error(
+          errorData.error || "Error al buscar información de la empresa",
+        );
       }
-      
+
       const json = await response.json();
       setText(removeMarkdown(removeTripleBackticks(json.text)));
       sendGAEvent("event", "company-checker-success", { company });
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Error al buscar información de la empresa');
+      const error =
+        err instanceof Error
+          ? err
+          : new Error("Error al buscar información de la empresa");
       setError(error);
-      sendGAEvent("event", "company-checker-error", { 
+      sendGAEvent("event", "company-checker-error", {
         error: error.message,
-        company 
+        company,
       });
     } finally {
       setIsLoading(false);
@@ -123,7 +156,7 @@ export default function Home() {
                   placeholder="Ingresá el nombre de la empresa"
                   className="w-full max-w-md text-center text-lg"
                 />
-                
+
                 <Button
                   type="submit"
                   onClick={investigateCompany}
@@ -146,50 +179,64 @@ export default function Home() {
           </div>
         </div>
         <Spacer size="lg" />
-          {isLoading ? <Skeleton /> : (text && (
+        {isLoading ? (
+          <Skeleton />
+        ) : (
+          text && (
             <div>
-            <Card className="w-full max-w-4xl mx-auto">
-              <CardContent className="pt-6">
-                <div className="markdown-container">
-                  <ReactMarkdown>{text}</ReactMarkdown>
-                </div>
-                
-              </CardContent>
-            </Card>
-            <Spacer size="lg" />
-            <div className="text-center">
-              <p className="text-lg mb-4">
-                Para una búsqueda más profunda probá directamente en{" "}
-                <a
-                  href="https://chat.openai.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                {parseMarkdownSections(text).map((section, index) => (
+                  <Card 
+                    key={index} 
+                    className={`py-5 transition-all duration-300 hover:shadow-lg ${cardColors[index % cardColors.length]}`}
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-foreground/90">{section.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="markdown-container prose dark:prose-invert max-w-none">
+                        <ReactMarkdown>{section.content}</ReactMarkdown>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <Spacer size="lg" />
+              <div className="text-center">
+                <p className="text-lg mb-4">
+                  Para una búsqueda más profunda probá directamente en{" "}
+                  <a
+                    href="https://chat.openai.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    ChatGPT
+                  </a>{" "}
+                  o{" "}
+                  <a
+                    href="https://gemini.google.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    Google Gemini
+                  </a>
+                  .
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={copyPrompt}
+                  className="w-full max-w-md"
                 >
-                  ChatGPT
-                </a>{" "}
-                o{" "}
-                <a
-                  href="https://gemini.google.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  Google Gemini
-                </a>
-                .
-              </p>
-              <Button
-                variant="outline"
-                onClick={copyPrompt}
-                className="w-full max-w-md"
-              >
-                {copied ? "¡Copiado!" : "Copiar prompt para usar en otras plataformas"}
-              </Button>
-            </div>
+                  {copied
+                    ? "¡Copiado!"
+                    : "Copiar prompt para usar en otras plataformas"}
+                </Button>
+              </div>
             </div>
           )
-          )}
+        )}
       </Section>
     </>
   );

@@ -5,7 +5,12 @@ export const createPrompt = (company: string) => `
 
   IMPORTANT FORMATTING RULES:
   1. Use proper Markdown formatting (# for main sections, ## for subsections, - for bullet points)
-  
+  2. Do not repeat the question at the beginning of each section, just write the answers.
+  3. Do not add a title to the whole response, just start with the sections.
+  4. Each section should start with a normal paragraph, followed by a list of bullet points if necessary.
+  5. Each section title should not include two points.
+  6. You MUST Include bold text and emojis for giving a more interesting and engaging response.
+
   Sections to include:
 
   Company Overview:
@@ -45,4 +50,4 @@ export const createPrompt = (company: string) => `
 
   DISCLAIMER:
   This information is AI-generated and should be verified independently. Some details may be outdated or inaccurate.
-`; 
+`;
