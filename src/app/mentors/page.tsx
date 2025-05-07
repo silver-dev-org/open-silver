@@ -97,7 +97,7 @@ const mentors = [
     name: "Gabriel Benmergui",
     title: "Silver.dev Founder – Staff Engineer",
     price: "$200",
-    linkedin: "https://www.linkedin.com/in/gabrielbenmergui/",
+    linkedin: "https://www.linkedin.com/in/gabriel-benmergui/",
     calendly: "https://calendly.com/silver-dev/silver-dev-coaching-session",
     description:
       "Como recruiter y programador te puedo ayudar a entender donde estás parado en el mercado, cuáles son los próximos pasos y cómo pasar cualquier entrevista. Ayudé a gente a entrar en empresas de primera línea global como Google y también a fundar y escalar empresas como founder de Silver.dev.",
