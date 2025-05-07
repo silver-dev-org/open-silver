@@ -104,14 +104,14 @@ export default function Home() {
         Open Source Software made by Silver.dev and its contributors.
       </Description>
       {tools.map(({ slug, section, list }, index) => (
-        <Section key={index} id={slug} space={null}>
+        <Section key={index} id={slug}>
           <Spacer size="lg" />
           <Heading>{section}</Heading>
           <Spacer />
           <Grid>
             {list.map(({ title, description, href }) => (
               <Link href={href} key={href} prefetch={true}>
-                <Card className="hover:bg-foreground/10 transition-all duration-300">
+                <Card className="hover:bg-foreground/10 transition-all size-full duration-300">
                   <CardHeader>
                     <CardTitle>{title}</CardTitle>
                     <CardDescription>{description}</CardDescription>
