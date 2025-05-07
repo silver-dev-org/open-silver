@@ -62,7 +62,7 @@ const testimonials = [
     quote:
       "Con Marcel logré sentirme seguro a la hora de interactuar en entrevistas. Pudo entender lo que necesitaba aprender para lograr mis objetivos profesionales y fue clave para poder transmitir mi forma de ser y expresarme de forma genuina.",
     link: "https://www.linkedin.com/in/matiassaguir",
-    photo: "/mentors/testimonials/matias.png",
+    photo: "/mentors/testimonials/matias.jpeg",
   },
   {
     name: "Martín Sione",
@@ -70,7 +70,7 @@ const testimonials = [
     quote:
       "La experiencia de Gabriel en empresas americanas de producto me ayudó a saber qué es lo que tenía que destacar de mi perfil. Es muy valioso tener a alguien que realmente trabajó en la industria y participó de procesos de hiring.",
     link: "https://www.linkedin.com/in/martinsione/",
-    photo: "/mentors/testimonials/martin.png",
+    photo: "/mentors/testimonials/martin.jpeg",
   },
   {
     name: "Francisco Erramuspe",
@@ -78,7 +78,7 @@ const testimonials = [
     quote:
       "Gracias a la mentoría con Mariano pude conseguir ofertas de Walmart, eBay y Google. Me ayudó mucho a mejorar mis problem solving skills de cara a las entrevistas técnicas así como a manejar situaciones de ambigüedad y presión. No podría haber logrado esos resultados sin él: su ayuda fue fundamental para pasar muchas rondas de entrevista.",
     link: "https://www.linkedin.com/in/francisco-erramuspe/",
-    photo: "/mentors/testimonials/francisco.png",
+    photo: "/mentors/testimonials/francisco.jpeg",
   },
 ];
 
