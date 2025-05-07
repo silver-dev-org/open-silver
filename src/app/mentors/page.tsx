@@ -87,7 +87,7 @@ const mentors = [
     name: "Mariano Crosetti",
     title: "ICPC Coach - Ex-Google",
     price: "$75",
-    linkedin: "https://www.linkedin.com/in/mariano-crosetti/",
+    linkedin: "https://www.linkedin.com/in/marianocrosetti/",
     calendly: "https://calendly.com/marianojosecrosetti/interview-prep",
     description:
       "Con mi entrenamiento los candidatos han pasado procesos en Google, Amazon y Microsoft USA. Soy campeón de programación competitiva LatAm y coach de numerosos finalistas mundiales. He desarrollado un método para que cualquier candidato pueda adquirir nivel top-global en entrevistas de LeetCode (Data Structures and Algorithms).",
