@@ -101,7 +101,7 @@ const mentors = [
     calendly: "https://calendly.com/marianojosecrosetti/interview-prep",
     description:
       "Con mi entrenamiento los candidatos han pasado procesos en Google, Amazon y Microsoft USA. Soy campeón de programación competitiva LatAm y coach de numerosos finalistas mundiales. He desarrollado un método para que cualquier candidato pueda adquirir nivel top-global en entrevistas de LeetCode (Data Structures and Algorithms).",
-    image: "/mentors/mariano.png",
+    image: "/mentors/mariano.jpeg",
   },
   {
     name: "Gabriel Benmergui",
