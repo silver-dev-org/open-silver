@@ -132,7 +132,7 @@ export default function MentorsPage() {
           Práctica de entrevistas con{" "}
           <span className="text-primary">entrevistadores</span> reales
         </Heading>
-        <Spacer />
+        <Spacer size="lg" />
         <div className="flex justify-center w-full mb-6">
           <div className="w-full max-w-2xl aspect-video rounded-xl overflow-hidden shadow-lg">
             <embed
