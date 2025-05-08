@@ -4,7 +4,7 @@ import Grid from "@/components/grid";
 import Heading from "@/components/heading";
 import { Aleph, Ebay, Gerald, LinkedIn } from "@/components/logos";
 import Section from "@/components/section";
-import Spacer from "@/components/spacer";
+import Spacer, { spaceSizes } from "@/components/spacer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,11 +24,12 @@ import {
 } from "@/components/ui/carousel";
 import {
   BriefcaseBusiness,
+  Calendar,
   CircleFadingArrowUp,
   HeartHandshake,
   Keyboard,
+  Target,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 const benefits = [
@@ -98,8 +99,9 @@ const testimonials = [
 const mentors = [
   {
     name: "Mariano Crosetti",
-    title: "ICPC Coach - Ex-Google",
+    title: "ICPC Coach — Ex-Google",
     price: "$75",
+    target: "Data Structures & Algorithms",
     linkedin: "https://www.linkedin.com/in/marianocrosetti/",
     calendly: "https://calendly.com/marianojosecrosetti/interview-prep",
     description:
@@ -108,8 +110,9 @@ const mentors = [
   },
   {
     name: "Gabriel Benmergui",
-    title: "Silver.dev Founder – Staff Engineer",
+    title: "Silver.dev Founder — Staff Engineer",
     price: "$200",
+    target: "Career Coaching",
     linkedin: "https://www.linkedin.com/in/gabriel-benmergui/",
     calendly: "https://calendly.com/silver-dev/silver-dev-coaching-session",
     description:
@@ -120,6 +123,7 @@ const mentors = [
     name: "Rodrigo Uroz",
     title: "Senior Software Engineer",
     price: "$75",
+    target: "Full Stack",
     linkedin: "https://www.linkedin.com/in/rodrigouroz/",
     calendly: "https://calendly.com/rodrigouroz/techinterview",
     description:
@@ -130,6 +134,7 @@ const mentors = [
     name: "Marcel",
     title: "English Interview Coach",
     price: "$60",
+    target: "Communication & English",
     calendly: "https://calendly.com/english_from_mars/interview-mentors",
     description:
       "Experienced English language coach specializing in technical interview preparation. I'll not only make English speakers understand you, but their communication skills, technical vocabulary, and confidence. I'm here to be your support for your interview journey.",
@@ -209,13 +214,13 @@ export default function MentorsPage() {
           Un proceso simple diseñado para maximizar tu éxito en entrevistas
         </Description>
         <Spacer />
-        <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+        <div className="flex flex-col gap-4 max-w-prose mx-auto">
           {steps.map((step, i) => (
             <Card
               key={i}
-              className="flex-row flex items-center gap-4 px-6 py-4"
+              className={`flex-row flex items-center ${spaceSizes.sm.gap} ${spaceSizes.sm.py} ${spaceSizes.sm.px}`}
             >
-              <div className="rounded-full bg-secondary text-secondary-foreground w-8 h-8 flex items-center justify-center font-bold aspect-square">
+              <div className="rounded-full bg-secondary text-secondary-foreground size-8 flex items-center justify-center font-bold aspect-square">
                 {i + 1}
               </div>
               <span>{step}</span>
@@ -311,49 +316,56 @@ export default function MentorsPage() {
           Nuestros Mentores
         </Heading>
         <Spacer />
-        <Description center className="text-base text-muted-foreground mb-4">
+        <Description center>
           Expertos al nivel de entrevistadores reales
         </Description>
-        <Spacer />
-        <Grid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-          {mentors.map((m) => (
-            <Card key={m.name} className="h-full flex flex-col">
-              <CardHeader className="flex flex-col items-center">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-muted mb-2 flex items-center justify-center">
-                  <Image src={m.image} alt={m.name} width={96} height={96} />
+        <Spacer size="lg" />
+        <div
+          className={`flex flex-col ${spaceSizes.lg.gap} max-w-prose mx-auto`}
+        >
+          {mentors.map((mentor) => (
+            <Card key={mentor.name}>
+              <CardHeader className="gap-3">
+                <div
+                  className={`flex flex-col sm:flex-row items-center ${spaceSizes.sm.gap}`}
+                >
+                  <Avatar className="size-16">
+                    <AvatarImage
+                      src={mentor.image || "/placeholder.svg"}
+                      alt={mentor.name}
+                    />
+                    <AvatarFallback>
+                      {mentor.name.substring(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl">{mentor.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {mentor.title}
+                    </p>
+                  </div>
                 </div>
-                <CardTitle className="text-center">{m.name}</CardTitle>
-                <CardDescription className="text-center text-sm">
-                  {m.title}
+                <CardDescription className="text-foreground text-base">
+                  {mentor.description}
                 </CardDescription>
               </CardHeader>
-              <CardContent>{m.description}</CardContent>
-              <CardFooter className="flex flex-col mt-auto">
-                <div className="flex justify-between w-full items-center">
-                  <span className="text-lg">
-                    <span className="font-bold text-primary">{m.price}</span>
-                    <span className="text-muted-foreground">/hora</span>
-                  </span>
-                  {m.linkedin && (
-                    <Link
-                      href={m.linkedin}
-                      target="_blank"
-                      className="text-xs underline text-muted-foreground hover:opacity-75 duration-200"
-                    >
-                      LinkedIn
-                    </Link>
-                  )}
-                </div>
-                <Spacer />
-                <Button size="sm" className="w-full" asChild>
-                  <Link href={m.calendly} target="_blank">
+              <CardContent className="flex justify-between text-xl sm:text-2xl">
+                <span className="flex items-center gap-1.5">
+                  <Target />
+                  {mentor.target}
+                </span>
+              </CardContent>
+              <CardFooter>
+                <Button asChild className="w-full">
+                  <Link href={mentor.calendly} target="_blank">
+                    <Calendar className="h-4 w-4 mr-2" />
                     AGENDAR SESIÓN
                   </Link>
                 </Button>
               </CardFooter>
             </Card>
           ))}
-        </Grid>
+        </div>
       </Section>
     </>
   );
