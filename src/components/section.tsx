@@ -13,7 +13,7 @@ export default function Section({
     <div className={`${spaceSizes.sm.px} xl:px-0`}>
       <section
         id={id}
-        className={`container mx-auto ${className}`}
+        className={`container mx-auto ${spaceSizes.lg.scrollMt} ${className}`}
       >
         {children}
       </section>
