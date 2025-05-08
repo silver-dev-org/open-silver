@@ -21,6 +21,12 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  BriefcaseBusiness,
+  CircleFadingArrowUp,
+  HeartHandshake,
+  Keyboard,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { SVGProps } from "react";
@@ -30,21 +36,25 @@ const benefits = [
     title: "Superá tus límites y dejá de pasarla mal",
     description:
       "Entrevistar cuando no te sentís cómodo genera tensión, pero ahora vas a poder simular entrevistas reales y recibir feedback de expertos para mejorar.",
+    icon: CircleFadingArrowUp,
   },
   {
     title: "Mejorá tu performance en entrevistas técnicas",
     description:
       "La clave para pasar entrevistas técnicas es llegar con horas de práctica. Ahora también vas a poder sumar el feedback de mentores expertos que te ayudan en el entrenamiento.",
+    icon: Keyboard,
   },
   {
     title: "Destacate y enamorá al entrevistador",
     description:
       "Recruiters y hiring managers entrevistan cientos de candidatos. Destacarte hace que dejes de ser uno más, y te ayuda no sólo a pasar una instancia sino a avanzar en el proceso.",
+    icon: HeartHandshake,
   },
   {
     title: "Conseguí el trabajo que querés",
     description:
       "Cuanto mejor entrevistes, más ofertas vas a conseguir. Las mock interviews te ayudan a corregir errores por anticipado, llegar con más seguridad y romperla en el momento de la verdad.",
+    icon: BriefcaseBusiness,
   },
 ];
 
@@ -168,12 +178,20 @@ export default function MentorsPage() {
           Llegá con más seguridad a las entrevistas
         </Description>
         <Spacer />
-        <Grid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-          {benefits.map((b) => (
-            <Card key={b.title} className="h-full">
-              <CardHeader>
-                <CardTitle>{b.title}</CardTitle>
-                <CardDescription>{b.description}</CardDescription>
+        <Grid>
+          {benefits.map((data, index) => (
+            <Card
+              key={index}
+              className="border-none"
+            >
+              <CardHeader className="flex flex-row items-center gap-4">
+                <data.icon className="h-full w-1/4" strokeWidth={0.75} />
+                <div className="flex flex-col w-full">
+                  <CardTitle className="text-primary text-xl sm:text-2xl">
+                    {data.title}
+                  </CardTitle>
+                  <CardDescription>{data.description}</CardDescription>
+                </div>
               </CardHeader>
             </Card>
           ))}
