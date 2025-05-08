@@ -36,13 +36,22 @@ export default function Header() {
       label: "Jobs",
       target: "_blank",
     },
-    {
+  ];
+
+  if (pathname?.startsWith("/resume-checker")) {
+    externalLinks.push({
       href: "https://typst.app/app?template=silver-dev-cv",
       label: "Resume Template",
       target: "_blank",
       asButton: true,
-    },
-  ];
+    });
+  } else if (pathname?.startsWith("/mentors")) {
+    externalLinks.push({
+      asButton: true,
+      href: "#our-mentors",
+      label: "Agendar sesión",
+    });
+  }
 
   function LinksGroup({ links }: { links: Link[] }) {
     return (
