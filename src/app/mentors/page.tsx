@@ -127,7 +127,7 @@ const mentors = [
     name: "Marcel",
     title: "English Interview Coach",
     price: "$60",
-    calendly: "https://calendly.com/silver-dev/silver-dev-coaching-session",
+    calendly: "https://calendly.com/english_from_mars/interview-mentors",
     description:
       "Experienced English language coach specializing in technical interview preparation. I'll not only make English speakers understand you, but their communication skills, technical vocabulary, and confidence. I'm here to be your support for your interview journey.",
     image: "/mentors/marcel.jpg",
@@ -180,10 +180,7 @@ export default function MentorsPage() {
         <Spacer />
         <Grid>
           {benefits.map((data, index) => (
-            <Card
-              key={index}
-              className="border-none"
-            >
+            <Card key={index} className="border-none">
               <CardHeader className="flex flex-row items-center gap-4">
                 <data.icon className="h-full w-1/4" strokeWidth={0.75} />
                 <div className="flex flex-col w-full">
