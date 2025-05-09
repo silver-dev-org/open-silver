@@ -53,7 +53,7 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-screen bg-background/85 border-b border-foreground/25 backdrop-blur-sm uppercase`}
+      className={`fixed top-0 z-50 w-screen bg-background border-b border-foreground/25 backdrop-blur-sm uppercase ${spaceSizes.sm.px}`}
     >
       <div className="container flex flex-col xl:flex-row justify-between items-center mx-auto">
         <div
@@ -77,9 +77,9 @@ export default function Header() {
         {links.map((group, index) => (
           <div
             key={index}
-            className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${
+            className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${spaceSizes.sm.py} ${
               open
-                ? `flex flex-col max-h-screen ${spaceSizes.sm.mt}`
+                ? `flex flex-col max-h-screen`
                 : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
             }`}
           >
