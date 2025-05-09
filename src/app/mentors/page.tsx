@@ -22,6 +22,7 @@ import {
   HeartHandshake,
   Keyboard,
   Target,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -189,19 +190,29 @@ export default function MentorsPage() {
               <span>{step}</span>
             </Card>
           ))}
-        </div>
-        <Spacer />
-        <Description center>
-          Si conseguís trabajo con Silver.dev podés recuperar hasta $1,000 que
-          hayas invertido en preparación para entrevistas.{" "}
-          <Link
-            href="https://silver.dev/ed"
-            target="_blank"
-            className="underline hover:opacity-75 duration-200"
+          <Card
+            className={`flex-row flex items-center ${spaceSizes.sm.gap} ${spaceSizes.sm.py} ${spaceSizes.sm.px} border-primary relative`}
           >
-            Conocer más
-          </Link>
-        </Description>
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 transform rotate-45 translate-x-1/3 -translate-y-1/4 rounded-full">
+              FREE
+            </div>
+            <div className="rounded-full bg-primary text-secondary-foreground size-8 flex items-center justify-center font-bold aspect-square p-2">
+              <Trophy />
+            </div>
+            <span>
+              Si conseguís trabajo con Silver.dev podés recuperar hasta $1,000
+              que hayas invertido en preparación para entrevistas.{" "}
+              <Link
+                href="https://silver.dev/ed"
+                target="_blank"
+                className="underline hover:opacity-75 duration-200"
+              >
+                Más info
+              </Link>
+              .
+            </span>
+          </Card>
+        </div>
       </Section>
 
       <Divider />
