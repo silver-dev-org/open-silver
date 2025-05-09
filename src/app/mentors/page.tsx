@@ -61,9 +61,8 @@ const benefits = [
 
 const steps = [
   "Elegí el experto que mejor se adapte a tus necesidades",
-  "Agendá una sesión y compartí tus necesidades para que podamos preparar el contenido",
-  "Hacé la sesión y recibí feedback en tiempo real",
-  "Recibí un resumen de la sesión y una lista de próximos pasos para que puedas seguir practicando",
+  "Agendá una sesión inicial en su calendario",
+  "Recibí mentoría 1-1 dedicada para vos, en tiempo real",
 ];
 
 const testimonials = [
@@ -93,6 +92,24 @@ const testimonials = [
     link: "https://www.linkedin.com/in/francisco-erramuspe/",
     photo: "/mentors/testimonials/francisco.jpeg",
     company: Ebay,
+  },
+  {
+    name: "Santiago Ruberto",
+    role: "CEO",
+    quote:
+      "Después de tener un par de reuniones en inglés con inversores de Silicon Valley que no salieron bien, decidí anotarme en clases con Mars. Le conté que estábamos por levantar la ronda pre-seed de mi startup y que necesitaba un plan intenso. Empezamos a tener clases todos los días, enfocándonos en mejorar mi pronunciación y el storytelling. Antes de conocer a Mars, no tenía la confianza para tener reuniones en inglés sin haber memorizado o preparado cada pregunta y respuesta. Después de las clases con él, empecé a sentirme igual de cómodo hablando en inglés que en español. Su ayuda fue clave para que lográramos levantar más de USD $650,000 de inversores estadounidenses.",
+    link: "https://www.linkedin.com/in/santiagoruberto",
+    photo: "/mentors/testimonials/ruberto.jpeg",
+    //company: Sirvana,
+  },
+  {
+    name: "Nicolas Montone",
+    role: "Product Engineer",
+    quote:
+      "Marcel no solo es un English Coach que me ayudó a mejorar mi inglés en menos de dos semanas y sentirme más seguro, sino que me ayudó a desenvolver mis historias, entender qué quiero contar y cómo hacerlo. Pudo identificar muy rápido mis puntos débiles (y fuertes) y darme las herramientas necesarias que mejoraron mi storytelling y mi speech.",
+    link: "https://www.linkedin.com/in/nicolas-montone",
+    photo: "/mentors/testimonials/montone.jpeg",
+    //company: Vercel,
   },
 ];
 
@@ -211,7 +228,8 @@ export default function MentorsPage() {
         </Heading>
         <Spacer />
         <Description center className="text-base text-muted-foreground mb-4">
-          Un proceso simple diseñado para maximizar tu éxito en entrevistas
+          Los mentores trabajan por sesión, ayudandote puntualmente en tus
+          necesidades.
         </Description>
         <Spacer />
         <div className="flex flex-col gap-4 max-w-prose mx-auto">
@@ -294,7 +312,11 @@ export default function MentorsPage() {
                           </p>
                         </div>
                       </div>
-                      <testimonial.company className="fill-foreground w-16" />
+                      {testimonial.company ? (
+                        <testimonial.company className="fill-foreground w-16" />
+                      ) : (
+                        <></>
+                      )}
                     </Link>
                   </CardFooter>
                 </Card>
