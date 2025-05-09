@@ -65,7 +65,7 @@ const mentors = [
     name: "Mariano Crosetti",
     title: "ICPC Coach — Ex-Google",
     price: "$75",
-    target: "Data Structures & Algorithms(Leetcode)",
+    target: "Data Structures & Algorithms (LeetCode)",
     linkedin: "https://www.linkedin.com/in/marianocrosetti/",
     calendly: "https://calendly.com/marianojosecrosetti/interview-prep",
     description:
@@ -87,7 +87,7 @@ const mentors = [
     name: "Rodrigo Uroz",
     title: "Senior Software Engineer",
     price: "$75",
-    target: "FullStack Live Coding & System Design",
+    target: "Full Stack Live Coding & System Design",
     linkedin: "https://www.linkedin.com/in/rodrigouroz/",
     calendly: "https://calendly.com/rodrigouroz/techinterview",
     description:
