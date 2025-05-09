@@ -245,6 +245,18 @@ export default function MentorsPage() {
             </Card>
           ))}
         </div>
+        <Spacer />
+        <Description center>
+          Si conseguís trabajo con Silver.dev podés recuperar hasta $1,000 que
+          hayas invertido en preparación para entrevistas.{" "}
+          <Link
+            href="https://silver.dev/ed"
+            target="_blank"
+            className="underline hover:opacity-75 duration-200"
+          >
+            Conocer más
+          </Link>
+        </Description>
       </Section>
 
       <Divider />
