@@ -87,9 +87,9 @@ export function TestimonialsCarousel() {
         loop: true,
       }}
     >
-      <CarouselContent className="py-4">
+      <CarouselContent>
         {testimonials.map((testimonial, index) => (
-          <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3 pl-4">
+          <CarouselItem key={index} className="lg:basis-1/3 pl-4">
             <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardDescription>
@@ -127,7 +127,7 @@ export function TestimonialsCarousel() {
                     </div>
                   </div>
                   {testimonial.company && (
-                    <testimonial.company className="fill-foreground h-6" />
+                    <testimonial.company className="fill-foreground max-w-16 h-6" />
                   )}
                 </Link>
               </CardFooter>
@@ -135,8 +135,10 @@ export function TestimonialsCarousel() {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious onMouseDown={() => plugin.current.stop()} />
-      <CarouselNext onMouseDown={() => plugin.current.stop()} />
+      <div className="hidden md:block">
+        <CarouselPrevious onMouseDown={() => plugin.current.stop()} />
+        <CarouselNext onMouseDown={() => plugin.current.stop()} />
+      </div>
     </Carousel>
   );
 }
