@@ -57,6 +57,7 @@ const steps = [
   "Elegí el experto que mejor se adapte a tus necesidades",
   "Agendá una sesión inicial en su calendario",
   "Recibí mentoría 1-1 dedicada para vos, en tiempo real",
+  "Conseguí una recomendación de un mentor y salteate una técnica en Silver.dev",
 ];
 
 const mentors = [
