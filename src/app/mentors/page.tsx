@@ -65,7 +65,7 @@ const mentors = [
     name: "Mariano Crosetti",
     title: "ICPC Coach — Ex-Google",
     price: "$75",
-    target: "Data Structures & Algorithms",
+    target: "Data Structures & Algorithms(Leetcode)",
     linkedin: "https://www.linkedin.com/in/marianocrosetti/",
     calendly: "https://calendly.com/marianojosecrosetti/interview-prep",
     description:
@@ -87,7 +87,7 @@ const mentors = [
     name: "Rodrigo Uroz",
     title: "Senior Software Engineer",
     price: "$75",
-    target: "Full Stack",
+    target: "FullStack Live Coding & System Design",
     linkedin: "https://www.linkedin.com/in/rodrigouroz/",
     calendly: "https://calendly.com/rodrigouroz/techinterview",
     description:
@@ -98,7 +98,7 @@ const mentors = [
     name: "Marcel",
     title: "English Interview Coach",
     price: "$60",
-    target: "Communication & English",
+    target: "Voice Coaching & Storytelling",
     calendly: "https://calendly.com/english_from_mars/interview-mentors",
     description:
       "Experienced English language coach specializing in technical interview preparation. I'll not only make English speakers understand you, but their communication skills, technical vocabulary, and confidence. I'm here to be your support for your interview journey.",
@@ -143,7 +143,7 @@ export default function MentorsPage() {
 
       <Section>
         <Heading size="sm" center>
-          Beneficios
+          Las ventajas de tener un <span className="text-primary">Mentor</span>
         </Heading>
         <Spacer />
         <Description center className="text-base text-muted-foreground mb-4">
