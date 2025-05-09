@@ -1,8 +1,8 @@
 export const headingSizes: {
   [key: string]: string;
 } = {
-  lg: "text-6xl xl:text-8xl",
-  sm: "text-4xl xl:text-6xl",
+  lg: "text-5xl xl:text-8xl",
+  sm: "text-3xl xl:text-6xl",
 };
 
 export default function Heading({
