@@ -248,7 +248,7 @@ export default function MentorsPage() {
             <Card key={mentor.name}>
               <CardHeader className="gap-3">
                 <div
-                  className={`flex flex-col sm:flex-row items-center ${spaceSizes.sm.gap}`}
+                  className={`flex flex-row items-center ${spaceSizes.sm.gap}`}
                 >
                   <Avatar className="size-16">
                     <AvatarImage
