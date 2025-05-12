@@ -12,4 +12,4 @@ export default function Skeleton() {
       <div className="h-4 rounded-lg bg-gray-700/60 dark:bg-gray-700/60 w-full" />
     </div>
   );
-}
+} 
