@@ -51,6 +51,12 @@ const tools: {
         href: "/behavioral-checker",
       },
       {
+        title: "Company Checker",
+        description:
+          "Run a custom investigation for a company you are interested in.",
+        href: "/company-checker",
+      },
+      {
         title: "GitHub Repo",
         description:
           "A repository with dozens of challenges for interview practice.",
