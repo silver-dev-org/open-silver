@@ -1,15 +1,15 @@
 export const payrollCost = 300;
 
 export interface ContractProps {
-  n: number;
-  f: number;
-  s: number;
-  h: boolean;
-  x: boolean;
-  p: boolean;
-  d: boolean;
-  g: boolean;
-  t: boolean;
+  n: number; // Number of hires
+  f: number; // Fee
+  s: number; // Salary
+  h: boolean; //
+  x: boolean; // Exclusivity
+  p: boolean; // Payroll
+  d: boolean; // Deferred payment
+  g: boolean; // Pay as you go
+  t: boolean; // Strong guarantee
   [key: string]: any;
 }
 
@@ -29,7 +29,11 @@ export function calculateContractCost(
     value += payrollCost * 12;
   }
   if (includeDiscounts) {
-    value -= value * getDiscountPercentage(data);
+    let discount = 0;
+    if (data.n >= 3) discount = 0.15;
+    if (data.x) discount = 0.25;
+    if (data.d) discount = 0;
+    value -= value * discount;
   }
   return value;
 }
