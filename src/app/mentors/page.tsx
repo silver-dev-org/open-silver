@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -17,7 +16,6 @@ import {
 import { TestimonialsCarousel } from "@/mentors/components/testimonials-carousel";
 import {
   BriefcaseBusiness,
-  Calendar,
   CircleFadingArrowUp,
   HeartHandshake,
   Keyboard,
@@ -62,6 +60,17 @@ const steps = [
 
 const mentors = [
   {
+    name: "Gabriel Benmergui",
+    title: "Silver.dev Founder — Staff Engineer",
+    price: "$200",
+    target: "Head Mentor",
+    linkedin: "https://www.linkedin.com/in/gabriel-benmergui/",
+    calendly: "https://calendly.com/silver-dev/silver-dev-coaching-session",
+    description:
+      "Como recruiter y programador te puedo ayudar a entender donde estás parado en el mercado, cuáles son los próximos pasos y cómo pasar cualquier entrevista. Ayudé a gente a entrar en empresas de primera línea global como Google y también a fundar y escalar empresas como founder de Silver.dev.",
+    image: "/mentors/gabriel.png",
+  },
+  {
     name: "Mariano Crosetti",
     title: "ICPC Coach — Ex-Google",
     price: "$75",
@@ -71,17 +80,6 @@ const mentors = [
     description:
       "Con mi entrenamiento los candidatos han pasado procesos en Google, Amazon y Microsoft USA. Soy campeón de programación competitiva LatAm y coach de numerosos finalistas mundiales. He desarrollado un método para que cualquier candidato pueda adquirir nivel top-global en entrevistas de LeetCode (Data Structures and Algorithms).",
     image: "/mentors/mariano.jpeg",
-  },
-  {
-    name: "Gabriel Benmergui",
-    title: "Silver.dev Founder — Staff Engineer",
-    price: "$200",
-    target: "Career Coaching",
-    linkedin: "https://www.linkedin.com/in/gabriel-benmergui/",
-    calendly: "https://calendly.com/silver-dev/silver-dev-coaching-session",
-    description:
-      "Como recruiter y programador te puedo ayudar a entender donde estás parado en el mercado, cuáles son los próximos pasos y cómo pasar cualquier entrevista. Ayudé a gente a entrar en empresas de primera línea global como Google y también a fundar y escalar empresas como founder de Silver.dev.",
-    image: "/mentors/gabriel.png",
   },
   {
     name: "Rodrigo Uroz",
@@ -132,11 +130,7 @@ export default function MentorsPage() {
           <br />4 expertos • Soft &amp; hard skills • Inglés • On-demand
         </Description>
         <Spacer size="lg" />
-        <div className="flex justify-center">
-          <Button size="lg" asChild>
-            <Link href="#our-mentors">AGENDAR SESIÓN</Link>
-          </Button>
-        </div>
+        <CallToAction />
       </Section>
 
       <Divider />
@@ -234,18 +228,16 @@ export default function MentorsPage() {
 
       <Section id="our-mentors">
         <Heading size="sm" center>
-          Nuestros Mentores
+          Nuestros Equipo de Mentores
         </Heading>
         <Spacer />
         <Description center>
           Expertos al nivel de entrevistadores reales
         </Description>
         <Spacer size="lg" />
-        <div
-          className={`flex flex-col ${spaceSizes.lg.gap} max-w-prose mx-auto`}
-        >
+        <Grid>
           {mentors.map((mentor) => (
-            <Card key={mentor.name}>
+            <Card key={mentor.name} className="flex flex-col">
               <CardHeader className="gap-3">
                 <div
                   className={`flex flex-row items-center ${spaceSizes.sm.gap}`}
@@ -270,24 +262,41 @@ export default function MentorsPage() {
                   {mentor.description}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-between text-xl sm:text-2xl">
-                <span className="flex items-center gap-1.5">
+              <CardFooter className="mt-auto">
+                <span className="flex text-xl sm:text-2xl items-center gap-1.5">
                   <Target />
                   {mentor.target}
                 </span>
-              </CardContent>
-              <CardFooter>
-                <Button asChild className="w-full">
-                  <Link href={mentor.calendly} target="_blank">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    AGENDAR SESIÓN
-                  </Link>
-                </Button>
               </CardFooter>
             </Card>
           ))}
-        </div>
+        </Grid>
+        <Spacer size="lg" />
+        <CallToAction />
       </Section>
     </>
+  );
+}
+
+function CallToAction() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5">
+      <Button size="lg" className="uppercase" asChild>
+        <Link
+          target="_blank"
+          href="https://docs.google.com/forms/d/15He4sNXmaNlY1EGtJooVDDKN-4hlWzVIjQAVoF4VkkE/viewform"
+        >
+          Aplicar al programa
+        </Link>
+      </Button>
+      <Button variant="link" size="lg" asChild>
+        <Link
+          target="_blank"
+          href="https://silverdev.notion.site/Interview-Mentors-Terms-Conditions-Signup-14f950a2e42c8058adc2c59c6e02ab86"
+        >
+          Términos y Condiciones
+        </Link>
+      </Button>
+    </div>
   );
 }

@@ -45,8 +45,8 @@ export default function Header() {
     });
   } else if (pathname?.startsWith("/mentors")) {
     links[1].push({
-      href: "#our-mentors",
-      label: "Agendar sesión",
+      href: "https://docs.google.com/forms/d/15He4sNXmaNlY1EGtJooVDDKN-4hlWzVIjQAVoF4VkkE/viewform",
+      label: "Aplicar al programa",
       button: true,
     });
   }
