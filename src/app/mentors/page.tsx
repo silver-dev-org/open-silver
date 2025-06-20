@@ -282,10 +282,7 @@ function CallToAction() {
   return (
     <div className="flex flex-col items-center justify-center gap-1.5">
       <Button size="lg" className="uppercase" asChild>
-        <Link
-          target="_blank"
-          href="https://docs.google.com/forms/d/15He4sNXmaNlY1EGtJooVDDKN-4hlWzVIjQAVoF4VkkE/viewform"
-        >
+        <Link href="https://docs.google.com/forms/d/15He4sNXmaNlY1EGtJooVDDKN-4hlWzVIjQAVoF4VkkE/viewform">
           Aplicar al programa
         </Link>
       </Button>
