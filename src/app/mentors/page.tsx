@@ -52,10 +52,10 @@ const benefits = [
 ];
 
 const steps = [
-  "Elegí el experto que mejor se adapte a tus necesidades",
-  "Agendá una sesión inicial en su calendario",
-  "Recibí mentoría 1-1 dedicada para vos, en tiempo real",
-  "Conseguí una recomendación de un mentor y entra en el Fast-Track de Silver",
+  "Te registrás y pasás un proceso de admisión.",
+  "Se te asigna un coach con sesiones semanales o quincenales y completás el onboarding.",
+  "Trabajás en entrevistas, CV y preparación técnica, todo mientras el coach busca oportunidades.",
+  "Pagás solo si conseguís un trabajo gracias al programa tras 3 meses de permanencia en el nuevo empleo.",
 ];
 
 const mentors = [
