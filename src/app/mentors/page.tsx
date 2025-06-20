@@ -140,14 +140,14 @@ export default function MentorsPage() {
           Las ventajas de tener un <span className="text-primary">Mentor</span>
         </Heading>
         <Spacer />
-        <Description center className="text-base text-muted-foreground mb-4">
+        <Description center>
           Llegá con más seguridad a las entrevistas
         </Description>
-        <Spacer />
+        <Spacer size="lg" />
         <Grid>
           {benefits.map((data, index) => (
             <Card key={index} className="border-none">
-              <CardHeader className="flex flex-row items-center gap-4">
+              <CardHeader className="flex flex-row items-center gap-3 p-0">
                 <data.icon className="h-full w-1/4" strokeWidth={0.75} />
                 <div className="flex flex-col w-full">
                   <CardTitle className="text-primary text-xl sm:text-2xl">
@@ -168,12 +168,12 @@ export default function MentorsPage() {
           ¿Cómo funciona?
         </Heading>
         <Spacer />
-        <Description center className="text-base text-muted-foreground mb-4">
+        <Description center>
           Los mentores trabajan por sesión, ayudandote puntualmente en tus
           necesidades.
         </Description>
-        <Spacer />
-        <div className="flex flex-col gap-4 max-w-prose mx-auto">
+        <Spacer size="lg" />
+        <Grid className="grid-cols-1 md:grid-cols-1 mx-auto max-w-prose">
           {steps.map((step, i) => (
             <Card
               key={i}
@@ -207,7 +207,7 @@ export default function MentorsPage() {
               .
             </span>
           </Card>
-        </div>
+        </Grid>
       </Section>
 
       <Divider />
@@ -217,10 +217,8 @@ export default function MentorsPage() {
           Testimonios
         </Heading>
         <Spacer />
-        <Description center className="text-base text-muted-foreground mb-4">
-          Sumate a quienes ya lo hicieron
-        </Description>
-        <Spacer />
+        <Description center>Sumate a quienes ya lo hicieron</Description>
+        <Spacer size="lg" />
         <TestimonialsCarousel />
       </Section>
 
