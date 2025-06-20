@@ -8,6 +8,7 @@ import {
   Sirvana,
   Vercel,
 } from "@/components/logos";
+import { spaceSizes } from "@/components/spacer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
@@ -89,7 +90,10 @@ export function TestimonialsCarousel() {
     >
       <CarouselContent>
         {testimonials.map((testimonial, index) => (
-          <CarouselItem key={index} className="lg:basis-1/3 pl-4">
+          <CarouselItem
+            key={index}
+            className={`lg:basis-1/3 ${spaceSizes.sm.pl}`}
+          >
             <Card className="h-full flex flex-col">
               <CardHeader>
                 <CardDescription>

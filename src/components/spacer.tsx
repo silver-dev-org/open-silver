@@ -6,6 +6,8 @@ export const spaceSizes: {
     px: string;
     py: string;
     mt: string;
+    pl: string;
+    pr: string;
     scrollMt: string;
   };
 } = {
@@ -16,6 +18,8 @@ export const spaceSizes: {
     px: "px-6",
     py: "py-6",
     mt: "mt-6",
+    pl: "pl-6",
+    pr: "pr-6",
     scrollMt: "scroll-mt-30",
   },
   lg: {
@@ -25,6 +29,8 @@ export const spaceSizes: {
     px: "px-24",
     py: "py-24",
     mt: "mt-24",
+    pl: "pl-24",
+    pr: "pr-24",
     scrollMt: "scroll-mt-48",
   },
 };
