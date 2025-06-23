@@ -11,7 +11,17 @@ import {
 } from "@/fees-calculator/components/ui/radio-group";
 import NumberFlow from "@number-flow/react";
 
+import Description from "@/components/description";
+import Heading from "@/components/heading";
+import Section from "@/components/section";
+import Spacer from "@/components/spacer";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Card,
   CardDescription,
@@ -21,17 +31,17 @@ import {
 import { Checkbox } from "@/fees-calculator/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Label } from "@radix-ui/react-label";
+import { Info } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
-import { ContractProps, getDiscountPercentage } from "./utils";
-
-import Description from "@/components/description";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer from "@/components/spacer";
-import { calculateContractCost, payrollCost } from "./utils";
+import {
+  calculateContractCost,
+  ContractProps,
+  getDiscountPercentage,
+  payrollCost,
+} from "./utils";
 
 export default function FeesCalculatorClient() {
   const searchParams = useSearchParams();
@@ -229,7 +239,25 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`
                     value={contractProps.f * (1 - discountPercentage)}
                   />
                 </CardTitle>
-                <CardDescription>Placement fee</CardDescription>
+                <CardDescription className="flex items-center gap-1 justify-center">
+                  Placement fee
+                  {contractProps.n >= 3 &&
+                    !contractProps.x &&
+                    !contractProps.d && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-4 h-4" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              Volume counted for hires done in the same quarter.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>
