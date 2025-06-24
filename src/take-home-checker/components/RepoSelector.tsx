@@ -31,7 +31,14 @@ export default function RepoSelector({ repos, onChange }: RepoSelectorProps) {
         {repos.map((repo) => (
           <SelectItem key={repo.id} value={repo.id.toString()}>
             <div className="flex flex-col">
-              <strong>{repo.name}</strong>
+              <div className="flex items-center gap-2">
+                <strong>{repo.name}</strong>
+                {repo.private && (
+                  <span className="text-xs bg-input text-foreground px-1 rounded">
+                    Private
+                  </span>
+                )}
+              </div>
               <span>{repo.description}</span>
             </div>
           </SelectItem>

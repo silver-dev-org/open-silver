@@ -4,7 +4,6 @@ import Section from "@/components/section";
 import Spacer from "@/components/spacer";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import AuthGitHub from "@/take-home-checker/components/AuthGtihub";
-import LogOutGithub from "@/take-home-checker/components/LogOutGithub";
 import AppQueryProvider from "@/take-home-checker/components/QueryClientProvider";
 import RepoAnalysis from "@/take-home-checker/components/RepoAnalysis";
 import { Repo } from "@/take-home-checker/types/repo";
@@ -33,17 +32,24 @@ export default async function Page() {
       const octokit = new Octokit({
         auth: (session as unknown as { accessToken: string }).accessToken,
       });
-      const { data } = await octokit.request("GET /user/repos", {
-        visibility: "all",
-        per_page: 100,
-        sort: "updated",
-        direction: "desc",
-      });
-      repos = data as Repo[];
+      const { data: installations } = await octokit.request(
+        "GET /user/installations"
+      );
+      for (const installation of installations.installations) {
+        const { data: installationRepos } = await octokit.request(
+          `GET /user/installations/${installation.id}/repositories`,
+          {
+            per_page: 100,
+          }
+        );
+        repos.push(...installationRepos.repositories);
+      }
     } catch (error) {
       console.error("Error fetching repos:", error);
     }
   }
+
+  repos = repos.sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <Section>
@@ -57,16 +63,10 @@ export default async function Page() {
       <Spacer size="lg" />
       <AppQueryProvider>
         {isAuthenticated ? (
-          <div className="flex flex-col justify-center items-center">
-            <RepoAnalysis
-              repos={repos}
-              token={
-                (session as unknown as { accessToken: string })?.accessToken
-              }
-            />
-            <Spacer size="lg" />
-            <LogOutGithub />
-          </div>
+          <RepoAnalysis
+            repos={repos}
+            token={(session as unknown as { accessToken: string })?.accessToken}
+          />
         ) : (
           <AuthGitHub />
         )}

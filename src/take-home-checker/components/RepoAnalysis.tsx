@@ -6,10 +6,12 @@ import useLoadingMessage from "@/take-home-checker/hooks/useLoadingMessage";
 import { useProjectAnalysis } from "@/take-home-checker/hooks/useProjectAnalysis";
 import { Repo } from "@/take-home-checker/types/repo";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FaPlus } from "react-icons/fa";
 import LoadingBanner from "./LoadingBanner";
+import LogOutGithub from "./LogOutGithub";
 import ProjectAnalysis from "./ProjectAnalysis";
-import ReadmeViewer from "./ReadmeViewer";
 import RepositoryList from "./RepositoryList";
 
 interface RepoAnalysisProps {
@@ -39,7 +41,7 @@ export default function RepoAnalysis({ repos, token }: RepoAnalysisProps) {
   }, [selectedRepo, analysis]);
 
   return (
-    <div className="max-w-7xl pt-6 px-4 w-full">
+    <div className="max-w-7xl mx-auto w-full">
       <div className="w-full flex flex-col sm:flex-row gap-4">
         <RepositoryList repos={repos} onSelect={setSelectedRepo} />
         <Button
@@ -50,6 +52,16 @@ export default function RepoAnalysis({ repos, token }: RepoAnalysisProps) {
         >
           {isLoading ? "Analyzing..." : "Analyze Project"}
         </Button>
+      </div>
+
+      <div className="flex gap-4 mt-4">
+        <Button asChild>
+          <Link href="https://github.com/apps/take-home-checker/installations/select_target">
+            <FaPlus />
+            Grant repo access
+          </Link>
+        </Button>
+        <LogOutGithub />
       </div>
 
       {isLoading && <div className="text-center my-6">{loadingMessage}</div>}

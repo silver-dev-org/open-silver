@@ -50,12 +50,6 @@ const tools: {
           "Get instant feedback from answering classical behavioral questions.",
         href: "/behavioral-checker",
       },
-      {
-        title: "GitHub Repo",
-        description:
-          "A repository with dozens of challenges for interview practice.",
-        href: "http://silver.dev/repo",
-      },
       // Not ready yet
       // {
       //   title: "Take-home Checker",
@@ -63,6 +57,12 @@ const tools: {
       //     "Upload your take-home and get instant feedback on the project.",
       //   href: "/take-home-checker",
       // },
+      {
+        title: "GitHub Repo",
+        description:
+          "A repository with dozens of challenges for interview practice.",
+        href: "http://silver.dev/repo",
+      },
       {
         title: "WPM Game",
         description: "Test your speed and practice typing code.",
