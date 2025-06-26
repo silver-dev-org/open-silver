@@ -1,13 +1,14 @@
 import { analyzeText } from "@/take-home-checker/lib/openai";
+import { AnalysisResult } from "@/take-home-checker/types/repo";
 import { Octokit } from "octokit";
 import { fetchFileContent, fetchReadme, fetchRelevantFiles } from "./github";
+import { codeEvaluationPrompt, readmeEvaluationPrompt } from "./prompts";
 import { extractJsonFromString } from "./utils";
-import { readmeEvaluationPrompt, codeEvaluationPrompt } from "./prompts";
 
 export async function analyzeReadme(
   owner: string,
   repo: string,
-  octokit: Octokit,
+  octokit: Octokit
 ) {
   const readmeContent = await fetchReadme(owner, repo, octokit);
 
@@ -24,7 +25,7 @@ export async function analyzeReadme(
 export async function analyzeCodeQuality(
   owner: string,
   repo: string,
-  octokit: Octokit,
+  octokit: Octokit
 ) {
   const relevantFiles = await fetchRelevantFiles(owner, repo, octokit);
 
@@ -32,7 +33,7 @@ export async function analyzeCodeQuality(
     relevantFiles.map(async (file) => ({
       file,
       content: await fetchFileContent(owner, repo, file, octokit),
-    })),
+    }))
   );
 
   const content = fileContents
@@ -48,7 +49,7 @@ export async function analyzeCodeQuality(
 export async function analyzeRepository(
   owner: string,
   repo: string,
-  octokit: Octokit,
+  octokit: Octokit
 ) {
   const [readmeAnalysis, codeQualityAnalysis] = await Promise.all([
     analyzeReadme(owner, repo, octokit),
@@ -56,7 +57,7 @@ export async function analyzeRepository(
   ]);
 
   const prompt = `
-    Basado en los siguientes análisis del repositorio, proporciona una calificación final (Strong No,No, Yes, Strong Yes), un resumen y destaca las banderas rojas, amarillas y verdes si es aplicable. Utiliza los estándares de calificación de Silicon Valley para startups.
+    Basado en los siguientes análisis del repositorio, proporciona una calificación final y feedback detallado. Utiliza los estándares de calificación de Silicon Valley para startups.
 
     Análisis de README:
     ${readmeAnalysis.analysis}
@@ -64,34 +65,38 @@ export async function analyzeRepository(
     Análisis del code quality del proyecto:
     ${codeQualityAnalysis.analysis}
 
-    Criterios de Bandera Verde (aspectos positivos):
-    💯 **Desafíos take-home excepcionales**
-    Las entregas excepcionales son aquellas memorables para los entrevistadores. Las van a recordar mucho tiempo después de que se hayan hecho porque se destacan entre las demás.
-    Las entregas que impresionan evidencian excelentes rasgos como experiencia, creatividad, intuición e ingenio.
-
-    Yellow Flag Criteria (slightly negative findings):
-    The takehome is almost entirely AI generated. It is minimalistic, and has naive or unsophisticated approaches to fulfill requirements.
-
-    Criterios de Bandera Roja (problemas críticos):
-    - Stack tecnológico obsoleto o dependencias faltantes.
-    - Documentación pobre o inexistente, lo que dificulta la prueba o despliegue del proyecto.
-    - Errores importantes que rompen la funcionalidad.
-    - It is lazy; it does the bare minimum and cuts corners all the time.
+    Criterios de evaluación:
+    - **Strong Yes**: Proyecto excepcional que destaca significativamente
+    - **Yes**: Proyecto sólido que cumple con los requisitos
+    - **No**: Proyecto con problemas significativos
+    - **Strong No**: Proyecto con problemas críticos
 
     Devuelve la respuesta como un objeto JSON con la siguiente estructura:
     {
-      "grade": "Strong No | No | Yes | Strong Yes",
-      "summary": "A short gist about the challenge quality",
-      "redFlags": [], // si hay lista los problemas criticos en este array
-      "yellowFlags": [],// si hay lista los problemas menores en este array
-      "greenFlags": [], si hay lista los aspectos excepcionales en este array
+      "score": "strong-no" | "no" | "yes" | "strong-yes",
+      "documentationFeedback": {
+        "green": ["Lista de aspectos positivos de la documentación"],
+        "yellow": ["Lista de áreas de mejora en la documentación"],
+        "red": ["Lista de problemas críticos en la documentación"]
+      },
+      "codeFeedback": {
+        "green": ["Lista de aspectos positivos del código"],
+        "yellow": ["Lista de áreas de mejora en el código"],
+        "red": ["Lista de problemas críticos en el código"]
+      },
+      "prompts": {
+        "documentation": "Analyze the documentation quality of this repository. Look at README files, inline comments, API documentation, and overall project structure documentation. Rate the clarity, completeness, and helpfulness of the documentation.",
+        "code": "Evaluate the code quality of this repository. Consider factors like code organization, best practices adherence, error handling, testing coverage, performance considerations, and maintainability. Provide specific feedback on areas of strength and improvement."
+      }
     }
   `;
 
   const finalAnalysis = await analyzeText(prompt);
+  const parsedAnalysis = extractJsonFromString(finalAnalysis) as AnalysisResult;
+
   const all = {
     content: readmeAnalysis.content,
-    analysis: extractJsonFromString(finalAnalysis),
+    analysis: parsedAnalysis,
   };
 
   return all;

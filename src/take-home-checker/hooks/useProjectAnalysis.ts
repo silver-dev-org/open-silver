@@ -1,14 +1,9 @@
+import { AnalysisResult } from "@/take-home-checker/types/repo";
 import { useQuery } from "@tanstack/react-query";
 
 interface AnalysisData {
   content: string;
-  analysis: {
-    grade: "A" | "B" | "C" | "D";
-    summary: string;
-    redFlags: string[];
-    yellowFlags: string[];
-    greenFlags: string[];
-  }
+  analysis: AnalysisResult;
 }
 
 async function fetchProjectAnalysis(
@@ -18,7 +13,8 @@ async function fetchProjectAnalysis(
     avatar_url: string;
     html_url: string;
   },
-  token: string): Promise<AnalysisData> {
+  token: string
+): Promise<AnalysisData> {
   const response = await fetch("/api/analyze/project", {
     method: "POST",
     headers: {
@@ -42,21 +38,17 @@ export function useProjectAnalysis(
       login: string;
       avatar_url: string;
       html_url: string;
-    }
+    };
   } | null,
   token: string
 ) {
-  const queryKey = ["projectAnalysis", selectedRepo?.name, selectedRepo?.owner, token];
-
-  const {
-    data,
-    error,
-    isError,
-    isLoading,
-    isSuccess,
-    refetch,
-    status,
-  } = useQuery({
+  const queryKey = [
+    "projectAnalysis",
+    selectedRepo?.name,
+    selectedRepo?.owner,
+    token,
+  ];
+  return useQuery({
     queryKey,
     queryFn: () => {
       if (!selectedRepo) return null;
@@ -67,14 +59,4 @@ export function useProjectAnalysis(
     retry: 2,
     refetchOnWindowFocus: false,
   });
-
-  return {
-    data,
-    error,
-    isError,
-    isLoading,
-    isSuccess,
-    refetch,
-    status,
-  };
 }
