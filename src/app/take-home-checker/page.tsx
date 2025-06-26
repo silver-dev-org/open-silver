@@ -49,8 +49,6 @@ export default async function Page() {
     }
   }
 
-  repos = repos.sort((a, b) => a.name.localeCompare(b.name));
-
   return (
     <Section>
       <Heading size="lg" center>

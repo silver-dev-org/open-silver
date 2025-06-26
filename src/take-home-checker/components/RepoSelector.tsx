@@ -1,9 +1,12 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,26 +25,44 @@ export default function RepoSelector({ repos, onChange }: RepoSelectorProps) {
     }
   };
 
+  const reposByOwner = repos.reduce(
+    (acc, repo) => {
+      const owner = repo.owner.login;
+      if (!acc[owner]) {
+        acc[owner] = [];
+      }
+      acc[owner].push(repo);
+      return acc;
+    },
+    {} as Record<string, Repo[]>
+  );
+
+  Object.keys(reposByOwner).forEach((owner) => {
+    reposByOwner[owner].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
   return (
-    <Select onValueChange={handleValueChange}>
-      <SelectTrigger className="py-8 text-left w-full">
-        <SelectValue placeholder="Select a repository" />
+    <Select onValueChange={handleValueChange} disabled={repos.length === 0}>
+      <SelectTrigger className="text-left w-full">
+        <SelectValue placeholder={repos.length === 0 ? "No repositories available" : "Select a repository"} />
       </SelectTrigger>
       <SelectContent>
-        {repos.map((repo) => (
-          <SelectItem key={repo.id} value={repo.id.toString()}>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <strong>{repo.name}</strong>
-                {repo.private && (
-                  <span className="text-xs bg-input text-foreground px-1 rounded">
-                    Private
-                  </span>
-                )}
-              </div>
-              <span>{repo.description}</span>
-            </div>
-          </SelectItem>
+        {Object.entries(reposByOwner).map(([owner, repos]) => (
+          <SelectGroup key={owner}>
+            <SelectLabel>{owner}</SelectLabel>
+            {repos.map((repo) => (
+              <SelectItem key={repo.id} value={repo.id.toString()}>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{repo.name}</span>
+                  {repo.private && (
+                    <Badge variant="outline" className="text-xs">
+                      Private
+                    </Badge>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectGroup>
         ))}
       </SelectContent>
     </Select>
