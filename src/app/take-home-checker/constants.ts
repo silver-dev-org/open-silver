@@ -1,5 +1,6 @@
-export const readmeEvaluationPrompt = `
-🧭 README & Interviewer Experience Review
+import { Score } from "./types";
+
+export const readmeEvaluationPrompt = `🧭 README & Interviewer Experience Review
 
 You are reviewing the **README and external presentation** of a take-home GitHub repository.
 
@@ -18,8 +19,7 @@ Criteria:
 Notes: \${content}
 `;
 
-export const codeEvaluationPrompt = `
-🧠 Codebase & Technical Quality Review
+export const codeEvaluationPrompt = `🧠 Codebase & Technical Quality Review
 
 You are reviewing the **codebase quality and technical implementation** of the take-home project.
 
@@ -38,3 +38,26 @@ Criteria:
 
 Notes: \${codeNotes}
 `;
+
+export const loadingMessages = [
+  "Initializing AI thought process...",
+  "Activating neural network...",
+  "Generating embeddings of the problem...",
+  "Simulating a billion test cases...",
+  "Performing a recursive self-improvement cycle...",
+  "Fine-tuning my model weights...",
+  "Verifying output against training data...",
+  "Cross-referencing solutions in parallel universes...",
+  "Predicting the next optimal code sequence...",
+];
+
+export const scoreColors: Record<Score, string> = {
+  "Strong yes": "bg-green-500",
+  Yes: "bg-green-500",
+  No: "bg-red-500",
+  "Strong no": "bg-green-500",
+};
+
+export const fileCacheDuration = 1000 * 60 * 2;
+
+export const loadingMessageInterval = 1000 * 3;
