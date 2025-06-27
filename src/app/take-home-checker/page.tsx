@@ -1,74 +1,46 @@
-import Description from "@/components/description";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer from "@/components/spacer";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import AuthGitHub from "@/take-home-checker/components/AuthGtihub";
-import AppQueryProvider from "@/take-home-checker/components/QueryClientProvider";
-import RepoAnalysis from "@/take-home-checker/components/RepoAnalysis";
-import { Repo } from "@/take-home-checker/types/repo";
+import { getOctokit } from "@/lib/github";
 import { Metadata } from "next";
-import { getServerSession } from "next-auth";
-import { Octokit } from "octokit";
+import { cookies } from "next/headers";
+import Client from "./client";
+import { Repo } from "./types";
 
 export const metadata: Metadata = {
   title: "Take-home Checker",
   description:
     "Upload your take-home project and get instant feedback to improve your technical interview performance.",
   openGraph: {
-    title: "Take-home Checker • Open Silver",
-    description: "Get instant feedback on your take-home project submissions",
+    title: "Take-home Checker",
+    siteName: "Open Silver",
+    description:
+      "Upload your take-home and get instant feedback on the project.",
     type: "website",
   },
 };
 
-export default async function Page() {
-  const session = await getServerSession(authOptions);
-  const isAuthenticated = !!session?.user;
-  let repos: Repo[] = [];
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ installation_id?: string }>;
+}) {
+  const params = await searchParams;
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get("installationId");
+  const installationId = params.installation_id || cookie?.value;
+  const repos: Repo[] = [];
 
-  if (session && (session as unknown as { accessToken: string }).accessToken) {
+  if (installationId) {
     try {
-      const octokit = new Octokit({
-        auth: (session as unknown as { accessToken: string }).accessToken,
-      });
-      const { data: installations } = await octokit.request(
-        "GET /user/installations"
-      );
-      for (const installation of installations.installations) {
-        const { data: installationRepos } = await octokit.request(
-          `GET /user/installations/${installation.id}/repositories`,
-          {
-            per_page: 100,
-          }
-        );
-        repos.push(...installationRepos.repositories);
-      }
+      const octokit = await getOctokit(parseInt(installationId));
+      const { data } =
+        await octokit.rest.apps.listReposAccessibleToInstallation({
+          per_page: 100,
+        });
+      repos.push(...(data.repositories as Repo[]));
     } catch (error) {
-      console.error("Error fetching repos:", error);
+      console.error("Error fetching GitHub repositories:", error);
+      throw error;
     }
   }
 
-  return (
-    <Section>
-      <Heading size="lg" center>
-        <span className="text-primary">Take-home</span> Checker
-      </Heading>
-      <Spacer />
-      <Description center>
-        Upload your take-home and get instant feedback on the project.
-      </Description>
-      <Spacer size="lg" />
-      <AppQueryProvider>
-        {isAuthenticated ? (
-          <RepoAnalysis
-            repos={repos}
-            token={(session as unknown as { accessToken: string })?.accessToken}
-          />
-        ) : (
-          <AuthGitHub />
-        )}
-      </AppQueryProvider>
-    </Section>
-  );
+  return <Client repos={repos} installationId={installationId} />;
 }
