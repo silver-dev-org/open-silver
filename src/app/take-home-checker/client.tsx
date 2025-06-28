@@ -1,6 +1,5 @@
 "use client";
 
-import Grid from "@/components/grid";
 import Spacer from "@/components/spacer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,22 +42,38 @@ import React, {
 } from "react";
 import { FaGithub } from "react-icons/fa";
 import {
+  cookieName,
+  evaluationPrompt,
   loadingMessageInterval,
   loadingMessages,
   scoreColors,
-  takeHomeEvaluationPrompt,
 } from "./constants";
 import { FeedbackFlags, Repo, RepoAnalysis } from "./types";
 
-export default function Client({
-  repos,
+export default function TakeHomeCheckerClient({
   installationId,
 }: {
-  repos: Repo[];
   installationId?: string;
 }) {
   const [selectedRepo, setSelectedRepo] = useState<Repo | undefined>(undefined);
-  const { refetch, data, error, isLoading, isSuccess, isError } = useQuery({
+  const repos = useQuery({
+    queryKey: ["repos", installationId],
+    queryFn: async () => {
+      if (!installationId) return [];
+      const response = await fetch("/api/repos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ installationId: parseInt(installationId) }),
+      });
+      const data = await response.json();
+      return data as Repo[];
+    },
+    enabled: !!installationId,
+    refetchOnWindowFocus: false,
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+  });
+  const analysis = useQuery({
     queryKey: ["analyze-take-home", selectedRepo?.full_name, installationId],
     queryFn: async () => {
       if (!selectedRepo || !installationId) return;
@@ -70,50 +85,40 @@ export default function Client({
           installationId: parseInt(installationId),
         }),
       });
-      try {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message);
-        return data as RepoAnalysis;
-      } catch (error) {
-        const errorMessage = await response.text();
-        throw new Error(errorMessage);
-      }
+      if (!response.ok) throw new Error(await response.text());
+      return (await response.json()) as RepoAnalysis;
     },
     enabled: false,
-    retry: false,
     refetchOnWindowFocus: false,
+    retry: false,
     staleTime: 1000 * 60 * 5,
   });
   const result = useMemo(() => {
-    if (isLoading) return <LoadingState />;
-    if (isError) return <ErrorState error={error} />;
-    if (isSuccess) return <SuccessState {...data!} />;
+    if (analysis.isFetching) return <LoadingState />;
+    if (analysis.isError) return <ErrorState error={analysis.error} />;
+    if (analysis.isSuccess) return <SuccessState {...analysis.data!} />;
     return null;
-  }, [isLoading, isSuccess, isError, error, data]);
+  }, [analysis.status, analysis.fetchStatus]);
 
   const handleRepoChange = useCallback(
     (value: string) => {
-      const repo = repos.find((repo) => repo.id.toString() === value);
+      const repo = repos.data?.find((repo) => repo.id.toString() === value);
       setSelectedRepo(repo);
     },
-    [repos]
+    [repos.data]
   );
 
-  const handleAnalyzeClick = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
   useEffect(() => {
-    if (selectedRepo && data) {
+    if (selectedRepo && analysis.data) {
       const preppingData = PreppingData.getToolData("take-home-checker");
-      preppingData[selectedRepo.full_name] = data.score;
+      preppingData[selectedRepo.full_name] = analysis.data?.score;
       PreppingData.setToolData("take-home-checker", preppingData);
     }
-  }, [selectedRepo, data]);
+  }, [selectedRepo, analysis.data]);
 
   useEffect(() => {
     if (installationId) {
-      document.cookie = `installationId=${installationId}; path=/; max-age=31536000`;
+      document.cookie = `${cookieName}=${installationId}; path=/; max-age=31536000`;
     }
   }, [installationId]);
 
@@ -129,10 +134,14 @@ export default function Client({
           </Link>
         </Button>
         <div className="flex gap-1.5">
-          <RepoSelector repos={repos} onValueChange={handleRepoChange} />
+          <RepoSelector
+            repos={repos.data || []}
+            onValueChange={handleRepoChange}
+            isLoading={repos.isLoading}
+          />
           <AnalyzeButton
-            onClick={handleAnalyzeClick}
-            isLoading={isLoading}
+            onClick={analysis.refetch}
+            isLoading={analysis.isFetching}
             hasSelectedRepo={!!selectedRepo}
           />
         </div>
@@ -150,18 +159,25 @@ export default function Client({
 function RepoSelector({
   repos,
   onValueChange,
+  isLoading,
 }: {
   repos: Repo[];
   onValueChange: (value: string) => void;
+  isLoading: boolean;
 }) {
   return (
-    <Select onValueChange={onValueChange} disabled={repos.length === 0}>
+    <Select
+      onValueChange={onValueChange}
+      disabled={repos.length === 0 || isLoading}
+    >
       <SelectTrigger className="text-left w-full">
         <SelectValue
           placeholder={
-            repos.length === 0
-              ? "No repositories available"
-              : "Select a repository"
+            isLoading
+              ? "Loading repositories..."
+              : repos.length === 0
+                ? "No repositories available"
+                : "Select a repository"
           }
         />
       </SelectTrigger>
@@ -304,7 +320,7 @@ function LoadingState() {
 
 function SuccessState(analysis: RepoAnalysis) {
   return (
-    <div className="flex flex-col gap-6 mx-auto max-w-[130ch]">
+    <div className="flex flex-col gap-6 mx-auto">
       <Card>
         <CardContent className="pt-6">
           <section className="flex justify-between items-center">
@@ -321,29 +337,29 @@ function SuccessState(analysis: RepoAnalysis) {
                 {analysis.score}
               </strong>
             </div>
-            <PromptsDialog />
+            <PromptDialog />
           </section>
         </CardContent>
       </Card>
-      <Grid>
+      <div className="flex flex-col md:flex-row gap-6 w-full">
         <FeedbackCard
           title="Documentation"
           flags={analysis.docs}
           Icon={FileText}
         />
         <FeedbackCard title="Code" flags={analysis.code} Icon={Code} />
-      </Grid>
+      </div>
     </div>
   );
 }
 
-function PromptsDialog() {
+function PromptDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Eye />
-          View Prompts
+          View Prompt
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -352,7 +368,7 @@ function PromptsDialog() {
         </DialogHeader>
         <ScrollArea className="max-h-96">
           <p className="text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap">
-            {takeHomeEvaluationPrompt}
+            {evaluationPrompt}
           </p>
         </ScrollArea>
       </DialogContent>
@@ -370,7 +386,7 @@ function FeedbackCard({
   Icon: ElementType;
 }): React.ReactElement {
   return (
-    <Card>
+    <Card className="flex-1">
       <section>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -378,7 +394,7 @@ function FeedbackCard({
             <h1>{title}</h1>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-3">
           <FeedbackFlagList
             label="Strengths"
             color="text-green-500"

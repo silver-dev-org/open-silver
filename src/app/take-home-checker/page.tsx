@@ -1,8 +1,7 @@
-import { getOctokit } from "@/lib/github";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
-import Client from "./client";
-import { Repo } from "./types";
+import TakeHomeCheckerClient from "./client";
+import { cookieName } from "./constants";
 
 export const metadata: Metadata = {
   title: "Take-home Checker",
@@ -24,23 +23,7 @@ export default async function Page({
 }) {
   const params = await searchParams;
   const cookieStore = await cookies();
-  const cookie = cookieStore.get("installationId");
+  const cookie = cookieStore.get(cookieName);
   const installationId = params.installation_id || cookie?.value;
-  const repos: Repo[] = [];
-
-  if (installationId) {
-    try {
-      const octokit = await getOctokit(parseInt(installationId));
-      const { data } =
-        await octokit.rest.apps.listReposAccessibleToInstallation({
-          per_page: 100,
-        });
-      repos.push(...(data.repositories as Repo[]));
-    } catch (error) {
-      console.error("Error fetching GitHub repositories:", error);
-      throw error;
-    }
-  }
-
-  return <Client repos={repos} installationId={installationId} />;
+  return <TakeHomeCheckerClient installationId={installationId} />;
 }
