@@ -1,6 +1,6 @@
-import { fileCacheDuration } from "@/app/take-home-checker/constants";
 import { App, Octokit } from "octokit";
 
+const fileCacheDuration = 1000 * 60 * 2;
 const repoFilesCache = new Map<
   string,
   { files: string[]; timestamp: number }
@@ -97,6 +97,6 @@ export async function getFileContent(
     return content;
   } catch (error) {
     console.error(`Error fetching file ${filePath}:`, error);
-    throw new Error(`Failed to fetch file: ${filePath}`);
+    throw error;
   }
 }
