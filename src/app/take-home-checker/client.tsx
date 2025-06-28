@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -21,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn, PreppingData } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -45,11 +43,10 @@ import React, {
 } from "react";
 import { FaGithub } from "react-icons/fa";
 import {
-  codeEvaluationPrompt,
   loadingMessageInterval,
   loadingMessages,
-  readmeEvaluationPrompt,
   scoreColors,
+  takeHomeEvaluationPrompt,
 } from "./constants";
 import { FeedbackFlags, Repo, RepoAnalysis } from "./types";
 
@@ -61,11 +58,33 @@ export default function Client({
   installationId?: string;
 }) {
   const [selectedRepo, setSelectedRepo] = useState<Repo | undefined>(undefined);
-  const { refetch, data, error, isLoading, isSuccess, isError } = useAnalysis(
-    selectedRepo,
-    installationId
-  );
-  const component = useMemo(() => {
+  const { refetch, data, error, isLoading, isSuccess, isError } = useQuery({
+    queryKey: ["analyze-take-home", selectedRepo?.full_name, installationId],
+    queryFn: async () => {
+      if (!selectedRepo || !installationId) return;
+      const response = await fetch("/api/analyze-take-home", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          repoFullName: selectedRepo.full_name,
+          installationId: parseInt(installationId),
+        }),
+      });
+      try {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message);
+        return data as RepoAnalysis;
+      } catch (error) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage);
+      }
+    },
+    enabled: false,
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
+  });
+  const result = useMemo(() => {
     if (isLoading) return <LoadingState />;
     if (isError) return <ErrorState error={error} />;
     if (isSuccess) return <SuccessState {...data!} />;
@@ -118,38 +137,14 @@ export default function Client({
           />
         </div>
       </div>
-      {component && (
+      {result && (
         <>
           <Spacer size="lg" />
-          {component}
+          {result}
         </>
       )}
     </>
   );
-}
-
-function useAnalysis(repo?: Repo, installationId?: string) {
-  return useQuery({
-    queryKey: ["analyze-take-home", repo?.owner, repo?.name, installationId],
-    queryFn: async () => {
-      if (!repo || !installationId) return;
-      const response = await fetch("/api/analyze-take-home", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          repoFullName: repo.full_name,
-          installationId: parseInt(installationId),
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message);
-      return data as RepoAnalysis;
-    },
-    enabled: false,
-    staleTime: 1000 * 60 * 5,
-    retry: 2,
-    refetchOnWindowFocus: false,
-  });
 }
 
 function RepoSelector({
@@ -351,25 +346,14 @@ function PromptsDialog() {
           View Prompts
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Analysis Prompts</DialogTitle>
-          <DialogDescription>
-            The prompts used to analyze your repository
-          </DialogDescription>
+          <DialogTitle>Analysis Prompt</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-96">
-          <div className="flex flex-col gap-6">
-            <Separator />
-            <p className="font-semibold">Documentation Analysis Prompt</p>
-            <p className="text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap">
-              {readmeEvaluationPrompt}
-            </p>
-            <p className="font-semibold">Code Analysis Prompt</p>
-            <p className="text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap">
-              {codeEvaluationPrompt}
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap">
+            {takeHomeEvaluationPrompt}
+          </p>
         </ScrollArea>
       </DialogContent>
     </Dialog>
