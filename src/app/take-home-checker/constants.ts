@@ -1,6 +1,6 @@
 import { Score } from "./types";
 
-export const takeHomeEvaluationPrompt = `# 🧑‍💻 Take-Home Evaluation
+export const evaluationPrompt = `# 🧑‍💻 Take-Home Evaluation
 
 ## 🧑 Context
 
@@ -16,17 +16,15 @@ Below is the candidate's submission.
 \${docs}
 \`\`\`
 
-#### 💻 Codebase (shortened)
+#### 💻 Codebase
+
+Keep in mind that each file may be truncated to 1000 characters. Here are the files:
 
 \${code}
 
 ## 🧑‍🏫 Instructions
 
-Evaluate the take-home submission based on the criteria below.
-
-Be precise and very concise — responses should be in bullet points only, remove any unnecessary or extra text. No more than 75 characters per bullet point and no more than 5 bullet points per category
-
-Return your review in **structured JSON format**, following the schema at the end.
+Evaluate the take-home submission based on the criteria below. Be very concise and precise: responses should be only in bullet points without any fluff or unnecessary text. Return your review in **structured JSON format**, following the schema at the end.
 
 ### ✔️ Evaluation Criteria
 
@@ -134,6 +132,8 @@ export const loadingMessages = [
   "Predicting the thoughts of a Principal Engineer",
 ].map((message) => `${message}...`);
 
+export const loadingMessageInterval = 1000 * 3;
+
 export const scoreColors: Record<Score, string> = {
   "Strong yes": "bg-green-500",
   Yes: "bg-green-500",
@@ -141,4 +141,4 @@ export const scoreColors: Record<Score, string> = {
   "Strong no": "bg-green-500",
 };
 
-export const loadingMessageInterval = 1000 * 3;
+export const cookieName = "takeHomeCheckerinstallationId";

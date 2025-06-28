@@ -1,6 +1,6 @@
 import {
+  evaluationPrompt,
   processableFileExtensions,
-  takeHomeEvaluationPrompt,
 } from "@/app/take-home-checker/constants";
 import { RepoAnalysis } from "@/app/take-home-checker/types";
 import {
@@ -23,9 +23,9 @@ export default async function handler(
     res.status(200).json(analysis);
   } catch (error) {
     console.error("Error analyzing take-home:", error);
-    res.status(500).json({
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    res
+      .status(500)
+      .send(error instanceof Error ? error.message : "Unknown error");
   }
 }
 
@@ -41,7 +41,7 @@ async function analyzeTakeHome({
     await getReadmeContent(octokit, repoFullName),
     await getCodebase(octokit, repoFullName),
   ]);
-  const prompt = takeHomeEvaluationPrompt
+  const prompt = evaluationPrompt
     .replace("${code}", code ?? "N/A")
     .replace("${docs}", readme?.replaceAll("`", "\\`") ?? "N/A");
   const rawAnalysis = await callLLM(prompt);
