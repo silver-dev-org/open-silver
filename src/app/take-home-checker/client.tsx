@@ -11,6 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -56,6 +58,7 @@ export default function TakeHomeCheckerClient({
   installationId?: string;
 }) {
   const [selectedRepo, setSelectedRepo] = useState<Repo | undefined>(undefined);
+  const [repoFile, setRepoFile] = useState<File | undefined>(undefined);
   const repos = useQuery({
     queryKey: ["repos", installationId],
     queryFn: async () => {
@@ -76,14 +79,16 @@ export default function TakeHomeCheckerClient({
   const analysis = useQuery({
     queryKey: ["analyze-take-home", selectedRepo?.full_name, installationId],
     queryFn: async () => {
-      if (!selectedRepo || !installationId) return;
+      const formData = new FormData();
+      if (selectedRepo && installationId) {
+        formData.append("name", selectedRepo.full_name);
+        formData.append("installationId", installationId);
+      } else if (repoFile) {
+        formData.append("file", repoFile);
+      }
       const response = await fetch("/api/analyze-take-home", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          repoFullName: selectedRepo.full_name,
-          installationId: parseInt(installationId),
-        }),
+        body: formData,
       });
       if (!response.ok) throw new Error(await response.text());
       return (await response.json()) as RepoAnalysis;
@@ -108,6 +113,15 @@ export default function TakeHomeCheckerClient({
     [repos.data]
   );
 
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!event.target.files) return;
+      const file = event.target.files[0];
+      setRepoFile(file);
+    },
+    []
+  );
+
   useEffect(() => {
     if (selectedRepo && analysis.data) {
       const preppingData = PreppingData.getToolData("take-home-checker");
@@ -122,27 +136,40 @@ export default function TakeHomeCheckerClient({
     }
   }, [installationId]);
 
+  useEffect(() => {
+    if (repoFile) {
+      analysis.refetch();
+    }
+  }, [repoFile]);
+
   return (
     <>
       <div className="flex flex-col gap-3 max-w-prose w-full mx-auto">
-        <Button asChild className="w-full" variant="outline">
-          <Link
-            href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_NAME}/installations/new`}
-          >
-            <FaGithub />
-            Grant repo access
-          </Link>
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button asChild className="w-full mt-auto" variant="outline">
+            <Link
+              href={`https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_NAME}/installations/new`}
+            >
+              <FaGithub />
+              Grant repo access
+            </Link>
+          </Button>
+          <div className="grid w-full items-center gap-3">
+            <Label htmlFor="repo-zip">Repo zip file</Label>
+            <Input id="repo-zip" type="file" onChange={handleFileChange} />
+          </div>
+        </div>
         <div className="flex gap-1.5">
           <RepoSelector
             repos={repos.data || []}
             onValueChange={handleRepoChange}
             isLoading={repos.isLoading}
+            isUploaded={!!repoFile}
           />
           <AnalyzeButton
             onClick={analysis.refetch}
             isLoading={analysis.isFetching}
-            hasSelectedRepo={!!selectedRepo}
+            hasSelectedRepo={!!selectedRepo || !!repoFile}
           />
         </div>
       </div>
@@ -160,15 +187,17 @@ function RepoSelector({
   repos,
   onValueChange,
   isLoading,
+  isUploaded,
 }: {
   repos: Repo[];
   onValueChange: (value: string) => void;
   isLoading: boolean;
+  isUploaded: boolean;
 }) {
   return (
     <Select
       onValueChange={onValueChange}
-      disabled={repos.length === 0 || isLoading}
+      disabled={repos.length === 0 || isLoading || isUploaded}
     >
       <SelectTrigger className="text-left w-full">
         <SelectValue
