@@ -135,10 +135,10 @@ export const loadingMessages = [
 export const loadingMessageInterval = 1000 * 3;
 
 export const scoreColors: Record<Score, string> = {
-  "Strong yes": "bg-green-500",
+  "Strong yes": "bg-emerald-500",
   Yes: "bg-green-500",
-  No: "bg-red-500",
-  "Strong no": "bg-green-500",
+  No: "bg-orange-500",
+  "Strong no": "bg-red-500",
 };
 
 export const cookieName = "takeHomeCheckerinstallationId";
