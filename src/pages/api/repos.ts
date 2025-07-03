@@ -1,4 +1,4 @@
-import { Repo } from "@/app/take-home-checker/types";
+import { GithubRepo } from "@/app/take-home-checker/types";
 import { getOctokit } from "@/lib/github";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -21,5 +21,5 @@ async function getRepos(installationId: number) {
   const { data } = await octokit.rest.apps.listReposAccessibleToInstallation({
     per_page: 100,
   });
-  return data.repositories as Repo[];
+  return data.repositories as GithubRepo[];
 }

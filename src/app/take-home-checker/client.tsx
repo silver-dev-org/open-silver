@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -29,6 +28,7 @@ import {
   CheckCircle,
   Code,
   Eye,
+  FileArchive,
   FileText,
   Loader2,
   Sparkles,
@@ -45,21 +45,21 @@ import React, {
 import { FaGithub } from "react-icons/fa";
 import {
   cookieName,
-  evaluationPrompt,
   loadingMessageInterval,
   loadingMessages,
+  prompt,
   scoreColors,
 } from "./constants";
-import { FeedbackFlags, Repo, RepoAnalysis } from "./types";
+import { FeedbackFlags, GithubRepo, TakeHomeAnalysis } from "./types";
 
 export default function TakeHomeCheckerClient({
   installationId,
 }: {
   installationId?: string;
 }) {
-  const [selectedRepo, setSelectedRepo] = useState<Repo | undefined>(undefined);
-  const [repoFile, setRepoFile] = useState<File | undefined>(undefined);
-  const repos = useQuery({
+  const [githubRepo, setGithubRepo] = useState<GithubRepo>();
+  const [zipRepo, setZipRepo] = useState<File>();
+  const { data: repos, isLoading: areReposLoading } = useQuery({
     queryKey: ["repos", installationId],
     queryFn: async () => {
       if (!installationId) return [];
@@ -69,29 +69,38 @@ export default function TakeHomeCheckerClient({
         body: JSON.stringify({ installationId: parseInt(installationId) }),
       });
       const data = await response.json();
-      return data as Repo[];
+      return data as GithubRepo[];
     },
     enabled: !!installationId,
     refetchOnWindowFocus: false,
     retry: false,
     staleTime: 1000 * 60 * 5,
   });
-  const analysis = useQuery({
-    queryKey: ["analyze-take-home", selectedRepo?.full_name, installationId],
+  const {
+    data: analysis,
+    refetch: analyze,
+    isSuccess,
+    isError,
+    isFetching,
+    error,
+    status,
+    fetchStatus,
+  } = useQuery({
+    queryKey: ["analyze-take-home", githubRepo?.full_name, installationId],
     queryFn: async () => {
       const formData = new FormData();
-      if (selectedRepo && installationId) {
-        formData.append("name", selectedRepo.full_name);
+      if (zipRepo) {
+        formData.append("file", zipRepo);
+      } else if (githubRepo && installationId) {
+        formData.append("name", githubRepo.full_name);
         formData.append("installationId", installationId);
-      } else if (repoFile) {
-        formData.append("file", repoFile);
       }
       const response = await fetch("/api/analyze-take-home", {
         method: "POST",
         body: formData,
       });
       if (!response.ok) throw new Error(await response.text());
-      return (await response.json()) as RepoAnalysis;
+      return (await response.json()) as TakeHomeAnalysis;
     },
     enabled: false,
     refetchOnWindowFocus: false,
@@ -99,36 +108,36 @@ export default function TakeHomeCheckerClient({
     staleTime: 1000 * 60 * 5,
   });
   const result = useMemo(() => {
-    if (analysis.isFetching) return <LoadingState />;
-    if (analysis.isError) return <ErrorState error={analysis.error} />;
-    if (analysis.isSuccess) return <SuccessState {...analysis.data!} />;
+    if (isFetching) return <LoadingState />;
+    if (isError) return <ErrorState error={error} />;
+    if (isSuccess) return <SuccessState {...analysis!} />;
     return null;
-  }, [analysis.status, analysis.fetchStatus]);
+  }, [status, fetchStatus]);
 
   const handleRepoChange = useCallback(
     (value: string) => {
-      const repo = repos.data?.find((repo) => repo.id.toString() === value);
-      setSelectedRepo(repo);
+      const repo = repos?.find((repo) => repo.id.toString() === value);
+      setGithubRepo(repo);
     },
-    [repos.data]
+    [repos]
   );
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.files) return;
       const file = event.target.files[0];
-      setRepoFile(file);
+      setZipRepo(file);
     },
     []
   );
 
   useEffect(() => {
-    if (selectedRepo && analysis.data) {
+    if (githubRepo && analysis) {
       const preppingData = PreppingData.getToolData("take-home-checker");
-      preppingData[selectedRepo.full_name] = analysis.data?.score;
+      preppingData[githubRepo.full_name] = analysis?.score;
       PreppingData.setToolData("take-home-checker", preppingData);
     }
-  }, [selectedRepo, analysis.data]);
+  }, [githubRepo, analysis]);
 
   useEffect(() => {
     if (installationId) {
@@ -137,10 +146,11 @@ export default function TakeHomeCheckerClient({
   }, [installationId]);
 
   useEffect(() => {
-    if (repoFile) {
-      analysis.refetch();
+    if (zipRepo) {
+      analyze();
+      setZipRepo(undefined);
     }
-  }, [repoFile]);
+  }, [zipRepo]);
 
   return (
     <>
@@ -155,21 +165,31 @@ export default function TakeHomeCheckerClient({
             </Link>
           </Button>
           <div className="grid w-full items-center gap-3">
-            <Label htmlFor="repo-zip">Repo zip file</Label>
-            <Input id="repo-zip" type="file" onChange={handleFileChange} />
+            <Button className="w-full" variant="outline" asChild>
+              <Label>
+                <FileArchive />
+                Upload zip file
+                <Input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="application/zip"
+                  className="hidden"
+                />
+              </Label>
+            </Button>
           </div>
         </div>
         <div className="flex gap-1.5">
           <RepoSelector
-            repos={repos.data || []}
+            repos={repos || []}
             onValueChange={handleRepoChange}
-            isLoading={repos.isLoading}
-            isUploaded={!!repoFile}
+            isLoading={areReposLoading}
+            isAnalyzing={isFetching}
           />
           <AnalyzeButton
-            onClick={analysis.refetch}
-            isLoading={analysis.isFetching}
-            hasSelectedRepo={!!selectedRepo || !!repoFile}
+            onClick={analyze}
+            isLoading={isFetching}
+            hasSelectedRepo={!!githubRepo || !!zipRepo}
           />
         </div>
       </div>
@@ -187,17 +207,17 @@ function RepoSelector({
   repos,
   onValueChange,
   isLoading,
-  isUploaded,
+  isAnalyzing,
 }: {
-  repos: Repo[];
+  repos: GithubRepo[];
   onValueChange: (value: string) => void;
   isLoading: boolean;
-  isUploaded: boolean;
+  isAnalyzing: boolean;
 }) {
   return (
     <Select
       onValueChange={onValueChange}
-      disabled={repos.length === 0 || isLoading || isUploaded}
+      disabled={repos.length === 0 || isLoading || isAnalyzing}
     >
       <SelectTrigger className="text-left w-full">
         <SelectValue
@@ -347,7 +367,7 @@ function LoadingState() {
   );
 }
 
-function SuccessState(analysis: RepoAnalysis) {
+function SuccessState(analysis: TakeHomeAnalysis) {
   return (
     <div className="flex flex-col gap-6 mx-auto">
       <Card>
@@ -395,11 +415,9 @@ function PromptDialog() {
         <DialogHeader>
           <DialogTitle>Analysis Prompt</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-96">
-          <p className="text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap">
-            {evaluationPrompt}
-          </p>
-        </ScrollArea>
+        <p className="max-h-96 text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap overflow-y-auto overflow-x-hidden">
+          {prompt}
+        </p>
       </DialogContent>
     </Dialog>
   );

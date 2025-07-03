@@ -1,4 +1,4 @@
-export type Repo = {
+export type GithubRepo = {
   id: number;
   name: string;
   full_name: string;
@@ -13,7 +13,14 @@ export type Repo = {
   };
 };
 
-export type RepoAnalysis = {
+export type RepoFile = { path: string; content: string };
+
+export type TakeHome = {
+  docs?: string;
+  code?: RepoFile[];
+};
+
+export type TakeHomeAnalysis = {
   score: Score;
   docs: FeedbackFlags;
   code: FeedbackFlags;

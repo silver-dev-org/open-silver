@@ -24,27 +24,21 @@ export async function getOctokit(installationId: number) {
   return octokit;
 }
 
-export async function getReadmeContent(
-  octokit: Octokit,
-  repoFullName: string
-): Promise<string | null> {
+export async function getReadmeContent(octokit: Octokit, repoFullName: string) {
   try {
     const { data } = await octokit.request(
       `GET /repos/${repoFullName}/contents/README.md`
     );
-    return data?.content
-      ? Buffer.from(data.content, "base64").toString("utf-8")
-      : null;
+    if (data?.content) {
+      return Buffer.from(data.content, "base64").toString("utf-8");
+    }
   } catch (error) {
     console.error("Error fetching README:", error);
-    return null;
+    return;
   }
 }
 
-export async function getRepoFiles(
-  octokit: Octokit,
-  repoFullName: string
-): Promise<string[]> {
+export async function getRepoFilePaths(octokit: Octokit, repoFullName: string) {
   const cachedData = repoFilesCache.get(repoFullName);
   const now = Date.now();
   const isCached = cachedData && now - cachedData.timestamp < fileCacheDuration;
@@ -55,14 +49,14 @@ export async function getRepoFiles(
   );
   const files = response.data.tree.map((entry: { path: string }) => entry.path);
   repoFilesCache.set(repoFullName, { files, timestamp: now });
-  return files;
+  return files as string[];
 }
 
 export async function getFileContent(
   octokit: Octokit,
   repoFullName: string,
   filePath: string
-): Promise<string> {
+) {
   const cacheKey = `${repoFullName}/${filePath}`;
   const cachedData = fileContentCache.get(cacheKey);
   const now = Date.now();
