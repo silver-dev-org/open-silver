@@ -50,13 +50,12 @@ const tools: {
           "Get instant feedback from answering classical behavioral questions.",
         href: "/behavioral-checker",
       },
-      // Not ready yet
-      // {
-      //   title: "Take-home Checker",
-      //   description:
-      //     "Upload your take-home and get instant feedback on the project.",
-      //   href: "/take-home-checker",
-      // },
+      {
+        title: "Take-home Checker",
+        description:
+          "Upload your take-home and get instant feedback on the project.",
+        href: "/take-home-checker",
+      },
       {
         title: "GitHub Repo",
         description:
