@@ -372,7 +372,7 @@ function SuccessState(analysis: TakeHomeAnalysis) {
     <div className="flex flex-col gap-6 mx-auto">
       <Card>
         <CardContent className="pt-6">
-          <section className="flex justify-between items-center">
+          <section className="flex justify-between items-center flex-col gap-6 md:flex-row">
             <div className="text-center flex gap-3 items-center">
               <h1 className="text-lg font-semibold text-muted-foreground order-last">
                 Project Score
@@ -406,7 +406,7 @@ function PromptDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="w-full md:w-auto">
           <Eye />
           View Prompt
         </Button>
