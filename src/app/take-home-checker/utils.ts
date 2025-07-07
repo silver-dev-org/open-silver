@@ -1,6 +1,6 @@
 import { TakeHome } from "./types";
 
-export function takeHomeToXML(takeHome: TakeHome) {
+export function takeHomeToXML(takeHome: TakeHome, truncationInChars = 1000) {
   return `<take-home>
 <docs>
 ${takeHome.docs ?? "N/A"}
@@ -8,7 +8,17 @@ ${takeHome.docs ?? "N/A"}
 <code>
 ${
   takeHome.code
-    ?.map((file) => `File: ${file.path}\n---\n${file.content}\n---`)
+    ?.map(
+      (file) => `File: ${file.path}
+---
+${
+  truncationInChars > 0
+    ? file.content.slice(0, truncationInChars) +
+      (file.content.length > truncationInChars ? "\n<content-truncated />" : "")
+    : file.content
+}
+---`
+    )
     .join("\n") ?? "N/A"
 }
 </code>
