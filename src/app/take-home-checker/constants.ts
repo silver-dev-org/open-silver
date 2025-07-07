@@ -114,10 +114,8 @@ const examples: {
           "Installation and usage instructions are provided for each component.",
           "Approach and production readiness sections demonstrate thoughtful consideration of the problem.",
         ],
-        yellow: [
-          "Lack of a live demo or hosted version for inspection.",
-          "Minor typo in 'applicaiton' in the Structure section.",
-        ],
+        yellow: ["Minor typo in 'applicaiton' in the Structure section."],
+        red: ["Lack of a live demo or hosted version for inspection."],
       },
       code: {
         green: [
@@ -220,17 +218,14 @@ const examples: {
     analysis: {
       score: "No",
       docs: {
-        green: [
-          "Clear purpose and overview of the project.",
-          "Setup instructions are detailed and easy to follow.",
-        ],
+        green: ["Setup instructions are detailed and easy to follow."],
         yellow: [
           "Example responses are provided but lack context on how they relate to the user input.",
           "Minor typo in 'lastest' in the Setup section.",
         ],
         red: [
           "No live demo or hosted version for inspection.",
-          "Limited product thinking; lacks consideration for user experience beyond basic functionality.",
+          "Very shallow explanation of the project; should include more context about its purpose and value.",
         ],
       },
       code: {
@@ -277,16 +272,13 @@ const examples: {
     analysis: {
       score: "Strong no",
       docs: {
-        green: [
-          "Purpose & Overview is clear and concise.",
-          "Installation and usage steps are provided.",
-        ],
+        green: ["Installation and usage steps are provided."],
         yellow: [
           "Examples are present but lack explanations of expected outcomes.",
           "Error handling section is mentioned but lacks detail on specific errors.",
         ],
         red: [
-          "Limited product thinking; lacks user/developer needs consideration beyond basic functionality.",
+          "Limited product thinking; lacks user needs consideration beyond basic functionality.",
           "No live demo or API documentation provided.",
           "Documentation does not mention testing or how to run tests.",
         ],
@@ -329,7 +321,7 @@ You are a principal software engineer with high standards typical of top-tier Si
 
 * Keep your feedback flags in very concise, fluffless, and precise bullet points.
 * Maintain the bar high - not everyone should pass.
-* For code problems, indicate both the description of the problem and the snippet of code where you found it - be very specific indicating where the problem lies on.
+* For code problems, indicate both the description of the problem and the snippet of code where you found it - be very specific indicating where the problem lies on, with enought context inside the snippet to know which part of the code it refers to.
 * Be sure and declarative - do not say things like "potential", "may cause", or "could be".
 * Projects with 10x the effort, outstanding creativity, highly novel solution, or useful unexpected features should be be scored with "Strong yes".
 
