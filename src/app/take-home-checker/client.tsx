@@ -90,6 +90,12 @@ export default function TakeHomeCheckerClient({
     queryFn: async () => {
       const formData = new FormData();
       if (zipRepo) {
+        const sizeInMb = zipRepo.size / 1000000;
+        if (sizeInMb > 4.5) {
+          throw new Error(
+            `File must be less than 4.5MB (it's ${sizeInMb.toFixed(2)}MB). Please remove heavy files like images and videos from your take-home and try uploading it again.`
+          );
+        }
         formData.append("file", zipRepo);
       } else if (githubRepo && installationId) {
         formData.append("name", githubRepo.full_name);
@@ -281,7 +287,11 @@ function AnalyzeButton({
 }
 
 function ErrorState({ error }: { error: Error }) {
-  return <p className="text-destructive text-center">Error: {error.message}</p>;
+  return (
+    <p className="text-destructive text-center max-w-prose mx-auto">
+      {error.message}
+    </p>
+  );
 }
 
 function LoadingState() {
