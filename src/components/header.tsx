@@ -43,10 +43,11 @@ export default function Header() {
       external: true,
       button: true,
     });
-  } else if (pathname?.startsWith("/mentors")) {
+  } else if (pathname?.startsWith("/take-home-checker")) {
     links[1].push({
-      href: "https://docs.google.com/forms/d/15He4sNXmaNlY1EGtJooVDDKN-4hlWzVIjQAVoF4VkkE/viewform",
-      label: "Aplicar al programa",
+      href: "https://docs.silver.dev/interview-ready/technical-fundamentals/code-quality/guia-de-takehomes",
+      label: "Guía de take-homes",
+      external: true,
       button: true,
     });
   }
