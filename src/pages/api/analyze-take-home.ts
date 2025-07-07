@@ -82,9 +82,9 @@ export default async function handler(
     const pAnalysis = extractJsonFromString(analysis);
 
     // Uncomment to copy the responses and paste them as examples
-    console.log(" ---------------------------------- ");
-    console.log(JSON.stringify({ takeHome, analysis: pAnalysis }));
-    console.log(" ---------------------------------- ");
+    // console.log(" ---------------------------------- ");
+    // console.log(JSON.stringify({ takeHome, analysis: pAnalysis }));
+    // console.log(" ---------------------------------- ");
 
     res.status(200).json(pAnalysis);
   } catch (error) {
