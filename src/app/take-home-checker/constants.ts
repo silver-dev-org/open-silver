@@ -156,18 +156,15 @@ const examples: {
         green: ["Installation and usage steps are provided."],
         yellow: [
           "Examples are present but lack explanations of expected outcomes.",
-          "Error handling section is mentioned but lacks detail on specific errors.",
         ],
         red: [
           "Limited product thinking; lacks user needs consideration beyond basic functionality.",
-          "No live demo or API documentation provided.",
           "Documentation does not mention testing or how to run tests.",
         ],
       },
       code: {
         yellow: [
           "Verbose logging is implemented but should be more structured.",
-          "Error handling is present but should be more granular in some areas.",
         ],
         red: [
           {
@@ -282,8 +279,8 @@ const examples: {
           "Minor typo in 'lastest' in the Setup section.",
         ],
         red: [
-          "No live demo or hosted version for inspection.",
           "Very shallow explanation of the project; should include more context about its purpose and value.",
+          "No live demo or hosted version for inspection.",
         ],
       },
       code: {
@@ -321,22 +318,22 @@ You are a principal software engineer with high standards typical of top-tier Si
 
 * Keep your feedback flags in very concise, fluffless, and precise bullet points.
 * Maintain the bar high - not everyone should pass.
-* For code problems, indicate both the description of the problem and the snippet of code where you found it - be very specific indicating where the problem lies on, with enought context inside the snippet to know which part of the code it refers to.
-* Be sure and declarative - do not say things like "potential", "may cause", or "could be".
+* For code problems, indicate both the description of the problem and the snippet of code where you found it - be very specific indicating where the problem lies on, with enought context inside the snippet to know which part of the code it refers to (3-10 total lines).
+* Use confident, declarative language. Avoid hedging terms like 'might', 'could', or 'potentially' — only report definite issues backed by code evidence."
 * Projects with 10x the effort, outstanding creativity, highly novel solution, or useful unexpected features should be be scored with "Strong yes".
 
 ## Evaluation Criteria
 
 ### Docs
 
-Evaluate the **README and external presentation**. Assess how clearly and effectively the project is communicated to an externaler.
+Evaluate the **README and external presentation**. Assess how clearly the project communicates its purpose and usage to someone unfamiliar with it."
 
 Consider:
 
 * **Purpose & Overview**: Is the project's goal and value clearly stated?
 * **Setup**: Are installation and usage steps accurate, minimal, and easy to follow (e.g., \`npm install && npm run dev\`)?
 * **Developer UX**: Are scripts provided for common tasks (e.g., start, test, lint)?
-* **Live Demo or API Swagger**: Is any hosted version available for inspection? (Applies only to web projects)
+* **Live Demo or API Swagger**: Is any hosted version available for inspection? (DOES NOT apply for CLI tools)
 * **Product Thinking**: Does the implementation reflect a thoughtful understanding of user/developer needs?
 * **Communication**: Are decisions, comments, and documentation professional and clear?
 
