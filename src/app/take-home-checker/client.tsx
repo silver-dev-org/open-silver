@@ -493,7 +493,7 @@ function FeedbackFlagList({
             ) : (
               <>
                 <span>{item.description}</span>
-                <pre className="border-l-2 font-mono border-foreground text-xs pl-2 mt-1.5 mb-3 w-full overflow-x-auto">
+                <pre className="border-l-8 font-mono border-muted-foregrounnd bg-muted text-xs rounded p-4 my-1.5 -ml-0.5 w-full overflow-x-auto">
                   {item.snippet}
                 </pre>
               </>
