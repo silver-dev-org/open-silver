@@ -9,106 +9,6 @@ const examples: {
     takeHome: {
       code: [
         {
-          path: "prop-filter-cli-main/filter/filter.go",
-          content:
-            'package filter\n\nimport (\n\t"fmt"\n\t"math"\n\t"regexp"\n\t"strings"\n\n\t"github.com/ramirofarias/prop-filter-cli/models"\n)\n\ntype location = [2]float64\n\ntype Comparison struct {\n\tOperator string\n\tValue    float64\n}\n\ntype Filter struct {\n\tSquareFootage []Comparison\n\tBathrooms     []Comparison\n\tRooms         []Comparison\n\tDistance      []Comparison\n\tPrice         []Comparison\n\tLat           float64\n\tLong          float64\n\tLighting      string\n\tKeywords      []string\n\tAmmenities    []string\n}\n\nfunc FilterProperties(properties []models.Property, filters Filter) []models.Property {\n\tvar filteredProperties []models.Property\n\nFilters:\n\tfor _, property := range properties {\n\t\tif len(filters.SquareFootage) > 0 {\n\t\t\tfor _, comparison := range filters.SquareFootage {\n\t\t\t\tif !matchesComparison(comparison, property.SquareFootage) {\n\t\t\t\t\tcontinue Filters\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tif len(filters.Bathrooms) > 0 {\n\t\t\tfor _, comparison := range filters.Bathrooms {\n\t\t\t\tif !matchesComparison(comparison, property.Bathrooms) {\n\t\t\t\t\tcontinue Filters\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tif len(filters.Rooms) > 0 {\n\t\t\tfor _, comparison := range filters.Rooms {\n\t\t\t\tif !matchesComparison(comparison, property.Rooms) {\n\t\t\t\t\tcontinue Filters\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tif len(filters.Distance) > 0 {\n\t\t\tif !(filters.Long == -999999) && !(filters.Lat == -999999) {\n\t\t\t\tactualDistance := calculateDistance(filters.Lat, filters.Long, property.Location[0], property.Location[1])\n\t\t\t\tfor _, comparison := range filters.Distance {\n\t\t\t\t\tif !matchesComparison(comparison, actualDistance) {\n\t\t\t\t\t\tcontinue Filters\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t}\n\t\t}\n\n\t\tif len(filters.Price) > 0 {\n\t\t\tfor _, comparison := range filters.Price {\n\t\t\t\tif !matchesComparison(comparison, property.Price) {\n\t\t\t\t\tcontinue Filters\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\tif filters.Lighting != "" {\n\t\t\tif filters.Lighting != property.Lighting {\n\t\t\t\tcontinue Filters\n\t\t\t}\n\t\t}\n\n\t\tif len(filters.Keywords) > 0 {\n\t\t\tfor _, keyword := range filters.Keywords {\n\t\t\t\tif !hasKeyword(property.Description, keyword) {\n\t\t\t\t\tcontinue Filters\n\t\t\t\t}\n\t\t\t}\n\n\t\t}\n\n\t\tif len(filters.Ammenities) > 0 {\n\t\t\tfor _, keyword := range filters.Ammenities {\n\t\t\t\tif !property.Ammenities[keyword] {\n\t\t\t\t\tcontinue Filters\n\t\t\t\t}\n\t\t\t}\n\n\t\t}\n\n\t\tfilteredProperties = append(filteredProperties, property)\n\t}\n\n\treturn filteredProperties\n}\n\nfunc matchesComparison(comparison Comparison, prop float64) bool {\n\tswitch comparison.Operator {\n\tcase "lt":\n\t\tif !(prop < comparison.Value) {\n\t\t\treturn false\n\t\t}\n\tcase "gt":\n\t\tif !(prop > comparison.Value) {\n\t\t\treturn false\n\t\t}\n\tcase "gte":\n\t\tif !(prop >= comparison.Value) {\n\t\t\treturn false\n\t\t}\n\tcase "lte":\n\t\tif !(prop <= comparison.Value) {\n\t\t\treturn false\n\t\t}\n\tcase "eq":\n\t\tif !(prop == comparison.Value) {\n\t\t\treturn false\n\t\t}\n\tdefault:\n\t\treturn true\n\t}\n\n\treturn true\n}\n\nfunc hasKeyword(s string, k string) bool {\n\tlowercaseString := strings.ToLower(s)\n\tpattern := fmt.Sprintf(`\\b%s\\b`, regexp.QuoteMeta(k))\n\tregex := regexp.MustCompile(pattern)\n\n\treturn regex.MatchString(lowercaseString)\n}\n\nfunc calculateDistance(lat1, long1, lat2, long2 float64) float64 {\n\tconst EARTH_RADIUS = 6371\n\tconst RADIAN = math.Pi / 180\n\n\tdistance := 0.5 - math.Cos((lat2-lat1)*RADIAN)/2 + math.Cos(lat1*RADIAN)*math.Cos(lat2*RADIAN)*(1-math.Cos((long2-long1)*RADIAN))/2\n\n\treturn 2 * EARTH_RADIUS * math.Asin(math.Sqrt(distance))\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/filter/filter_test.go",
-          content:
-            'package filter\n\nimport (\n\t"reflect"\n\t"testing"\n\n\t"github.com/ramirofarias/prop-filter-cli/models"\n)\n\nfunc TestFilterProperties(t *testing.T) {\n\tproperties := []models.Property{\n\t\t{\n\t\t\tSquareFootage: 1000,\n\t\t\tBathrooms:     2,\n\t\t\tLocation:      [2]float64{40.7128, -74.0060},\n\t\t\tPrice:         300000,\n\t\t\tLighting:      "low",\n\t\t\tDescription:   "Spacious and bright apartment",\n\t\t\tAmmenities:    map[string]bool{"pool": true, "gym": true},\n\t\t},\n\t\t{\n\t\t\tSquareFootage: 750,\n\t\t\tBathrooms:     1,\n\t\t\tLocation:      [2]float64{-34.5749, -58.4303},\n\t\t\tPrice:         200000,\n\t\t\tLighting:      "medium",\n\t\t\tDescription:   "Small house",\n\t\t\tAmmenities:    map[string]bool{"gym": true},\n\t\t},\n\t}\n\n\ttests := []struct {\n\t\tname     string\n\t\tfilters  Filter\n\t\texpected []models.Property\n\t}{\n\t\t{\n\t\t\tname:     "Filter by square footage",\n\t\t\tfilters:  Filter{SquareFootage: []Comparison{{Operator: "gte", Value: 800}}},\n\t\t\texpected: []models.Property{properties[0]},\n\t\t},\n\t\t{\n\t\t\tname:     "Filter by bathrooms",\n\t\t\tfilters:  Filter{Bathrooms: []Comparison{{Operator: "gte", Value: 2}}},\n\t\t\texpected: []models.Property{properties[0]},\n\t\t},\n\t\t{\n\t\t\tname: "Filter by distance",\n\t\t\tfilters: Filter{\n\t\t\t\tDistance: []Comparison{{Operator: "lt", Value: 100}},\n\t\t\t\tLat:      -34.548024423566574,\n\t\t\t\tLong:     -58.70612937569411,\n\t\t\t},\n\t\t\texpected: []models.Property{properties[1]},\n\t\t},\n\t\t{\n\t\t\tname:     "Filter by price",\n\t\t\tfilters:  Filter{Price: []Comparison{{Operator: "lt", Value: 250000}}},\n\t\t\texpected: []models.Property{properties[1]},\n\t\t},\n\t\t{\n\t\t\tname:     "Filter by lighting",\n\t\t\tfilters:  Filter{Lighting: "medium"},\n\t\t\texpected: []models.Property{properties[1]},\n\t\t},\n\t\t{\n\t\t\tname:     "Filter by keyword",\n\t\t\tfilters:  Filter{Keywords: []string{"spacious"}},\n\t\t\texpected: []models.Property{properties[0]},\n\t\t},\n\t\t{\n\t\t\tname:     "Filter by ammenities",\n\t\t\tfilters:  Filter{Ammenities: []string{"pool"}},\n\t\t\texpected: []models.Property{properties[0]},\n\t\t},\n\t\t{\n\t\t\tname:     "No matches",\n\t\t\tfilters:  Filter{SquareFootage: []Comparison{{Operator: "gt", Value: 5000}}},\n\t\t\texpected: []models.Property{},\n\t\t},\n\t\t{\n\t\t\tname:     "Multi filtering",\n\t\t\tfilters:  Filter{Keywords: []string{"spacious"}, Bathrooms: []Comparison{{Operator: "gte", Value: 2}}},\n\t\t\texpected: []models.Property{properties[0]},\n\t\t},\n\t}\n\n\tfor _, tt := range tests {\n\t\tt.Run(tt.name, func(t *testing.T) {\n\t\t\tresult := FilterProperties(properties, tt.filters)\n\t\t\tif len(result) == 0 && len(tt.expected) == 0 {\n\t\t\t\treturn\n\t\t\t}\n\n\t\t\tif !reflect.DeepEqual(result, tt.expected) {\n\t\t\t\tt.Errorf("expected %v, got %v", tt.expected, result)\n\t\t\t}\n\t\t})\n\t}\n}\n\nfunc TestMatchesComparison(t *testing.T) {\n\ttests := []struct {\n\t\tcomparison Comparison\n\t\tvalue      float64\n\t\texpected   bool\n\t}{\n\t\t{Comparison{Operator: "lt", Value: 10}, 5, true},\n\t\t{Comparison{Operator: "gt", Value: 10}, 5, false},\n\t\t{Comparison{Operator: "gte", Value: 5}, 5, true},\n\t\t{Comparison{Operator: "lte", Value: 5}, 6, false},\n\t\t{Comparison{Operator: "eq", Value: 10}, 10, true},\n\t}\n\n\tfor _, tt := range tests {\n\t\tresult := matchesComparison(tt.comparison, tt.value)\n\t\tif result != tt.expected {\n\t\t\tt.Errorf("expected %v, got %v", tt.expected, result)\n\t\t}\n\t}\n}\n\nfunc TestHasKeyword(t *testing.T) {\n\ttests := []struct {\n\t\tdescription string\n\t\tkeyword     string\n\t\texpected    bool\n\t}{\n\t\t{"Foo bar", "foo", true},\n\t\t{"This is a test", "foo", false},\n\t\t{"This house has a gym", "gym", true},\n\t}\n\n\tfor _, tt := range tests {\n\t\tresult := hasKeyword(tt.description, tt.keyword)\n\t\tif result != tt.expected {\n\t\t\tt.Errorf("expected %v, got %v", tt.expected, result)\n\t\t}\n\t}\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/input/csv.go",
-          content:
-            'package input\n\nimport (\n\t"encoding/csv"\n\t"encoding/json"\n\t"fmt"\n\t"os"\n\t"strconv"\n\n\t"github.com/ramirofarias/prop-filter-cli/models"\n)\n\nfunc FromCSVFile(filename string) ([]models.Property, error) {\n\tfile, err := os.Open(filename)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf("error opening file: %v", err)\n\t}\n\tdefer file.Close()\n\n\treader := csv.NewReader(file)\n\n\trecords, err := reader.ReadAll()\n\tif err != nil {\n\t\treturn nil, fmt.Errorf("error reading CSV data: %v", err)\n\t}\n\n\theader := records[0]\n\tcolumnIndex := map[string]int{}\n\tfor i, column := range header {\n\t\tcolumnIndex[column] = i\n\t}\n\n\tvar properties []models.Property\n\n\tfor _, record := range records[1:] {\n\t\tproperty := models.Property{}\n\n\t\tsqft, err := strconv.ParseFloat(record[columnIndex["squareFootage"]], 0)\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid squareFootage value: %v", err)\n\t\t}\n\t\tproperty.SquareFootage = float64(sqft)\n\n\t\tproperty.Lighting = record[columnIndex["lighting"]]\n\n\t\tproperty.Price, err = strconv.ParseFloat(record[columnIndex["price"]], 64)\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid price value: %v", err)\n\t\t}\n\n\t\trooms, err := strconv.Atoi(record[columnIndex["rooms"]])\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid rooms value: %v", err)\n\t\t}\n\t\tproperty.Rooms = float64(rooms)\n\n\t\tbathrooms, err := strconv.Atoi(record[columnIndex["bathrooms"]])\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid bathrooms value: %v", err)\n\t\t}\n\t\tproperty.Bathrooms = float64(bathrooms)\n\n\t\tproperty.Location[0], err = strconv.ParseFloat(record[columnIndex["latitude"]], 64)\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid latitude value: %v", err)\n\t\t}\n\t\tproperty.Location[1], err = strconv.ParseFloat(record[columnIndex["longitude"]], 64)\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid longitude value: %v", err)\n\t\t}\n\n\t\tproperty.Description = record[columnIndex["description"]]\n\n\t\tammenitiesJSON := record[columnIndex["ammenities"]]\n\t\terr = json.Unmarshal([]byte(ammenitiesJSON), &property.Ammenities)\n\t\tif err != nil {\n\t\t\treturn nil, fmt.Errorf("invalid ammenities JSON: %v", err)\n\t\t}\n\n\t\tproperties = append(properties, property)\n\t}\n\n\treturn properties, nil\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/input/json.go",
-          content:
-            'package input\n\nimport (\n\t"bytes"\n\t"encoding/json"\n\t"fmt"\n\t"io"\n\t"os"\n\n\t"github.com/ramirofarias/prop-filter-cli/models"\n)\n\nfunc FromJSONFile(filename string) ([]models.Property, error) {\n\tvar properties []models.Property\n\n\tfile, err := os.Open(filename)\n\tif err != nil {\n\t\treturn nil, err\n\n\t}\n\tdefer file.Close()\n\n\tdata, _ := io.ReadAll(file)\n\tdecoder := json.NewDecoder(bytes.NewReader(data))\n\tdecoder.DisallowUnknownFields()\n\terr = decoder.Decode(&properties)\n\n\tif err != nil {\n\t\treturn []models.Property{}, fmt.Errorf("error unmarshaling json: %e", err)\n\t}\n\treturn properties, nil\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/main.go",
-          content:
-            'package main\n\nimport (\n\t"fmt"\n\t"os"\n\n\t"github.com/ramirofarias/prop-filter-cli/filter"\n\t"github.com/ramirofarias/prop-filter-cli/input"\n\t"github.com/ramirofarias/prop-filter-cli/models"\n\t"github.com/ramirofarias/prop-filter-cli/output"\n\t"github.com/ramirofarias/prop-filter-cli/parser"\n\t"github.com/urfave/cli/v2"\n)\n\nfunc main() {\n\tapp := &cli.App{\n\t\tName:  "prop-filter-cli",\n\t\tUsage: "Filter property data from JSON or CSV files",\n\t\tFlags: []cli.Flag{\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:     "input",\n\t\t\t\tUsage:    "Path to JSON or CSV input file",\n\t\t\t\tRequired: true,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "sqft",\n\t\t\t\tUsage: `Filter by square footage. Examples: "gt 1500", "eq 1500", "lt 1500", "lte 1500", "in 1500,2000"`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "bathrooms",\n\t\t\t\tUsage: `Filter by amount of bathrooms. Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "rooms",\n\t\t\t\tUsage: `Filter by amount of rooms. Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "distance",\n\t\t\t\tUsage: `Filter by distance in km to lat and long flags. Examples: "gt 100", "eq 100", "lt 100", "lte 100", "gte 100", "in 150,200"`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "price",\n\t\t\t\tUsage: `Filter by price. Examples: "gt 1000", "eq 1000", "lt 1000", "lte 1000", "gte 1000"`,\n\t\t\t},\n\t\t\t&cli.Float64Flag{\n\t\t\t\tName:  "lat",\n\t\t\t\tValue: -999999,\n\t\t\t\tUsage: `Latitude to compare distance`,\n\t\t\t},\n\t\t\t&cli.Float64Flag{\n\t\t\t\tName:  "long",\n\t\t\t\tValue: -999999,\n\t\t\t\tUsage: `Longitude to compare distance`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "lighting",\n\t\t\t\tUsage: `Lighting type. Possible values: \'low\' | \'medium\' | \'high\'`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "keywords",\n\t\t\t\tUsage: `Keywords to search in description (comma-separated). Example: "spacious,big"`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "ammenities",\n\t\t\t\tUsage: `Required amenities (comma-separated). Example: "garage,yard"`,\n\t\t\t},\n\t\t\t&cli.StringFlag{\n\t\t\t\tName:  "output",\n\t\t\t\tUsage: `Output file path in .csv or .json. Examples: "file.csv", "file.json"`,\n\t\t\t},\n\t\t},\n\t\tEnableBashCompletion: true,\n\t\tAction: func(c *cli.Context) error {\n\t\t\tinputPath := c.String("input")\n\t\t\tvar properties []models.Property\n\n\t\t\tfileType, err := parser.ParseFiletype(inputPath)\n\t\t\tif err != nil {\n\t\t\t\treturn fmt.Errorf("error parsing input file type: %v", err)\n\t\t\t}\n\n\t\t\tswitch fileType {\n\t\t\tcase "json":\n\t\t\t\tproperties, err = input.FromJSONFile(inputPath)\n\t\t\tcase "csv":\n\t\t\t\tproperties, err = input.FromCSVFile(inputPath)\n\t\t\t}\n\n\t\t\tif err != nil {\n\t\t\t\treturn fmt.Errorf("error parsing input file: %v", err)\n\t\t\t}\n\n\t\t\tvar filters filter.Filter\n\t\t\tif sqft := c.String("sqft"); sqft != "" {\n\t\t\t\tfilters.SquareFootage, err = parser.ParseComparison(sqft)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn fmt.Errorf("error parsing sqft filter: %v", err)\n\t\t\t\t}\n\t\t\t}\n\t\t\tif bathrooms := c.String("bathrooms"); bathrooms != "" {\n\t\t\t\tfilters.Bathrooms, err = parser.ParseComparison(bathrooms)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn fmt.Errorf("error parsing bathrooms filter: %v", err)\n\t\t\t\t}\n\t\t\t}\n\t\t\tif rooms := c.String("rooms"); rooms != "" {\n\t\t\t\tfilters.Rooms, err = parser.ParseComparison(rooms)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn fmt.Errorf("error parsing rooms filter: %v", err)\n\t\t\t\t}\n\t\t\t}\n\t\t\tfilters.Lat = c.Float64("lat")\n\t\t\tfilters.Long = c.Float64("long")\n\t\t\tif distance := c.String("distance"); distance != "" {\n\t\t\t\tif filters.Lat == -999999 || filters.Long == -999999 {\n\t\t\t\t\treturn fmt.Errorf("lat and long flags are required when using distance filter")\n\t\t\t\t}\n\t\t\t\tfilters.Distance, err = parser.ParseComparison(distance)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn fmt.Errorf("error parsing distance filter: %v", err)\n\t\t\t\t}\n\t\t\t}\n\t\t\tif price := c.String("price"); price != "" {\n\t\t\t\tfilters.Price, err = parser.ParseComparison(price)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn fmt.Errorf("error parsing price filter: %v", err)\n\t\t\t\t}\n\t\t\t}\n\n\t\t\tfilters.Lighting = c.String("lighting")\n\t\t\tif keywords := c.String("keywords"); keywords != "" {\n\t\t\t\tfilters.Keywords = parser.ParseText(keywords)\n\t\t\t}\n\t\t\tif ammenities := c.String("ammenities"); ammenities != "" {\n\t\t\t\tfilters.Ammenities = parser.ParseText(ammenities)\n\t\t\t}\n\n\t\t\tfilteredProperties := filter.FilterProperties(properties, filters)\n\n\t\t\toutputPath := c.String("output")\n\t\t\tif outputPath != "" {\n\t\t\t\tfileType, err := parser.ParseFiletype(outputPath)\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn fmt.Errorf("error parsing output file type: %v", err)\n\t\t\t\t}\n\n\t\t\t\tswitch fileType {\n\t\t\t\tcase "json":\n\t\t\t\t\tif err := output.ToJSONFile(filteredProperties, outputPath); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf("error writing JSON output file: %v", err)\n\t\t\t\t\t}\n\t\t\t\tcase "csv":\n\t\t\t\t\tif err := output.ToCSVFile(filteredProperties, outputPath); err != nil {\n\t\t\t\t\t\treturn fmt.Errorf("error writing CSV output file: %v", err)\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t} else {\n\t\t\t\tif err := output.ToJSONStdOut(filteredProperties); err != nil {\n\t\t\t\t\treturn fmt.Errorf("error printing data to stdout: %v", err)\n\t\t\t\t}\n\t\t\t}\n\n\t\t\treturn nil\n\t\t},\n\t}\n\n\tif err := app.Run(os.Args); err != nil {\n\t\tfmt.Fprintf(os.Stderr, "error running app: %v\\n", err)\n\t\tos.Exit(1)\n\t}\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/models/property.go",
-          content:
-            'package models\n\ntype Property struct {\n\tSquareFootage float64         `json:"squareFootage"`\n\tLighting      string          `json:"lighting"`\n\tPrice         float64         `json:"price"`\n\tRooms         float64         `json:"rooms"`\n\tBathrooms     float64         `json:"bathrooms"`\n\tLocation      [2]float64      `json:"location"`\n\tDescription   string          `json:"description"`\n\tAmmenities    map[string]bool `json:"ammenities"`\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/output/csv.go",
-          content:
-            'package output\n\nimport (\n\t"encoding/csv"\n\t"encoding/json"\n\t"fmt"\n\t"os"\n\n\t"github.com/ramirofarias/prop-filter-cli/models"\n)\n\nfunc ToCSVFile(data []models.Property, path string) error {\n\tfile, err := os.Create(path)\n\tif err != nil {\n\t\treturn fmt.Errorf("error creating file: %v", err)\n\t}\n\tdefer file.Close()\n\n\twriter := csv.NewWriter(file)\n\tdefer writer.Flush()\n\n\theader := []string{\n\t\t"squareFootage", "lighting", "price", "rooms", "bathrooms", "latitude", "longitude", "description", "ammenities",\n\t}\n\n\tif err := writer.Write(header); err != nil {\n\t\treturn fmt.Errorf("error writing CSV header: %v", err)\n\t}\n\n\tfor _, property := range data {\n\t\tvar row []string\n\t\trow = append(row, fmt.Sprintf("%d", int(property.SquareFootage)))\n\t\trow = append(row, property.Lighting)\n\t\trow = append(row, fmt.Sprintf("%.2f", property.Price))\n\t\trow = append(row, fmt.Sprintf("%d", int(property.Rooms)))\n\t\trow = append(row, fmt.Sprintf("%d", int(property.Bathrooms)))\n\t\trow = append(row, fmt.Sprintf("%.6f", property.Location[0]))\n\t\trow = append(row, fmt.Sprintf("%.6f", property.Location[1]))\n\t\trow = append(row, property.Description)\n\t\tammenitiesJSON, err := json.Marshal(property.Ammenities)\n\t\tif err != nil {\n\t\t\treturn fmt.Errorf("error marshalling amenities to JSON: %v", err)\n\t\t}\n\t\trow = append(row, string(ammenitiesJSON))\n\n\t\tif err := writer.Write(row); err != nil {\n\t\t\treturn fmt.Errorf("error writing CSV row: %v", err)\n\t\t}\n\t}\n\n\treturn nil\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/output/json.go",
-          content:
-            'package output\n\nimport (\n\t"encoding/json"\n\t"fmt"\n\t"os"\n)\n\nfunc ToJSONFile(data interface{}, path string) error {\n\tfile, err := os.Create(path)\n\tif err != nil {\n\t\treturn fmt.Errorf("could not create file: %v", err)\n\t}\n\tdefer file.Close()\n\n\tencoder := json.NewEncoder(file)\n\tencoder.SetIndent("", "  ")\n\tif err := encoder.Encode(data); err != nil {\n\t\treturn fmt.Errorf("could not encode data to JSON: %v", err)\n\t}\n\n\treturn nil\n}\n\nfunc ToJSONStdOut(data interface{}) error {\n\tencoder := json.NewEncoder(os.Stdout)\n\tencoder.SetIndent("", "  ")\n\tif err := encoder.Encode(data); err != nil {\n\t\treturn fmt.Errorf("could not encode data to JSON: %v", err)\n\t}\n\n\treturn nil\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/parser/comparison.go",
-          content:
-            'package parser\n\nimport (\n\t"fmt"\n\t"strconv"\n\t"strings"\n\n\t"github.com/ramirofarias/prop-filter-cli/filter"\n)\n\nfunc ParseComparison(s string) ([]filter.Comparison, error) {\n\toperators := []string{"lte", "gte", "eq", "lt", "gt", "in"}\n\ttrimmedString := strings.TrimSpace(s)\n\tvar comparisons []filter.Comparison\n\n\tfor _, op := range operators {\n\t\tif strings.HasPrefix(trimmedString, op) {\n\t\t\tif op == "in" {\n\t\t\t\trangeComparisons, err := parseRangeComparison(trimmedString[len(op):])\n\t\t\t\tif err != nil {\n\t\t\t\t\treturn nil, err\n\t\t\t\t}\n\t\t\t\tcomparisons = append(comparisons, rangeComparisons...)\n\t\t\t\treturn comparisons, nil\n\t\t\t}\n\n\t\t\tcomp, err := parseSingleComparison(op, trimmedString[len(op):])\n\t\t\tif err != nil {\n\t\t\t\treturn nil, err\n\t\t\t}\n\t\t\tcomparisons = append(comparisons, comp)\n\t\t\treturn comparisons, nil\n\t\t}\n\t}\n\n\treturn nil, fmt.Errorf("invalid comparison operator: %s", trimmedString)\n}\n\nfunc parseRangeComparison(valueRange string) ([]filter.Comparison, error) {\n\ttrimmedRange := strings.TrimSpace(valueRange)\n\tvalues := strings.Split(trimmedRange, ",")\n\tif len(values) != 2 {\n\t\treturn nil, fmt.Errorf("range comparison requires two values, got: %s", trimmedRange)\n\t}\n\n\tfirstNum, err := strconv.ParseFloat(strings.TrimSpace(values[0]), 64)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf("invalid number in range: %s", values[0])\n\t}\n\n\tsecondNum, err := strconv.ParseFloat(strings.TrimSpace(values[1]), 64)\n\tif err != nil {\n\t\treturn nil, fmt.Errorf("invalid number in range: %s", values[1])\n\t}\n\n\treturn []filter.Comparison{\n\t\t{Value: firstNum, Operator: "gte"},\n\t\t{Value: secondNum, Operator: "lte"},\n\t}, nil\n}\n\nfunc parseSingleComparison(operator, valueStr string) (filter.Comparison, error) {\n\tnumStr := strings.TrimSpace(valueStr)\n\tnum, err := strconv.ParseFloat(numStr, 64)\n\tif err != nil {\n\t\treturn filter.Comparison{}, fmt.Errorf("invalid number in comparison: %s", numStr)\n\t}\n\n\treturn filter.Comparison{\n\t\tValue:    num,\n\t\tOperator: operator,\n\t}, nil\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/parser/comparison_test.go",
-          content:
-            'package parser\n\nimport (\n\t"reflect"\n\t"testing"\n\n\t"github.com/ramirofarias/prop-filter-cli/filter"\n)\n\nfunc TestParseComparison(t *testing.T) {\n\ttests := []struct {\n\t\tname      string\n\t\tinput     string\n\t\texpected  []filter.Comparison\n\t\texpectErr bool\n\t}{\n\t\t{\n\t\t\tname:     "Valid gte comparison",\n\t\t\tinput:    "gte 5.5",\n\t\t\texpected: []filter.Comparison{{Operator: "gte", Value: 5.5}},\n\t\t},\n\t\t{\n\t\t\tname:     "Valid lte comparison",\n\t\t\tinput:    "lte 3",\n\t\t\texpected: []filter.Comparison{{Operator: "lte", Value: 3}},\n\t\t},\n\t\t{\n\t\t\tname:     "Valid eq comparison",\n\t\t\tinput:    "eq 10",\n\t\t\texpected: []filter.Comparison{{Operator: "eq", Value: 10}},\n\t\t},\n\t\t{\n\t\t\tname:     "Valid range comparison",\n\t\t\tinput:    "in 2.5, 5.5",\n\t\t\texpected: []filter.Comparison{{Operator: "gte", Value: 2.5}, {Operator: "lte", Value: 5.5}},\n\t\t},\n\t\t{\n\t\t\tname:      "Invalid operator",\n\t\t\tinput:     "asd 3",\n\t\t\texpectErr: true,\n\t\t},\n\t\t{\n\t\t\tname:      "Invalid number format",\n\t\t\tinput:     "gte asdsd",\n\t\t\texpectErr: true,\n\t\t},\n\t\t{\n\t\t\tname:      "Invalid range format",\n\t\t\tinput:     "in 1",\n\t\t\texpectErr: true,\n\t\t},\n\t\t{\n\t\t\tname:      "More than 2 values in range",\n\t\t\tinput:     "in 1, 2, 3",\n\t\t\texpectErr: true,\n\t\t},\n\t}\n\n\tfor _, tt := range tests {\n\t\tt.Run(tt.name, func(t *testing.T) {\n\t\t\tresult, err := ParseComparison(tt.input)\n\t\t\tif tt.expectErr {\n\t\t\t\tif err == nil {\n\t\t\t\t\tt.Errorf("expected error but got nil")\n\t\t\t\t}\n\t\t\t} else {\n\t\t\t\tif err != nil {\n\t\t\t\t\tt.Errorf("did not expect error but got: %v", err)\n\t\t\t\t}\n\t\t\t\tif !reflect.DeepEqual(result, tt.expected) {\n\t\t\t\t\tt.Errorf("expected %v, got %v", tt.expected, result)\n\t\t\t\t}\n\t\t\t}\n\t\t})\n\t}\n}\n\nfunc TestParseRangeComparison(t *testing.T) {\n\ttests := []struct {\n\t\tname      string\n\t\tinput     string\n\t\texpected  []filter.Comparison\n\t\texpectErr bool\n\t}{\n\t\t{\n\t\t\tname:     "Valid range",\n\t\t\tinput:    "2.0, 4.0",\n\t\t\texpected: []filter.Comparison{{Operator: "gte", Value: 2.0}, {Operator: "lte", Value: 4.0}},\n\t\t},\n\t\t{\n\t\t\tname:      "Invalid range with single value",\n\t\t\tinput:     "2.0",\n\t\t\texpectErr: true,\n\t\t},\n\t\t{\n\t\t\tname:      "Invalid range with non-numeric value",\n\t\t\tinput:     "2.0, abc",\n\t\t\texpectErr: true,\n\t\t},\n\t}\n\n\tfor _, tt := range tests {\n\t\tt.Run(tt.name, func(t *testing.T) {\n\t\t\tresult, err := parseRangeComparison(tt.input)\n\t\t\tif tt.expectErr {\n\t\t\t\tif err == nil {\n\t\t\t\t\tt.Errorf("expected error but got nil")\n\t\t\t\t}\n\t\t\t} else {\n\t\t\t\tif err != nil {\n\t\t\t\t\tt.Errorf("did not expect error but got: %v", err)\n\t\t\t\t}\n\t\t\t\tif !reflect.DeepEqual(result, tt.expected) {\n\t\t\t\t\tt.Errorf("expected %v, got %v", tt.expected, result)\n\t\t\t\t}\n\t\t\t}\n\t\t})\n\t}\n}\n\nfunc TestParseSingleComparison(t *testing.T) {\n\ttests := []struct {\n\t\tname      string\n\t\toperator  string\n\t\tvalue     string\n\t\texpected  filter.Comparison\n\t\texpectErr bool\n\t}{\n\t\t{\n\t\t\tname:     "Valid gte comparison",\n\t\t\toperator: "gte",\n\t\t\tvalue:    "5.5",\n\t\t\texpected: filter.Comparison{Operator: "gte", Value: 5.5},\n\t\t},\n\t\t{\n\t\t\tname:      "Invalid number format",\n\t\t\toperator:  "lte",\n\t\t\tvalue:     "abc",\n\t\t\texpectErr: true,\n\t\t},\n\t}\n\n\tfor _, tt := range tests {\n\t\tt.Run(tt.name, func(t *testing.T) {\n\t\t\tresult, err := parseSingleComparison(tt.operator, tt.value)\n\t\t\tif tt.expectErr {\n\t\t\t\tif err == nil {\n\t\t\t\t\tt.Errorf("expected error but got nil")\n\t\t\t\t}\n\t\t\t} else {\n\t\t\t\tif err != nil {\n\t\t\t\t\tt.Errorf("did not expect error but got: %v", err)\n\t\t\t\t}\n\t\t\t\tif !reflect.DeepEqual(result, tt.expected) {\n\t\t\t\t\tt.Errorf("expected %v, got %v", tt.expected, result)\n\t\t\t\t}\n\t\t\t}\n\t\t})\n\t}\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/parser/filetype.go",
-          content:
-            'package parser\n\nimport (\n\t"fmt"\n\t"strings"\n)\n\nfunc ParseFiletype(s string) (string, error) {\n\text := strings.ToLower(s[strings.LastIndex(s, ".")+1:])\n\tif ext == "" {\n\t\treturn "", fmt.Errorf("output file must have an extension (e.g., .json, .csv)")\n\t}\n\n\tif ext != "json" && ext != "csv" {\n\t\treturn "", fmt.Errorf("invalid output type: %s", ext)\n\t}\n\n\treturn ext, nil\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/parser/filetype_test.go",
-          content:
-            'package parser\n\nimport (\n\t"testing"\n)\n\nfunc TestParseFiletype(t *testing.T) {\n\ttests := []struct {\n\t\tinput    string\n\t\texpected string\n\t\terr      bool\n\t}{\n\t\t{\n\t\t\tinput:    "file.json",\n\t\t\texpected: "json",\n\t\t\terr:      false,\n\t\t},\n\t\t{\n\t\t\tinput:    "file.csv",\n\t\t\texpected: "csv",\n\t\t\terr:      false,\n\t\t},\n\t\t{\n\t\t\tinput:    "file.txt",\n\t\t\texpected: "",\n\t\t\terr:      true,\n\t\t},\n\t\t{\n\t\t\tinput:    "file",\n\t\t\texpected: "",\n\t\t\terr:      true,\n\t\t},\n\t\t{\n\t\t\tinput:    "file.JSON",\n\t\t\texpected: "json",\n\t\t\terr:      false,\n\t\t},\n\t\t{\n\t\t\tinput:    "file.CSV",\n\t\t\texpected: "csv",\n\t\t\terr:      false,\n\t\t},\n\t}\n\n\tfor _, test := range tests {\n\t\tt.Run(test.input, func(t *testing.T) {\n\t\t\tresult, err := ParseFiletype(test.input)\n\t\t\tif test.err && err == nil {\n\t\t\t\tt.Errorf("expected error, got nil for input %s", test.input)\n\t\t\t}\n\t\t\tif !test.err && err != nil {\n\t\t\t\tt.Errorf("unexpected error for input %s: %v", test.input, err)\n\t\t\t}\n\t\t\tif result != test.expected {\n\t\t\t\tt.Errorf("for input %s: expected %s, got %s", test.input, test.expected, result)\n\t\t\t}\n\t\t})\n\t}\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/parser/text.go",
-          content:
-            'package parser\n\nimport "strings"\n\nfunc ParseText(s string) []string {\n\ts = strings.ToLower(s)\n\twords := strings.Split(s, ",")\n\tfor i, word := range words {\n\t\twords[i] = strings.TrimSpace(word)\n\t}\n\treturn words\n}\n',
-        },
-        {
-          path: "prop-filter-cli-main/parser/text_test.go",
-          content:
-            'package parser\n\nimport (\n\t"testing"\n)\n\nfunc TestParseText(t *testing.T) {\n\ttests := []struct {\n\t\tinput    string\n\t\texpected []string\n\t}{\n\t\t{\n\t\t\tinput:    "test1, test2, test3",\n\t\t\texpected: []string{"test1", "test2", "test3"},\n\t\t},\n\t\t{\n\t\t\tinput:    "   a,b ,   c  ",\n\t\t\texpected: []string{"a", "b", "c"},\n\t\t},\n\t\t{\n\t\t\tinput:    "a",\n\t\t\texpected: []string{"a"},\n\t\t},\n\t}\n\n\tfor _, test := range tests {\n\t\tt.Run(test.input, func(t *testing.T) {\n\t\t\tresult := ParseText(test.input)\n\t\t\tif len(result) != len(test.expected) {\n\t\t\t\tt.Errorf("expected %v, got %v", test.expected, result)\n\t\t\t}\n\t\t\tfor i, word := range result {\n\t\t\t\tif word != test.expected[i] {\n\t\t\t\t\tt.Errorf("at index %d: expected %s, got %s", i, test.expected[i], word)\n\t\t\t\t}\n\t\t\t}\n\t\t})\n\t}\n}\n',
-        },
-      ],
-      docs: '# Prop Filter CLI\n\nCLI tool for filtering and transforming property data from JSON or CSV files\n\n## Features\n\n- Filter properties by multiple criteria:\n  - Square footage\n  - Number of bathrooms\n  - Number of rooms\n  - Price\n  - Distance from coordinates\n  - Lighting\n  - Description keywords\n  - Available ammenities\n- Support for both JSON and CSV input/output\n- Flexible comparison operators (greater than, less than, equals, etc.)\n- Distance-based filtering using geographical coordinates\n- Keyword search in property descriptions\n\n## Installation\n\n1. Go to the [Releases](https://github.com/ramirofarias/prop-filter-cli/releases) page\n2. Download the appropriate binary for your operating system:\n   - Windows: `prop-filter-cli_windows_amd64.exe`\n   - macOS: `prop-filter-cli_darwin_amd64`\n   - Linux: `prop-filter-cli_linux_amd64`\n\n## Usage\n\n```bash\n./prop-filter-cli_<your_system_binary> --input <input-file> [flags]\n```\n\n### Required Flags\n\n- `--input`: Path to JSON or CSV input file\n\n### Optional Flags\n\n- `--sqft`: Filter by square footage\n  - Examples: "gt 1500", "eq 1500", "lt 1500", "lte 1500", "in 1500,2000"\n- `--bathrooms`: Filter by number of bathrooms\n  - Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"\n- `--rooms`: Filter by number of rooms\n  - Examples: "gt 1", "eq 1", "lt 3", "lte 3", "gte 3", "in 1,3"\n- `--distance`: Filter by distance in km (requires --lat and --long)\n  - Examples: "gt 100", "eq 100", "lt 100", "lte 100", "gte 100", "in 150,200"\n- `--price`: Filter by price\n  - Examples: "gt 1000", "eq 1000", "lt 1000", "lte 1000", "gte 1000"\n- `--lat`: Latitude for distance calculations\n- `--long`: Longitude for distance calculations\n- `--lighting`: Filter by lighting type\n  - Possible values: "low", "medium", "high"\n- `--keywords`: Search keywords in description (comma-separated)\n  - Example: "spacious,big"\n- `--ammenities`: Required amenities (comma-separated)\n  - Example: "garage,yard"\n- `--output`: Output file path (.csv or .json)\n  - Example: "output.json" or "output.csv"\n\n## Examples\n\n### Basic Filtering\n\n```bash\n# Filter properties larger than 1500 sq ft\n./prop-filter-cli_<your_system_binary> --input properties.json --sqft "gt 1500"\n\n# Filter properties with 2 or more bathrooms\n./prop-filter-cli_<your_system_binary> --input properties.csv --bathrooms "gte 2"\n\n# Filter properties under $500,000\n./prop-filter-cli_<your_system_binary> --input properties.json --price "lt 500000"\n```\n\n### Combined Filters\n\n```bash\n./prop-filter-cli_<your_system_binary> --input properties.json \\\n  --lighting "high" \\\n  --ammenities "pool"\n\n./prop-filter-cli_<your_system_binary> --input properties.json \\\n  --sqft "gt 2000" \\\n  --price "lte 600000" \\\n  --keywords "spacious,modern"\n```\n\n### Distance Filtering\n\n```bash\n# Find properties within 10km of coordinates\n./prop-filter-cli_<your_system_binary> --input properties.json \\\n  --lat 34.0522 \\\n  --long -118.2437 \\\n  --distance "lte 10"\n```\n\n### Output to File\n\n```bash\n# Export filtered results to CSV\n./prop-filter-cli_<your_system_binary> --input properties.json \\\n  --price "lt 400000" \\\n  --output "affordable_properties.csv"\n\n# Export filtered results to JSON\n./prop-filter-cli_<your_system_binary> --input properties.csv \\\n  --lighting "high" \\\n  --ammenities "garage,pool" \\\n  --output "luxury_properties.json"\n```\n\n## Comparison Operators\n\n- `gt`: Greater than\n- `gte`: Greater than or equal to\n- `lt`: Less than\n- `lte`: Less than or equal to\n- `eq`: Equal to\n- `in`: Within range (comma-separated values)\n\n## Input File Format\n\n### JSON Format\n\n```json\n[\n  {\n    "squareFootage": 1500,\n    "lighting": "medium",\n    "price": 300000,\n    "rooms": 3,\n    "bathrooms": 2,\n    "location": [34.0522, -118.2437],\n    "description": "Charming 3-bedroom home",\n    "ammenities": {\n      "yard": true,\n      "garage": true,\n      "pool": false\n    }\n  }\n]\n```\n\n### CSV Format\n\n```csv\nsquareFootage,lighting,price,rooms,bathrooms,latitude,longitude,description,ammenities\n200,medium,250000.00,3,2,34.052200,-118.243700,Charming 3-bedroom home in a quiet neighborhood with easy access to parks and schools.,"{""garage"":true,""pool"":false,""yard"":true}"\n```\n',
-    },
-    analysis: {
-      score: "Strong yes",
-      docs: {
-        green: [
-          "Purpose and features of the CLI tool are clearly outlined.",
-          "Installation and usage instructions are comprehensive and easy to follow.",
-          "Examples of usage provided for clarity.",
-        ],
-        yellow: ["No mention of how to run tests or lint the code."],
-      },
-      code: {
-        green: [
-          "Code is well-structured and organized into logical packages.",
-          "Idiomatic use of Go is observed, following best practices.",
-          "Robust error handling is implemented throughout the code.",
-          "Comprehensive test coverage for filtering functionality.",
-        ],
-        yellow: [
-          "Some functions could benefit from additional comments for clarity.",
-          "Input validation could be more robust in some areas.",
-        ],
-      },
-    },
-  },
-  {
-    takeHome: {
-      code: [
-        {
           path: "homevision-checkbox-detector-main/solution/api/server.py",
           content:
             '#!/usr/bin/env python3\n\nimport os\nimport sys\nimport uuid\nimport base64\nfrom pathlib import Path\nfrom datetime import datetime\nfrom flask import Flask, request, jsonify\nfrom flask_cors import CORS\nimport cv2\nimport numpy as np\nimport sqlite3\nimport json\nfrom dataclasses import dataclass\nfrom typing import Dict, Tuple, List, Optional\nimport tempfile\n\n# Add parent directory to path\nsys.path.append(str(Path(__file__).resolve().parent.parent / "common"))\n\n# Import the CheckboxChecker\nfrom form_cv.form_cv import CheckboxChecker\n\napp = Flask(__name__)\nCORS(app)  # Enable CORS for all routes\n\n# Create uploads directory if it doesn\'t exist\nUPLOAD_DIR = Path(__file__).parent / "uploads"\nUPLOAD_DIR.mkdir(exist_ok=True)\n\n# Database setup\nDB_PATH = Path(__file__).parent / "form_computer_vision.db"\n\ndef init_db():\n    """Initialize the database with the required tables."""\n    conn = sqlite3.connect(str(DB_PATH))\n    c = conn.cursor()\n    \n    # Create table for storing detection results\n    c.execute(\'\'\'\n    CREATE TABLE IF NOT EXISTS detection_results (\n        id TEXT PRIMARY KEY,\n        filename TEXT NOT NULL,\n        timestamp TEXT NOT NULL,\n        min_size INTEGER NOT NULL,\n        max_size INTEGER NOT NULL,\n        threshold REAL NOT NULL,\n        padding INTEGER NOT NULL,\n        image_path TEXT NOT NULL,\n        result_json TEXT NOT NULL\n    )\n    \'\'\')\n    \n    conn.commit()\n    conn.close()\n\n# Initialize the database\ninit_db()\n\n@dataclass\nclass DetectionResult:\n    """Class for storing detection results."""\n    id: str\n    filename: str\n    timestamp: str\n    min_size: int\n    max_size: int\n    threshold: float\n    padding: int\n    image_path: str\n    result_json: str\n    \n    @property\n    def result(self) -> Dict:\n        """Parse and return the JSON result."""\n        return json.loads(self.result_json)\n    \n    def to_dict(self) -> Dict:\n        """Convert the detection result to a dictionary."""\n        return {\n            "id": self.id,\n            "filename": self.filename,\n            "timestamp": self.timestamp,\n            "min_size": self.min_size,\n            "max_size": self.max_size,\n            "threshold": self.threshold,\n            "padding": self.padding,\n            "image_path": self.image_path,\n            "result": self.result\n        }\n\ndef save_detection_result(\n    filename: str,\n    min_size: int,\n    max_size: int,\n    threshold: float,\n    padding: int,\n    image_path: str,\n    result: Dict\n) -> str:\n    """Save detection result to the database."""\n    detection_id = str(uuid.uuid4())\n    timestamp = datetime.now().isoformat()\n    \n    conn = sqlite3.connect(str(DB_PATH))\n    c = conn.cursor()\n    \n    c.execute(\'\'\'\n    INSERT INTO detection_results\n    (id, filename, timestamp, min_size, max_size, threshold, padding, image_path, result_json)\n    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n    \'\'\', (\n        detection_id,\n        filename,\n        timestamp,\n        min_size,\n        max_size,\n        threshold,\n        padding,\n        image_path,\n        json.dumps(result)\n    ))\n    \n    conn.commit()\n    conn.close()\n    \n    return detection_id\n\ndef get_detection_results() -> List[DetectionResult]:\n    """Get all detection results from the database."""\n    conn = sqlite3.connect(str(DB_PATH))\n    conn.row_factory = sqlite3.Row\n    c = conn.cursor()\n    \n    c.execute(\'SELECT * FROM detection_results ORDER BY timestamp DESC\')\n    rows = c.fetchall()\n    \n    results = []\n    for row in rows:\n        results.append(DetectionResult(\n            id=row[\'id\'],\n            filename=row[\'filename\'],\n            timestamp=row[\'timestamp\'],\n            min_size=row[\'min_size\'],\n            max_size=row[\'max_size\'],\n            threshold=row[\'threshold\'],\n            padding=row[\'padding\'],\n            image_path=row[\'image_path\'],\n            result_json=row[\'result_json\']\n        ))\n    \n    conn.close()\n    \n    return results\n\ndef get_detection_result(detection_id: str) -> Optional[DetectionResult]:\n    """Get a detection result by ID."""\n    conn = sqlite3.connect(str(DB_PATH))\n    conn.row_factory = sqlite3.Row\n    c = conn.cursor()\n    \n    c.execute(\'SELECT * FROM detection_results WHERE id = ?\', (detection_id,))\n    row = c.fetchone()\n    \n    if row is None:\n        return None\n    \n    result = DetectionResult(\n        id=row[\'id\'],\n        filename=row[\'filename\'],\n        timestamp=row[\'timestamp\'],\n        min_size=row[\'min_size\'],\n        max_size=row[\'max_size\'],\n        threshold=row[\'threshold\'],\n        padding=row[\'padding\'],\n        image_path=row[\'image_path\'],\n        result_json=row[\'result_json\']\n    )\n    \n    conn.close()\n    \n    return result\n\n@app.route(\'/api/detect\', methods=[\'POST\'])\ndef detect_checkboxes():\n    """Detect checkboxes in an uploaded image."""\n    # Check if image file is included in the request\n    if \'image\' not in request.files:\n        return jsonify({"error": "No image file provided"}), 400\n    \n    image_file = request.files[\'image\']\n    if image_file.filename == \'\':\n        return jsonify({"error": "No selected file"}), 400\n    \n    # Get parameters from the request\n    min_size = int(request.form.get(\'min_size\', 20))\n    max_size = int(request.form.get(\'max_size\', 50))\n    threshold = float(request.form.get(\'threshold\', 0.3))\n    padding = int(request.form.get(\'padding\', 10))\n\n    \n    # Generate a unique filename and save the uploaded image\n    filename = f"{uuid.uuid4()}_{image_file.filename}"\n    image_path = str(UPLOAD_DIR / filename)\n    image_file.save(image_path)\n    \n    try:\n        # Read the image and convert to grayscale\n        img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)\n        if img is None:\n            return jsonify({"error": "Failed to process image"}), 400\n        \n        # Create a CheckboxChecker instance\n        checker = CheckboxChecker(img)\n        \n        # Detect checkboxes\n        checker.detect_checkboxes(min_size=min_size, max_size=max_size)\n        \n        # Get checkbox states\n        checkbox_states = checker.get_checkbox_states(threshold=threshold, padding_percent=padding)\n        \n        # Prepare result\n        result = {}\n        for cb_id, (x, y, w, h, is_checked) in checkbox_states.items():\n            result[str(cb_id)] = {\n                "position": {"x": x, "y": y},\n                "size": {"width": w, "height": h},\n                "checked": True if is_checked else False\n            }\n        \n        # Generate visualization\n        vis_image = cv2.cvtColor(img.copy(), cv2.COLOR_GRAY2BGR)\n        for cb_id, (x, y, w, h, is_checked) in checkbox_states.items():\n            color = (0, 255, 0) if is_checked else (0, 0, 255)  # Green for checked, Red for unchecked\n            cv2.rectangle(vis_image, (x, y), (x+w, y+h), color, 2)\n            text = f"{cb_id}: {\'Checked\' if is_checked else \'Unchecked\'}"\n            cv2.putText(vis_image, text, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)\n        \n        # Save visualization image\n        vis_filename = f"vis_{filename}"\n        vis_path = str(UPLOAD_DIR / vis_filename)\n        cv2.imwrite(vis_path, vis_image)\n        \n        # Save result to database\n        detection_id = save_detection_result(\n            filename=image_file.filename,\n            min_size=min_size,\n            max_size=max_size,\n            threshold=threshold,\n            padding=padding,\n            image_path=image_path,\n            result=result\n        )\n        \n        # Create base64 image for visualization\n        _, buffer = cv2.imencode(\'.png\', vis_image)\n        vis_base64 = base64.b64encode(buffer).decode(\'utf-8\')\n        \n        return jsonify({\n            "id": detection_id,\n            "filename": image_file.filename,\n            "timestamp": datetime.now().isoformat(),\n            "min_size": min_size,\n            "max_size": max_size,\n            "threshold": threshold,\n            "padding": padding,\n            "result": result,\n            "visualization": vis_base64,\n            "checkbox_count": len(checkbox_states)\n        })\n    \n    except Exception as e:\n        print(f"Error: {e}")\n        return jsonify({"error": str(e)}), 500\n\n@app.route(\'/api/results\', methods=[\'GET\'])\ndef get_results():\n    """Get all detection results."""\n    results = get_detection_results()\n    return jsonify([result.to_dict() for result in results])\n\n@app.route(\'/api/results/<detection_id>\', methods=[\'GET\'])\ndef get_result(detection_id):\n    """Get a detection result by ID."""\n    result = get_detection_result(detection_id)\n    \n    if result is None:\n        return jsonify({"error": "Result not found"}), 404\n    \n    # Check if the image file exists\n    image_path = Path(result.image_path)\n    if image_path.exists():\n        # Load the image for visualization\n        img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)\n        \n        # Create visualization\n        vis_image = cv2.cvtColor(img.copy(), cv2.COLOR_GRAY2BGR)\n        for cb_id, data in result.result.items():\n            x = data["position"]["x"]\n            y = data["position"]["y"]\n            w = data["size"]["width"]\n            h = data["size"]["height"]\n            is_checked = data["checked"]\n            \n            color = (0, 255, 0) if is_checked else (0, 0, 255)\n            cv2.rectangle(vis_image, (x, y), (x+w, y+h), color, 2)\n            text = f"{cb_id}: {\'Checked\' if is_checked else \'Unchecked\'}"\n            cv2.putText(vis_image, text, (x, y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)\n        \n        # Create base64 image for visualization\n        _, buffer = cv2.imencode(\'.png\', vis_image)\n        vis_base64 = base64.b64encode(buffer).decode(\'utf-8\')\n        \n        # Add visualization to result\n        result_dict = result.to_dict()\n        result_dict["visualization"] = vis_base64\n        \n        return jsonify(result_dict)\n    \n    return jsonify(result.to_dict())\n\n@app.route(\'/api/health\', methods=[\'GET\'])\ndef health_check():\n    """Health check endpoint."""\n    return jsonify({"status": "ok"})\n\nif __name__ == \'__main__\':\n    app.run(debug=True, host=\'0.0.0.0\', port=5000)\n',
@@ -201,33 +101,38 @@ const examples: {
         {
           path: "homevision-checkbox-detector-main/solution/frontend/tailwind.config.js",
           content:
-            '/** @type {import(\'tailwindcss\').Config} */\nmodule.exports = {\n  darkMode: 1["class"],\n  content: [\n    \'./pages/**/*.{ts,tsx}\',\n    \'./components/**/*.{ts,tsx}\',\n    \'./app/**/*.{ts,tsx}\',\n    \'./src/**/*.{ts,tsx}\',\n  ],\n  theme: {\n    container: {\n      center: true,\n      padding: "2rem",\n      screens: {\n        "2xl": "1400px",\n      },\n    },\n    extend: {\n      colors: {\n        border: "hsl(var(--border))",\n        input: "hsl(var(--input))",\n        ring: "hsl(var(--ring))",\n        background: "hsl(var(--background))",\n        foreground: "hsl(var(--foreground))",\n        primary: {\n          DEFAULT: "hsl(var(--primary))",\n          foreground: "hsl(var(--primary-foreground))",\n        },\n        secondary: {\n          DEFAULT: "hsl(var(--secondary))",\n          foreground: "hsl(var(--secondary-foreground))",\n        },\n        destructive: {\n          DEFAULT: "hsl(var(--destructive))",\n          foreground: "hsl(var(--destructive-foreground))",\n        },\n        muted: {\n          DEFAULT: "hsl(var(--muted))",\n          foreground: "hsl(var(--muted-foreground))",\n        },\n        accent: {\n          DEFAULT: "hsl(var(--accent))",\n          foreground: "hsl(var(--accent-foreground))",\n        },\n        popover: {\n          DEFAULT: "hsl(var(--popover))",\n          foreground: "hsl(var(--popover-foreground))",\n        },\n        card: {\n          DEFAULT: "hsl(var(--card))",\n          foreground: "hsl(var(--card-foreground))",\n        },\n      },\n      borderRadius: {\n        lg: "var(--radius)",\n        md: "calc(var(--radius) - 2px)",\n        sm: "calc(var(--radius) - 4px)",\n      },\n      keyframes: {\n        "accordion-down": {\n          from: { height: 0 },\n          to: { height: "var(--radix-accordion-content-height)" },\n        },\n        "accordion-up": {\n          from: { height: "var(--radix-accordion-content-height)" },\n          to: { height: 0 },\n        },\n      },\n      animation: {\n        "accordion-down": "accordion-down 0.2s ease-out",\n        "accordion-up": "accordion-up 0.2s ease-out",\n      },\n    },\n  },\n  plugins: [require("tailwindcss-animate")],\n} ',
+            '/** @type {import(\'tailwindcss\').Config} */\nmodule.exports = {\n  darkMode: ["class"],\n  content: [\n    \'./pages/**/*.{ts,tsx}\',\n    \'./components/**/*.{ts,tsx}\',\n    \'./app/**/*.{ts,tsx}\',\n    \'./src/**/*.{ts,tsx}\',\n  ],\n  theme: {\n    container: {\n      center: true,\n      padding: "2rem",\n      screens: {\n        "2xl": "1400px",\n      },\n    },\n    extend: {\n      colors: {\n        border: "hsl(var(--border))",\n        input: "hsl(var(--input))",\n        ring: "hsl(var(--ring))",\n        background: "hsl(var(--background))",\n        foreground: "hsl(var(--foreground))",\n        primary: {\n          DEFAULT: "hsl(var(--primary))",\n          foreground: "hsl(var(--primary-foreground))",\n        },\n        secondary: {\n          DEFAULT: "hsl(var(--secondary))",\n          foreground: "hsl(var(--secondary-foreground))",\n        },\n        destructive: {\n          DEFAULT: "hsl(var(--destructive))",\n          foreground: "hsl(var(--destructive-foreground))",\n        },\n        muted: {\n          DEFAULT: "hsl(var(--muted))",\n          foreground: "hsl(var(--muted-foreground))",\n        },\n        accent: {\n          DEFAULT: "hsl(var(--accent))",\n          foreground: "hsl(var(--accent-foreground))",\n        },\n        popover: {\n          DEFAULT: "hsl(var(--popover))",\n          foreground: "hsl(var(--popover-foreground))",\n        },\n        card: {\n          DEFAULT: "hsl(var(--card))",\n          foreground: "hsl(var(--card-foreground))",\n        },\n      },\n      borderRadius: {\n        lg: "var(--radius)",\n        md: "calc(var(--radius) - 2px)",\n        sm: "calc(var(--radius) - 4px)",\n      },\n      keyframes: {\n        "accordion-down": {\n          from: { height: 0 },\n          to: { height: "var(--radix-accordion-content-height)" },\n        },\n        "accordion-up": {\n          from: { height: "var(--radix-accordion-content-height)" },\n          to: { height: 0 },\n        },\n      },\n      animation: {\n        "accordion-down": "accordion-down 0.2s ease-out",\n        "accordion-up": "accordion-up 0.2s ease-out",\n      },\n    },\n  },\n  plugins: [require("tailwindcss-animate")],\n} ',
         },
       ],
       docs: "# Homevision Backend Engineer Take-Home Challenge\n\n## Structure\n\n- `concept` folder contains the preliminary thought process used to come up with a solution\n- `solution` folder contains a number of subfolder of a more refined answer:\n  - `api` / `frontend` contain a full stack application that makes use of the library\n  - `cli` provides a command line interface for interfacing with the library\n  - `common` contains the main computer vision logic of the applicaiton\n\n## How to run\n\n### Parameters\n\nSince the library created for this challenge takes some parameters, the following are the correct ones for the provided sample image:\n\n- Minimum size: 22\n- Maximum size: 28\n\nAll other parameters can be left default and it will work correctly.\n\nAs for other images, I recommend playing with settings inside the web version of the tool, but as a reference\nwe should consider the amount of \"zoom\" an image contains, if it's too zoomed in, then the checkbox will be larger\nand if it's zoomed out, the the inverse will be true.\n\n### Common Library\n\nSee the [Form Computer Vision Library README](solution/common/form_cv/README.md) for details on the core library.\n\n### API Server\n\nSee the [API Server README](solution/api/README.md) for setup and usage instructions.\n\n### CLI Tool\n\nSee the [CLI Tool README](solution/cli/README.md) for command-line usage instructions.\n\n### Frontend\n\nSee the [Frontend README](solution/frontend/README.md) for setup and usage instructions.\n\n### General Application\n\nSee the [Full Application README](solution/README.md) for complete setup instructions.\n\n## Approach\n\nThe challenge was trying to avoid using high-level detection libraries, and to just create a new low-level solution, for this the following libraries were used:\n\n- OpenCV\n- Numpy\n\nAs far as the algorithm goes, we follow the next steps:\n\n1. Load the image\n2. Invert the image using a threshold\n3. Get the defined contours\n4. Look for all contours that approximate a square shape and are within a defined size\n5. For each contour, filter out borders, noise, and look for significant content inside the checkbox\n6. Overlay the result with the original image\n\nThis is not perfect, as it can be seen, the main logic is based on the condition that:\n\n1. The checkbox is square\n2. The signficant content of the checkbox means that the checkbox is consider as checked\n\nIf for example we cross out the checkbox, it's contour will no longer be a square thus leading to a missed checkbox.\n\nBetter analysis can be done via pattern matching and other kind of improvements in image processing.\n\n## Production readiness\n\n- Context Analysis: It means to have the context of the checkbox to actually consider what it means, this would contribute to a real-world solution.\n- Machine Learning: Adding AI / ML to the mix of previously explained algorithms would be a major improvement, specially given the reliability of today tools.\n",
     },
     analysis: {
-      score: "Yes",
+      score: "Strong yes",
       docs: {
         green: [
-          "Project structure is clearly outlined.",
-          "Setup instructions for various components are provided.",
+          "Clear project structure outlined in the README.",
+          "Installation and usage instructions are provided for each component.",
+          "Approach and production readiness sections demonstrate thoughtful consideration of the problem.",
         ],
-        yellow: ["Lacks clarity on how to run tests or lint the code."],
+        yellow: [
+          "Lack of a live demo or hosted version for inspection.",
+          "Minor typo in 'applicaiton' in the Structure section.",
+        ],
       },
       code: {
         green: [
-          "Shows the most amount of thought and effort.",
-          "It has a good UI and setup, and client is simple and clean.",
-          "It's organized into logical modules and follows a clear structure.",
-          "Idiomatic use of Python and Flask is observed.",
-          "Error handling is present in API endpoints.",
+          "Code is well-organized and follows a logical structure.",
+          "Use of dataclasses improves readability and maintainability.",
+          "Good use of type hints throughout the codebase.",
         ],
-        yellow: [
-          "How to run the services should be on a single bash script for simplicity",
-          "Does not contain tests.",
+        red: [
+          {
+            description:
+              "SQL injection risk due to lack of parameterization in the `save_detection_result` function.",
+            snippet:
+              "c.execute('INSERT INTO detection_results (id, filename, timestamp, min_size, max_size, threshold, padding, image_path, result_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (detection_id, filename, timestamp, min_size, max_size, threshold, padding, image_path, json.dumps(result)))",
+          },
         ],
-        red: ["Vulnerable to SQL injections."],
       },
     },
   },
@@ -316,34 +221,39 @@ const examples: {
       score: "No",
       docs: {
         green: [
-          "Project purpose and overview are clearly stated.",
-          "Setup instructions are detailed and mostly clear.",
+          "Clear purpose and overview of the project.",
+          "Setup instructions are detailed and easy to follow.",
         ],
         yellow: [
-          "Environment variable setup could be more concise.",
-          "No CI/CD or observability tools mentioned.",
-          "No live demo or hosted version provided.",
+          "Example responses are provided but lack context on how they relate to the user input.",
+          "Minor typo in 'lastest' in the Setup section.",
         ],
         red: [
-          "Missing `.env.example` file for environment variable guidance.",
-          "No scripts for common tasks (e.g., test, lint) provided.",
+          "No live demo or hosted version for inspection.",
+          "Limited product thinking; lacks consideration for user experience beyond basic functionality.",
         ],
       },
       code: {
         green: [
-          "Code is organized into logical modules.",
-          "Idiomatic use of FastAPI and SQLAlchemy.",
-          "Meaningful tests are present for key functionalities.",
+          "Code is well-structured and follows best practices for FastAPI and SQLAlchemy.",
+          "Use of async/await for database operations improves performance.",
+          "Pydantic models enhance data validation and serialization.",
         ],
         yellow: [
-          "Error handling could be improved, especially in `extract_expense`.",
-          "Some comments are vague and could be more informative.",
-          "Potential performance issues with database operations not addressed.",
+          "Error handling is present but should be more granular in some areas, particularly in the `extract_expense` function.",
         ],
         red: [
-          "No handling for edge cases in user input validation.",
-          "Security concerns with API key exposure in error messages.",
-          "Lack of comprehensive tests for failure paths.",
+          {
+            description:
+              "SQL injection risk in the `add_expense` method due to lack of parameterization in the SQL query.",
+            snippet:
+              "await db.execute(select(cls).where(cls.telegram_id == str(telegram_id)))",
+          },
+          {
+            description:
+              "The `extract_expense` function does not handle cases where the structured LLM invocation fails, leading to unhandled exceptions.",
+            snippet: "result = structured_llm.invoke(messages)",
+          },
         ],
       },
     },
@@ -368,29 +278,43 @@ const examples: {
       score: "Strong no",
       docs: {
         green: [
-          "Installation and usage instructions are straightforward.",
-          "Examples for usage are well-documented.",
+          "Purpose & Overview is clear and concise.",
+          "Installation and usage steps are provided.",
         ],
         yellow: [
-          "Error handling section is present but lacks detail on specific errors.",
-          "Limited CI/CD or additional developer conveniences mentioned.",
+          "Examples are present but lack explanations of expected outcomes.",
+          "Error handling section is mentioned but lacks detail on specific errors.",
         ],
         red: [
-          "No live demo or hosted version available for inspection.",
-          "No `.env.example` or production readiness considerations.",
-          "Documentation lacks clarity on limitations and potential issues.",
+          "Limited product thinking; lacks user/developer needs consideration beyond basic functionality.",
+          "No live demo or API documentation provided.",
+          "Documentation does not mention testing or how to run tests.",
         ],
       },
       code: {
-        green: ["Error handling is implemented for various scenarios."],
         yellow: [
-          "No tests for failure paths or edge cases beyond basic existence checks.",
-          "Potential performance issues with string manipulations in parsing.",
+          "Verbose logging is implemented but should be more structured.",
+          "Error handling is present but should be more granular in some areas.",
         ],
         red: [
-          "No evidence of security measures for handling input or file operations.",
-          "Code is not modularized into separate files, making it less maintainable.",
-          "Missing tests for concurrent execution or large file handling.",
+          {
+            description:
+              "Bug in the `extractFileSize` method where it assumes content starts after a specific signature without validating its presence.",
+            snippet:
+              'if strings.Contains(sigAndContent, "<?xml") {\n\tcontentStart = strings.Index(sigAndContent, "<?xml")\n} else if strings.Contains(sigAndContent, "RIFF") {\n\tcontentStart = strings.Index(sigAndContent, "RIFF")\n} else if strings.Contains(sigAndContent, "\\xff\\xd8\\xff") { // JPEG\n\tcontentStart = strings.Index(sigAndContent, "\\xff\\xd8\\xff")\n} else {',
+          },
+          {
+            description:
+              "The `parseMetadata` function does not handle cases where metadata keys are missing or malformed, leading to runtime errors.",
+            snippet:
+              'if len(matches) > 1 {\n\tif key == "DOCTYPE" && len(matches) > 2 && matches[2] != "" {\n\t\tmetadata[key] = matches[1] + "/" + matches[2]\n\t} else {\n\t\tmetadata[key] = matches[1]\n\t}\n\tp.log(fmt.Sprintf("found %s: %s", key, metadata[key]))\n}',
+          },
+          {
+            description:
+              "No tests for edge cases or failure paths in the `extractAll` method, which could lead to unhandled errors during file writing.",
+            snippet:
+              'if err := os.WriteFile(outputPath, file.Content, 0644); err != nil {\n\treturn fmt.Errorf("failed to write file %s: %w", outputPath, err)\n}',
+          },
         ],
       },
     },
@@ -404,9 +328,10 @@ You are a principal software engineer with high standards typical of top-tier Si
 # Instructions
 
 * Keep your feedback flags in very concise, fluffless, and precise bullet points.
-* Fully AI-generated solutions must be penalized a score of "Strong no" because they don't demonstrate the actual candidate skill.
 * Maintain the bar high - not everyone should pass.
-* The flags should be proportional to the overall score (e.g., a project with 5 red flags cannot be scored "Strong yes").
+* For code problems, indicate both the description of the problem and the snippet of code where you found it - be very specific indicating where the problem lies on.
+* Be sure and declarative - do not say things like "potential", "may cause", or "could be".
+* Projects with 10x the effort, outstanding creativity, highly novel solution, or useful unexpected features should be be scored with "Strong yes".
 
 ## Evaluation Criteria
 
@@ -419,9 +344,7 @@ Consider:
 * **Purpose & Overview**: Is the project's goal and value clearly stated?
 * **Setup**: Are installation and usage steps accurate, minimal, and easy to follow (e.g., \`npm install && npm run dev\`)?
 * **Developer UX**: Are scripts provided for common tasks (e.g., start, test, lint)?
-* **Production Readiness**: Are \`.env.example\`, logging, and error messages handled properly?
 * **Live Demo or API Swagger**: Is any hosted version available for inspection?
-* **Above & Beyond**: Any CI/CD, observability, API docs, or dev conveniences?
 * **Product Thinking**: Does the implementation reflect a thoughtful understanding of user/developer needs?
 * **Communication**: Are decisions, comments, and documentation professional and clear?
 
@@ -435,11 +358,15 @@ Consider:
 * **Code Organization**: Is the folder/module structure logical and scalable?
 * **Error Handling**: Are edge cases (timeouts, validation, fallbacks) addressed?
 * **Tests**: Are meaningful tests present for both success and failure paths?
-* **Readability**: Are names, structure, and comments clear and helpful?
-* **Security**: Any evidence of secure handling of input, secrets, or auth?
+* **Readability**: Are names, structure, and comments clear and helpful? Comments and docstrings should serve only to explain things that the code cannot do by itself, and the code should explain itself as much as possible with proper variable naming.
+* **Security**: Is there any evidence of secure handling of input, secrets, or auth?
 * **Extensibility**: Could other developers maintain and build on this?
 * **Performance Thoughtfulness**: Are common issues (e.g., N+1, pagination, caching) avoided or acknowledged?
-* **Bugs**: Are there apparent bugs or problematic assumptions?
+* **Bugs**: Are there problematic assumptions that clearly indicate an existing bug?
+
+Side notes:
+
+* "TODO" comments are accepted given that this is a take-home project.
 
 ## Response format
 
@@ -452,9 +379,12 @@ Consider:
     "red": string[]
   },
   "code": {
-    "green": string[],
-    "yellow": string[],
-    "red": string[]
+    "green": string[] | undefined,
+    "yellow": string[] | undefined,
+    "red": {
+      "description": string,
+      "snippet": string,
+    }[] | undefined
   }
 }
 \`\`\`

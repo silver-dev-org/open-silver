@@ -433,7 +433,7 @@ function FeedbackCard({
   Icon: ElementType;
 }): React.ReactElement {
   return (
-    <Card className="flex-1">
+    <Card className="flex-1 h-min">
       <section>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -475,19 +475,30 @@ function FeedbackFlagList({
   label: string;
   color: string;
   Icon: ElementType;
-  items?: string[];
+  items?: FeedbackFlags[keyof FeedbackFlags];
 }): React.ReactElement | null {
   if (!items || items.length === 0) return null;
 
   return (
-    <section>
+    <section className="max-w-prose">
       <h1 className={cn("font-semibold flex items-center gap-3", color)}>
         <Icon className="size-4" />
         {label}
       </h1>
       <ul className="list-disc list-inside pl-1.5">
         {items.map((item, index) => (
-          <li key={index}>{item}</li>
+          <li key={index}>
+            {typeof item === "string" ? (
+              item
+            ) : (
+              <>
+                <span>{item.description}</span>
+                <pre className="border-l-2 font-mono border-foreground text-xs pl-2 mt-1.5 mb-3 w-full overflow-x-auto">
+                  {item.snippet}
+                </pre>
+              </>
+            )}
+          </li>
         ))}
       </ul>
     </section>

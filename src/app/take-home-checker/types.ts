@@ -29,7 +29,14 @@ export type TakeHomeAnalysis = {
 export type Score = "Strong no" | "No" | "Yes" | "Strong yes";
 
 export type FeedbackFlags = {
-  green?: string[];
-  yellow?: string[];
-  red?: string[];
+  green?: FeedbackFlag[];
+  yellow?: FeedbackFlag[];
+  red?: FeedbackFlag[];
 };
+
+export type FeedbackFlag =
+  | {
+      description: string;
+      snippet: string;
+    }
+  | string;
