@@ -15,10 +15,17 @@ export type GithubRepo = {
 
 export type RepoFile = { path: string; content: string };
 
+export type TakeHomeCheckerData = {
+  takeHome: TakeHome;
+  analysis: TakeHomeAnalysis;
+};
+
 export type TakeHome = {
   docs?: string;
-  code?: RepoFile[];
+  code?: Codebase;
 };
+
+export type Codebase = RepoFile[];
 
 export type TakeHomeAnalysis = {
   score: Score;

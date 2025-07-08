@@ -2,7 +2,7 @@ import {
   processableFileExtensions,
   prompt,
 } from "@/app/take-home-checker/constants";
-import { TakeHome } from "@/app/take-home-checker/types";
+import { TakeHome, TakeHomeCheckerData } from "@/app/take-home-checker/types";
 import { takeHomeToXML } from "@/app/take-home-checker/utils";
 import {
   getFileContent,
@@ -79,14 +79,17 @@ export default async function handler(
 
     if (!analysis) throw new Error("LLM did not return response.");
 
-    const pAnalysis = extractJsonFromString(analysis);
+    const data = {
+      analysis: extractJsonFromString(analysis),
+      takeHome,
+    } as TakeHomeCheckerData;
 
     // Uncomment to copy the responses and paste them as examples
     // console.log(" ---------------------------------- ");
-    // console.log(JSON.stringify({ takeHome, analysis: pAnalysis }));
+    // console.log(JSON.stringify(data));
     // console.log(" ---------------------------------- ");
 
-    res.status(200).json(pAnalysis);
+    res.status(200).json(data);
   } catch (error) {
     res
       .status(500)

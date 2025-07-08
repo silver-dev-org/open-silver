@@ -6,11 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -21,8 +32,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { cn, PreppingData } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CheckCircle,
@@ -42,7 +55,10 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { useForm } from "react-hook-form";
 import { FaGithub } from "react-icons/fa";
+import { toast } from "sonner";
+import z from "zod";
 import {
   cookieName,
   loadingMessageInterval,
@@ -50,7 +66,7 @@ import {
   prompt,
   scoreColors,
 } from "./constants";
-import { FeedbackFlags, GithubRepo, TakeHomeAnalysis } from "./types";
+import { FeedbackFlags, GithubRepo, TakeHomeCheckerData } from "./types";
 
 export default function TakeHomeCheckerClient({
   installationId,
@@ -77,7 +93,7 @@ export default function TakeHomeCheckerClient({
     staleTime: 1000 * 60 * 5,
   });
   const {
-    data: analysis,
+    data,
     refetch: analyze,
     isSuccess,
     isError,
@@ -106,7 +122,8 @@ export default function TakeHomeCheckerClient({
         body: formData,
       });
       if (!response.ok) throw new Error(await response.text());
-      return (await response.json()) as TakeHomeAnalysis;
+      const data = await response.json();
+      return data as TakeHomeCheckerData;
     },
     enabled: false,
     refetchOnWindowFocus: false,
@@ -116,7 +133,7 @@ export default function TakeHomeCheckerClient({
   const result = useMemo(() => {
     if (isFetching) return <LoadingState />;
     if (isError) return <ErrorState error={error} />;
-    if (isSuccess) return <SuccessState {...analysis!} />;
+    if (isSuccess) return <SuccessState {...data} />;
     return null;
   }, [status, fetchStatus]);
 
@@ -138,12 +155,12 @@ export default function TakeHomeCheckerClient({
   );
 
   useEffect(() => {
-    if (githubRepo && analysis) {
+    if (githubRepo && data) {
       const preppingData = PreppingData.getToolData("take-home-checker");
-      preppingData[githubRepo.full_name] = analysis?.score;
+      preppingData[githubRepo.full_name] = data?.analysis.score;
       PreppingData.setToolData("take-home-checker", preppingData);
     }
-  }, [githubRepo, analysis]);
+  }, [githubRepo, data]);
 
   useEffect(() => {
     if (installationId) {
@@ -377,7 +394,7 @@ function LoadingState() {
   );
 }
 
-function SuccessState(analysis: TakeHomeAnalysis) {
+function SuccessState(data: TakeHomeCheckerData) {
   return (
     <div className="flex flex-col gap-6 mx-auto">
       <Card>
@@ -390,23 +407,26 @@ function SuccessState(analysis: TakeHomeAnalysis) {
               <strong
                 className={cn(
                   "text-lg px-3 py-1.5 rounded-full",
-                  scoreColors[analysis.score]
+                  scoreColors[data.analysis.score]
                 )}
               >
-                {analysis.score}
+                {data.analysis.score}
               </strong>
             </div>
-            <PromptDialog />
+            <div className="flex flex-col md:flex-row gap-3">
+              <UserFeedbackDialog {...data} />
+              <PromptDialog />
+            </div>
           </section>
         </CardContent>
       </Card>
       <div className="flex flex-col md:flex-row gap-6 w-full">
         <FeedbackCard
           title="Documentation"
-          flags={analysis.docs}
+          flags={data.analysis.docs}
           Icon={FileText}
         />
-        <FeedbackCard title="Code" flags={analysis.code} Icon={Code} />
+        <FeedbackCard title="Code" flags={data.analysis.code} Icon={Code} />
       </div>
     </div>
   );
@@ -428,6 +448,106 @@ function PromptDialog() {
         <p className="max-h-96 text-sm text-muted-foreground bg-muted p-3 rounded whitespace-pre-wrap overflow-y-auto overflow-x-hidden">
           {prompt}
         </p>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UserFeedbackDialog(data: TakeHomeCheckerData) {
+  const [open, setOpen] = useState<boolean | undefined>();
+  const formSchema = z.object({
+    description: z.string().min(50, "Explayate un poco más."),
+  });
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { description: "" },
+  });
+  const {
+    mutate: send,
+    error,
+    isError,
+    isPending,
+  } = useMutation({
+    mutationFn: async ({ description }: z.infer<typeof formSchema>) => {
+      const res = await fetch("/api/feedback-take-home-checker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, description }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Hubo un error inesperado, probá de nuevo.");
+      }
+    },
+    onSuccess: () => {
+      form.reset();
+      setOpen(false);
+      toast("Gracias por tu feedback.");
+    },
+  });
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    send(data);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full md:w-auto order-last md:order-first"
+        >
+          Dijo cualquiera? Avisanos
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Gracias por tu feedback</DialogTitle>
+          <DialogDescription>
+            Al enviar aceptás compartir tu código con Silver.dev.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-6"
+          >
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descripción</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      id="description"
+                      placeholder="Describí lo que debería haber pasado comparado a lo que
+                    sucedió en realidad."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter className="items-center">
+              {isError && (
+                <span className="text-destructive text-sm">
+                  {error.message}
+                </span>
+              )}
+              <DialogClose asChild>
+                <Button variant="outline" onClick={() => form.reset()}>
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Enviando..." : "Enviar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
