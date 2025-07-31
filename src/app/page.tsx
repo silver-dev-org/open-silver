@@ -67,6 +67,11 @@ const tools: {
         description: "Test your speed and practice typing code.",
         href: "https://wpm.silver.dev",
       },
+      {
+        title: "Roast My Setup",
+        description: "Recíbi feedback de tu setup.",
+        href: "/roast-my-setup",
+      },
     ],
   },
   {
