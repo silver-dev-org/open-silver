@@ -48,7 +48,7 @@ export default function Home() {
 
       <Spacer size="lg" />
       <div className="text-center">
-        <Link href="/resume-checker/privacy" className="link">
+        <Link href="/roast-my-setup/privacy" className="link">
           Política de Privacidad
         </Link>
       </div>
