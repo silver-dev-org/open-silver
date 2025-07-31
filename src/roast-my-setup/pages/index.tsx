@@ -8,17 +8,7 @@ import { Button } from "@/components/ui/button";
 import ErrorBadge from "@/resume-checker/components/error-badge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-function usePasteEvent(pasteListener: (event: ClipboardEvent) => void) {
-  useEffect(() => {
-    document.addEventListener("paste", pasteListener);
-
-    return () => {
-      document.removeEventListener("paste", pasteListener);
-    };
-  }, [pasteListener]);
-}
+import { useState } from "react";
 
 export default function Home() {
   const router = useRouter();
