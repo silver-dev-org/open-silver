@@ -2,7 +2,7 @@ import Heading from "@/components/heading";
 import Section from "@/components/section";
 import Spacer from "@/components/spacer";
 
-export default function Privacy() {
+export default function Page() {
   return (
     <Section>
       <Heading>Política de Privacidad</Heading>
@@ -16,7 +16,7 @@ export default function Privacy() {
       <ul className="list-disc pl-4">
         <li className="mb-4">
           <p className="font-bold mb-2">
-            No almacenamos currículums ni información personal
+            No almacenamos currículums {/* FIXME! */}ni información personal
           </p>
           <p>
             La herramienta Roast my Setup no almacena los videos ni ninguna
