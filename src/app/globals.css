@@ -16,7 +16,7 @@
   --secondary: #4d2afa;
   --secondary-foreground: white;
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: oklch(0 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -42,12 +42,12 @@
   :root {
     --background: oklch(0 0 0);
     --foreground: oklch(1 0 0);
-    --card: oklch(0.205 0 0);
+    --card: transparent;
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.205 0 0);
     --popover-foreground: oklch(0.985 0 0);
     --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
+    --muted-foreground: oklch(1 0 0);
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
@@ -118,6 +118,34 @@
 }
 
 @font-face {
+  font-family: "Amiri";
+  src: url("/fonts/Amiri-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Amiri";
+  src: url("/fonts/Amiri-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Amiri";
+  src: url("/fonts/Amiri-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Amiri";
+  src: url("/fonts/Amiri-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
   font-family: "CerebriSans";
   src: url("/fonts/CerebriSans-Light.woff2") format("woff2");
   font-weight: 300;
@@ -163,7 +191,7 @@ body,
 }
 
 .font-serif {
-  font-family: serif;
+  font-family: "Amiri", serif;
 }
 
 @keyframes shimmer {

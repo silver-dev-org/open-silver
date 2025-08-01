@@ -1,12 +1,12 @@
 import Footer from "@/components/footer";
 import Header from "@/components/header";
 import Spacer from "@/components/spacer";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import SessionProvider from "@/providers/SessionProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,25 +32,25 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions);
-
   return (
     <html className="scroll-smooth dark" lang="en">
       <GoogleAnalytics gaId="G-QFVTDBRTP4" />
-      <SessionProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          suppressHydrationWarning
-        >
-          <Header />
-          <main>
-            <Spacer size="lg" />
-            {children}
-            <Spacer size="lg" />
-          </main>
-          <Footer />
-        </body>
-      </SessionProvider>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
+      >
+        <Header />
+        <main>
+          <Spacer size="lg" />
+          <Spacer size="lg" />
+          <Suspense>
+            <TooltipProvider>{children}</TooltipProvider>
+          </Suspense>
+          <Spacer size="lg" />
+        </main>
+        <Toaster />
+        <Footer />
+      </body>
     </html>
   );
 }

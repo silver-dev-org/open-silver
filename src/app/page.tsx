@@ -2,7 +2,7 @@ import Description from "@/components/description";
 import Grid from "@/components/grid";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Spacer from "@/components/spacer";
+import Spacer, { spaceSizes } from "@/components/spacer";
 import {
   Card,
   CardDescription,
@@ -57,23 +57,22 @@ const tools: {
         href: "/company-checker",
       },
       {
+        title: "Take-home Checker",
+        description:
+          "Upload your take-home and get instant feedback on the project.",
+        href: "/take-home-checker",
+      },
+      {
         title: "GitHub Repo",
         description:
           "A repository with dozens of challenges for interview practice.",
         href: "http://silver.dev/repo",
       },
-      // Not ready yet
-      // {
-      //   title: "Take-home Checker",
-      //   description:
-      //     "Upload your take-home and get instant feedback on the project.",
-      //   href: "/take-home-checker",
-      // },
-      // {
-      //   title: "WPM Game",
-      //   description: "Test your speed and practice typing code.",
-      //   href: "https://wpm.silver.dev",
-      // },
+      {
+        title: "WPM Game",
+        description: "Test your speed and practice typing code.",
+        href: "https://wpm.silver.dev",
+      },
     ],
   },
   {
@@ -109,25 +108,27 @@ export default function Home() {
       <Description center>
         Open Source Software made by Silver.dev and its contributors.
       </Description>
-      {tools.map(({ slug, section, list }, index) => (
-        <Section key={index} id={slug} space={null}>
-          <Spacer size="lg" />
-          <Heading>{section}</Heading>
-          <Spacer />
-          <Grid>
-            {list.map(({ title, description, href }) => (
-              <Link href={href} key={href} prefetch={true}>
-                <Card className="hover:bg-foreground/10 transition-all duration-300">
-                  <CardHeader>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>{description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
-          </Grid>
-        </Section>
-      ))}
+      <Spacer size="lg" />
+      <div className={`flex flex-col ${spaceSizes.lg.gap}`}>
+        {tools.map(({ slug, section, list }, index) => (
+          <Section key={index} id={slug}>
+            <Heading>{section}</Heading>
+            <Spacer />
+            <Grid>
+              {list.map(({ title, description, href }) => (
+                <Link href={href} key={href} prefetch={true}>
+                  <Card className="hover:bg-foreground/10 transition-all size-full duration-300">
+                    <CardHeader>
+                      <CardTitle>{title}</CardTitle>
+                      <CardDescription>{description}</CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              ))}
+            </Grid>
+          </Section>
+        ))}
+      </div>
     </Section>
   );
 }

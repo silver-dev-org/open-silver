@@ -1,93 +1,108 @@
 "use client";
 
 import { SilverDev } from "@/components/logos";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { spaceSizes } from "./spacer";
 
-interface Link {
-  href: string;
-  label: string;
-  target?: string;
-}
-
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const hrefPrefix = pathname?.startsWith("/hire") ? "" : "/";
-
-  const anchorLinks: Link[] = [
-    { href: hrefPrefix + "#for-talent", label: "For Talent" },
-    { href: hrefPrefix + "#for-employers", label: "For Employers" },
+  const prefix = pathname?.startsWith("/hire") ? "" : "/";
+  const links: {
+    href: string;
+    label: string;
+    external?: boolean;
+    button?: boolean;
+  }[][] = [
+    [
+      { href: prefix + "#for-talent", label: "For Talent" },
+      { href: prefix + "#for-employers", label: "For Employers" },
+    ],
+    [
+      {
+        href: "https://ready.silver.dev",
+        label: "Interview Ready",
+        external: true,
+      },
+      {
+        href: "https://jobs.ashbyhq.com/Silver?utm_source=Pedw1mQEZd",
+        label: "Jobs",
+        external: true,
+      },
+    ],
   ];
 
-  const externalLinks: Link[] = [
-    {
-      href: "https://ready.silver.dev",
-      label: "Interview Ready",
-      target: "_blank",
-    },
-    {
-      href: "https://jobs.ashbyhq.com/Silver?utm_source=Pedw1mQEZd",
-      label: "Jobs",
-      target: "_blank",
-    },
-  ];
-
-  function LinksGroup({ links }: { links: Link[] }) {
-    return (
-      <div
-        className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${
-          isMenuOpen
-            ? `flex flex-col max-h-screen ${spaceSizes.sm.mt}`
-            : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
-        }`}
-      >
-        {links.map(({ href, label, target }) => (
-          <Link
-            key={href}
-            href={href}
-            target={target}
-            onClick={() => setIsMenuOpen(false)}
-            className={buttonVariants({ variant: "link" })}
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
-    );
+  if (pathname?.startsWith("/resume-checker")) {
+    links[1].push({
+      href: "https://typst.app/app?template=silver-dev-cv",
+      label: "Resume Template",
+      external: true,
+      button: true,
+    });
+  } else if (pathname?.startsWith("/take-home-checker")) {
+    links[1].push({
+      href: "https://docs.silver.dev/interview-ready/technical-fundamentals/code-quality/guia-de-takehomes",
+      label: "Guía de take-homes",
+      external: true,
+      button: true,
+    });
   }
 
   return (
     <header
-      className={`fixed top-0 z-50 w-screen bg-background/85 border-b border-foreground/25 backdrop-blur-sm uppercase ${spaceSizes.sm.p}`}
+      className={`fixed top-0 z-50 w-screen bg-background border-b border-foreground/25 backdrop-blur-sm uppercase ${spaceSizes.sm.px}`}
     >
       <div className="container flex flex-col xl:flex-row justify-between items-center mx-auto">
-        <div className="flex items-center justify-between w-full xl:w-auto">
+        <div
+          className={`flex items-center justify-between w-full xl:w-auto ${spaceSizes.lg.h}`}
+        >
           <h1>
             <span className="sr-only">Silver.dev</span>
-            <Link onClick={() => setIsMenuOpen(false)} href={"/#"}>
+            <Link onClick={() => setOpen(false)} href={"/#"}>
               <SilverDev className="fill-foreground w-48 hover:opacity-75 trasnition-all duration-300" />
             </Link>
           </h1>
           <Button
             className="xl:hidden"
             variant="ghost"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => setOpen(!open)}
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? (
-              <X className="size-6" />
-            ) : (
-              <Menu className="size-6" />
-            )}
+            {open ? <X className="size-6" /> : <Menu className="size-6" />}
           </Button>
         </div>
-        <LinksGroup links={anchorLinks} />
-        <LinksGroup links={externalLinks} />
+        {links.map((group, index) => (
+          <div
+            key={index}
+            className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${spaceSizes.sm.py} ${
+              open
+                ? `flex flex-col max-h-screen`
+                : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"
+            }`}
+          >
+            {group.map(({ href, label, external, button }, index) => (
+              <Button
+                key={index}
+                asChild
+                variant={button ? "default" : "link"}
+                className={`${button && "mx-4"}`}
+              >
+                <Link
+                  key={href}
+                  href={href}
+                  target={external ? "_blank" : undefined}
+                  onClick={() => setOpen(false)}
+                >
+                  {label}
+                </Link>
+              </Button>
+            ))}
+          </div>
+        ))}
       </div>
     </header>
   );
