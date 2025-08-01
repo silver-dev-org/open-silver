@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from "next";
 
 interface RateLimitStore {
   [key: string]: {
@@ -11,8 +11,10 @@ const store: RateLimitStore = {};
 const WINDOW_MS = 60 * 1000; // 1 minute
 
 export const rateLimit = (req: NextApiRequest, res: NextApiResponse) => {
-  const forwardedFor = req.headers['x-forwarded-for'];
-  const ip = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor || req.socket.remoteAddress;
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const ip = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : forwardedFor || req.socket.remoteAddress;
   const now = Date.now();
 
   if (!ip) {
@@ -31,14 +33,13 @@ export const rateLimit = (req: NextApiRequest, res: NextApiResponse) => {
         resetTime: now + WINDOW_MS,
       };
     } else {
-        store[ip].count++;
-    } 
+      store[ip].count++;
+    }
   }
 
-  
   if (store[ip].count > 1) {
     const retryAfter = Math.ceil((store[ip].resetTime - now) / 1000);
-    res.setHeader('Retry-After', retryAfter);
+    res.setHeader("Retry-After", retryAfter);
     return {
       success: false,
       message: `Demasiadas solicitudes. Por favor, inténtelo de nuevo en ${retryAfter} segundos.`,
@@ -47,4 +48,4 @@ export const rateLimit = (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   return { success: true };
-}; 
+};

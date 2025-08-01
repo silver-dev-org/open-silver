@@ -1,18 +1,17 @@
-import ErrorBadge from "@/components/ui/error-badge";
+import { createPrompt } from "@/company-checker/utils/prompts";
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
-import Spacer, { spaceSizes } from "@/components/spacer";
 import Skeleton from "@/components/skeleton";
-import { FormEvent, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/fees-calculator/components/ui/input";
-import { useRef } from "react";
-import ReactMarkdown from "react-markdown";
+import Spacer from "@/components/spacer";
 import Spinner from "@/components/spinner";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createPrompt } from "@/company-checker/utils/prompts";
+import ErrorBadge from "@/components/ui/error-badge";
+import { Input } from "@/fees-calculator/components/ui/input";
 import { sendGAEvent } from "@next/third-parties/google";
+import { FormEvent, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 function removeTripleBackticks(text: string): string {
   // Trim leading/trailing whitespace
@@ -43,7 +42,7 @@ function removeMarkdown(text: string): string {
 }
 
 function parseMarkdownSections(
-  text: string,
+  text: string
 ): { title: string; content: string }[] {
   // Split the text by headers (## or ###)
   const sections = text.split(/(?=^#{1,3}\s)/m);
@@ -102,12 +101,12 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        `/api/company?company=${encodeURIComponent(company)}`,
+        `/api/company?company=${encodeURIComponent(company)}`
       );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error || "Error al buscar información de la empresa",
+          errorData.error || "Error al buscar información de la empresa"
         );
       }
 
@@ -186,12 +185,14 @@ export default function Home() {
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
                 {parseMarkdownSections(text).map((section, index) => (
-                  <Card 
-                    key={index} 
+                  <Card
+                    key={index}
                     className={`py-5 transition-all duration-300 hover:shadow-lg ${cardColors[index % cardColors.length]}`}
                   >
                     <CardHeader>
-                      <CardTitle className="text-foreground/90">{section.title}</CardTitle>
+                      <CardTitle className="text-foreground/90">
+                        {section.title}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="markdown-container prose dark:prose-invert max-w-none">
