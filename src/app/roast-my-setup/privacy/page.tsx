@@ -16,7 +16,7 @@ export default function Page() {
       <ul className="list-disc pl-4">
         <li className="mb-4">
           <p className="font-bold mb-2">
-            No almacenamos currículums {/* FIXME! */}ni información personal
+            No almacenamos grabaciónes, audio ni información personal
           </p>
           <p>
             La herramienta Roast my Setup no almacena los videos ni ninguna
