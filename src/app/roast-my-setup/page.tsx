@@ -6,7 +6,7 @@ import Heading from "@/components/heading";
 import Section from "@/components/section";
 import Spacer from "@/components/spacer";
 import { Button } from "@/components/ui/button";
-import ErrorBadge from "@/resume-checker/components/error-badge";
+import ErrorBadge from "@/components/ui/error-badge";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
