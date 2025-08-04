@@ -6,7 +6,7 @@ import Heading from "@/components/heading";
 import Section from "@/components/section";
 import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
-import ErrorBadge from "@/resume-checker/components/error-badge";
+import ErrorBadge from "@/components/ui/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import { useMutationState } from "@tanstack/react-query";
 import Link from "next/link";
