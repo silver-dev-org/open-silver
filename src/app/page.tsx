@@ -41,7 +41,7 @@ const tools: {
     list: [
       {
         title: "Resume Checker",
-        description: "Subí tu CV y recibí feedback inmediato.",
+        description: "Upload your resume and get instant feedback.",
         href: "/resume-checker",
       },
       {
