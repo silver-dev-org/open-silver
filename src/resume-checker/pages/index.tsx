@@ -114,16 +114,16 @@ export default function Home() {
         </Heading>
         <Spacer />
         <Description center>
-          Armá tu CV con el{" "}
+          Build your resume with {" "}
           <Link
             href="https://typst.app/app?template=silver-dev-cv"
             target="_blank"
             rel="noopener noreferrer"
             className="link"
           >
-            template de Silver
+            Silver's template
           </Link>
-          . Subilo acá y recibí feedback de inmediato.
+          . Upload it here and get instant feedback.
         </Description>
         <Spacer size="lg" />
         <Grid className="grid-cols-1 md:grid-cols-4">
@@ -135,8 +135,8 @@ export default function Home() {
             encType="multipart/form-data"
             className={`w-full overflow-hidden md:col-span-3 h-full p-8 relative border-2 rounded-lg  ${isDragActive ? "cursor-grabbing border-foreground " : "border-foreground/50"}  border-dashed flex items-center justify-center flex-col gap-1`}
           >
-            <Button variant="secondary">Hacé click para subir tu CV</Button>
-            <span className="mt-4 text-center">o arrastrá tu CV</span>
+            <Button variant="secondary">Click here to upload your CV</Button>
+            <span className="mt-4 text-center">or drag it here</span>
             <input
               className="sr-only"
               onChange={handleFormSubmission}
@@ -148,7 +148,7 @@ export default function Home() {
             <input className="hidden" type="text" name="name" />
           </form>
           <div>
-            <p className="text-center md:text-left">O usá un ejemplo:</p>
+            <p className="text-center md:text-left">Or use an example:</p>
             <Spacer />
             <div className={`flex flex-col ${spaceSizes.sm.gap}`}>
               {[
@@ -179,7 +179,7 @@ export default function Home() {
         <Spacer size="lg" />
         <div className="text-center">
           <Link href="/resume-checker/privacy" className="link">
-            Política de Privacidad
+            Privacy policy
           </Link>
         </div>
       </Section>
