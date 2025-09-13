@@ -51,6 +51,12 @@ const tools: {
         href: "/behavioral-checker",
       },
       {
+        title: "Company Checker",
+        description:
+          "Run a custom investigation for a company you are interested in.",
+        href: "/company-checker",
+      },
+      {
         title: "Take-home Checker",
         description:
           "Upload your take-home and get instant feedback on the project.",
