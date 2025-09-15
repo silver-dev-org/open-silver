@@ -1,4 +1,4 @@
-import { App, Octokit } from "octokit";
+import { App, Octokit, RequestError } from "octokit";
 
 const fileCacheDuration = 1000 * 60 * 2;
 const repoFilesCache = new Map<
@@ -27,13 +27,15 @@ export async function getOctokit(installationId: number) {
 export async function getReadmeContent(octokit: Octokit, repoFullName: string) {
   try {
     const { data } = await octokit.request(
-      `GET /repos/${repoFullName}/contents/README.md`
+      `GET /repos/${repoFullName}/contents/README.md`,
     );
     if (data?.content) {
       return Buffer.from(data.content, "base64").toString("utf-8");
     }
   } catch (error) {
-    console.error("Error fetching README:", error);
+    if (error instanceof RequestError && error.status !== 404) {
+      console.error("Error fetching README:", error);
+    }
     return;
   }
 }
@@ -45,7 +47,7 @@ export async function getRepoFilePaths(octokit: Octokit, repoFullName: string) {
   if (isCached) return cachedData.files;
 
   const response = await octokit.request(
-    `GET /repos/${repoFullName}/git/trees/HEAD?recursive=1`
+    `GET /repos/${repoFullName}/git/trees/HEAD?recursive=1`,
   );
   const files = response.data.tree.map((entry: { path: string }) => entry.path);
   repoFilesCache.set(repoFullName, { files, timestamp: now });
@@ -55,7 +57,7 @@ export async function getRepoFilePaths(octokit: Octokit, repoFullName: string) {
 export async function getFileContent(
   octokit: Octokit,
   repoFullName: string,
-  filePath: string
+  filePath: string,
 ) {
   const cacheKey = `${repoFullName}/${filePath}`;
   const cachedData = fileContentCache.get(cacheKey);
@@ -65,7 +67,7 @@ export async function getFileContent(
 
   try {
     const response = await octokit.request(
-      `GET /repos/${repoFullName}/contents/${filePath}`
+      `GET /repos/${repoFullName}/contents/${filePath}`,
     );
 
     let content = "";
@@ -82,7 +84,7 @@ export async function getFileContent(
     } else {
       content = Buffer.from(
         (response.data as { content: string }).content,
-        "base64"
+        "base64",
       ).toString("utf-8");
     }
 
