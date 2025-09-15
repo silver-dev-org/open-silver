@@ -46,7 +46,7 @@ export default function Home() {
       setFormState({ formData });
       router.push("/resume-checker/review");
     },
-    [router, setFormState]
+    [router, setFormState],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -65,7 +65,7 @@ export default function Home() {
     const url = data.getData("text").toString();
     if (!url.startsWith("https") || !url.endsWith(".pdf")) {
       setError(
-        new Error("El URL tiene que empezar con 'https' y terminar con 'pdf'")
+        new Error("El URL tiene que empezar con 'https' y terminar con 'pdf'"),
       );
       return;
     }
@@ -114,14 +114,14 @@ export default function Home() {
         </Heading>
         <Spacer />
         <Description center>
-          Build your resume with {" "}
+          Build your resume with{" "}
           <Link
             href="https://typst.app/app?template=silver-dev-cv"
             target="_blank"
             rel="noopener noreferrer"
             className="link"
           >
-            Silver's template
+            Silver&apos;s template
           </Link>
           . Upload it here and get instant feedback.
         </Description>
