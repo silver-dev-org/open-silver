@@ -25,7 +25,7 @@ export const config = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   try {
     const form = formidable();
@@ -62,7 +62,12 @@ export default async function handler(
       throw new Error("Either GitHub repo or zip file is required");
     }
 
-    if (!takeHome.code || !takeHome.docs) throw new Error("Repo is empty");
+    if (!takeHome.docs) {
+      throw new Error(
+        "It's mandatory for your take-home to have a README.md explaining it.",
+      );
+    }
+    if (!takeHome.code) throw new Error("Repo is empty.");
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const content = takeHomeToXML(takeHome);
@@ -103,12 +108,12 @@ async function getCodebaseFromGithub(octokit: Octokit, repoFullName: string) {
     filePaths.filter(isProcessableFile).map(async (path) => ({
       path: path,
       content: await getFileContent(octokit, repoFullName, path),
-    }))
+    })),
   );
 }
 
 function isProcessableFile(fileName: string) {
   return processableFileExtensions.some(
-    (extension) => fileName.endsWith(`.${extension}`) || fileName === extension
+    (extension) => fileName.endsWith(`.${extension}`) || fileName === extension,
   );
 }
