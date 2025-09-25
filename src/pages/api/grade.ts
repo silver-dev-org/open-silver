@@ -20,7 +20,7 @@ function isMultipartFormData(req: NextApiRequest) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData | { error: string }>
+  res: NextApiResponse<ResponseData | { error: string }>,
 ) {
   try {
     if (!["POST", "GET"].includes(req.method || "")) {
@@ -47,7 +47,7 @@ export default async function handler(
         res.setHeader("Content-Location", url);
         res.setHeader(
           "Cache-Control",
-          "public, max-age=604800, stale-while-revalidate=604800"
+          "public, max-age=604800, stale-while-revalidate=604800",
         );
       } else {
         const response = await fetch(url);
@@ -59,7 +59,7 @@ export default async function handler(
     const parsed = await pdf(pdfBuffer);
 
     const completion = await generateObject({
-      model: google("gemini-1.5-pro"),
+      model: google("gemini-2.5-flash"),
       temperature: 0,
       messages: messages(parsed, pdfBuffer),
       schema: ResponseSchema,
@@ -67,7 +67,7 @@ export default async function handler(
 
     if (!completion) {
       throw new Error(
-        "No se pudo completar el proceso de evaluación de currículum."
+        "No se pudo completar el proceso de evaluación de currículum.",
       );
     }
 
