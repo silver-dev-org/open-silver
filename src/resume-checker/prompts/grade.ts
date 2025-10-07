@@ -1,5 +1,5 @@
 import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
-import { GenerateObjectResult, type CoreMessage } from "ai";
+import { GenerateObjectResult, ModelMessage } from "ai";
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
@@ -146,14 +146,14 @@ ${GUIDE}
 ${NON_FLAGS}
 `;
 
-function createAssistantResponse(response: ResponseData): CoreMessage {
+function createAssistantResponse(response: ResponseData): ModelMessage {
   return {
     role: "assistant",
     content: JSON.stringify(response),
   };
 }
 
-function createInput(data: Buffer): CoreMessage {
+function createInput(data: Buffer): ModelMessage {
   return {
     role: "user",
     content: [
@@ -164,7 +164,7 @@ function createInput(data: Buffer): CoreMessage {
       {
         type: "file",
         data,
-        mimeType: "application/pdf",
+        mediaType: "application/pdf",
       },
     ],
   };
@@ -173,9 +173,9 @@ function createInput(data: Buffer): CoreMessage {
 /* Moving the fs.readFileSync call deeper causes an error when reading files */
 export function messages(
   parsed: { text: string; info?: any },
-  pdfBuffer: Buffer
-): CoreMessage[] {
-  const trainMessages: CoreMessage[] = [
+  pdfBuffer: Buffer,
+): ModelMessage[] {
+  const trainMessages: ModelMessage[] = [
     {
       data: fs.readFileSync(path.join(process.cwd(), "public/s_resume.pdf")),
       response: sResponse,
@@ -221,7 +221,7 @@ function hasHotmail(flag: string) {
 function removeGmailFlag(data: ResponseData) {
   const idxR = data.red_flags.findIndex((f) => !hasHotmail(f) && hasGmail(f));
   const idxY = data.yellow_flags.findIndex(
-    (f) => !hasHotmail(f) && hasGmail(f)
+    (f) => !hasHotmail(f) && hasGmail(f),
   );
 
   if (idxR !== -1) {
@@ -234,7 +234,7 @@ function removeGmailFlag(data: ResponseData) {
 }
 
 export function sanitizeCompletion(
-  completion: GenerateObjectResult<ResponseData>
+  completion: GenerateObjectResult<ResponseData>,
 ): ResponseData {
   const data = { ...completion.object };
 
