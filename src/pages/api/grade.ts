@@ -1,4 +1,5 @@
 import {
+  exampleResponses,
   messages,
   ResponseData,
   ResponseSchema,
@@ -7,8 +8,6 @@ import {
 import { google } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
-import fs from "node:fs";
-import path from "node:path";
 import pdf from "pdf-parse";
 
 function isMultipartFormData(req: NextApiRequest) {
@@ -20,7 +19,7 @@ function isMultipartFormData(req: NextApiRequest) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData | { error: string }>
+  res: NextApiResponse<ResponseData | { error: string }>,
 ) {
   try {
     if (!["POST", "GET"].includes(req.method || "")) {
@@ -41,19 +40,15 @@ export default async function handler(
         throw new Error("Tenés que proveer un archivo PDF o un URL.");
       }
 
-      if (url.startsWith("public")) {
-        pdfBuffer = fs.readFileSync(path.join(process.cwd(), url));
-        /* Set cache for a week only on the template resumes */
-        res.setHeader("Content-Location", url);
-        res.setHeader(
-          "Cache-Control",
-          "public, max-age=604800, stale-while-revalidate=604800"
-        );
-      } else {
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        pdfBuffer = Buffer.from(arrayBuffer);
+      const exampleResponse = exampleResponses.get(url);
+      if (exampleResponse) {
+        res.status(200).json(exampleResponse);
+        return;
       }
+
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      pdfBuffer = Buffer.from(arrayBuffer);
     }
 
     const parsed = await pdf(pdfBuffer);
@@ -63,11 +58,12 @@ export default async function handler(
       temperature: 0,
       messages: messages(parsed, pdfBuffer),
       schema: ResponseSchema,
+      mode: "json",
     });
 
     if (!completion) {
       throw new Error(
-        "No se pudo completar el proceso de evaluación de currículum."
+        "No se pudo completar el proceso de evaluación de currículum.",
       );
     }
 
