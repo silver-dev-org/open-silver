@@ -20,7 +20,7 @@ function isMultipartFormData(req: NextApiRequest) {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData | { error: string }>,
+  res: NextApiResponse<ResponseData | { error: string }>
 ) {
   try {
     if (!["POST", "GET"].includes(req.method || "")) {
@@ -47,7 +47,7 @@ export default async function handler(
         res.setHeader("Content-Location", url);
         res.setHeader(
           "Cache-Control",
-          "public, max-age=604800, stale-while-revalidate=604800",
+          "public, max-age=604800, stale-while-revalidate=604800"
         );
       } else {
         const response = await fetch(url);
@@ -67,18 +67,36 @@ export default async function handler(
 
     if (!completion) {
       throw new Error(
-        "No se pudo completar el proceso de evaluación de currículum.",
+        "No se pudo completar el proceso de evaluación de currículum."
       );
     }
 
     const sanitized = sanitizeCompletion(completion);
 
     res.status(200).json(sanitized);
-  } catch (err) {
-    console.error(err);
+  } catch (e) {
+    if (!(e instanceof Error)) {
+      console.error(e);
+      res.status(500).send({
+        error: "Ocurrió un error inesperado.",
+      });
+      return;
+    }
+
+    if (
+      e.message.includes("InvalidPDFException") ||
+      e.message.includes("Invalid PDF structure")
+    ) {
+      console.warn(e);
+      res.status(400).send({
+        error: "El archivo PDF proporcionado no es válido.",
+      });
+      return;
+    }
+
+    console.error(e);
     res.status(500).send({
-      error:
-        err instanceof Error ? err.message : "Ocurrió un error inesperado.",
+      error: e.message,
     });
   }
 }
