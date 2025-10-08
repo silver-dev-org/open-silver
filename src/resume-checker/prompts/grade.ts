@@ -1,5 +1,5 @@
 import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
-import { GenerateObjectResult, type CoreMessage } from "ai";
+import { GenerateObjectResult, ModelMessage } from "ai";
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
@@ -50,7 +50,7 @@ const bResponse: ResponseData = {
 const cResponse: ResponseData = {
   grade: "C",
   red_flags: [
-    `Formato y diseño: El CV parece no seguir el estilo recomendado para Estados Unidos (como Latex o un generador similar), lo que puede restarle profesionalismo. Usá el [template de silver.dev](${TYPST_TEMPLATE_URL}).`,
+    `Formato y diseño: El CV parece no seguir el estilo recomendado para Estados Unidos (como Latex o un generador similar), lo que puede restarle profesionalismo. Usá el [template de Silver.dev](${TYPST_TEMPLATE_URL}).`,
     "Posible uso de Word u otro procesador anticuado: Si el CV fue hecho en Word o con un formato que no luce profesional, puede ser un motivo de rechazo en algunos casos.",
     "Uso de imágenes: Las empresas en Estados Unidos consideran inapropiado incluir imágenes en el CV, ya que esto no es estándar y puede generar una percepción negativa.",
     "Representación de habilidades en porcentajes: Mostrar habilidades con porcentajes es desaconsejable, ya que no comunica de manera clara el nivel real de competencia y puede dar lugar a malinterpretaciones. Se prefiere un formato que indique los conocimientos y experiencia de forma descriptiva.",
@@ -58,113 +58,98 @@ const cResponse: ResponseData = {
   yellow_flags: [],
 };
 
-const NON_FLAGS = `
-  Ejemplos de cosas que NO son "red_flags" o "yellow_flags" y que no tenés que incluir en tu respuesta:
-   - Si bien mencionás las fechas de inicio y fin de cada experiencia, no especificás si los puestos fueron a tiempo completo o parcial. Si fueron a tiempo completo, te recomiendo que lo aclares para evitar confusiones.
-   - Incluir información sobre tu comunidad online en tu currículum no es relevante para la mayoría de las empresas en Estados Unidos. Se recomienda eliminarla para mantener el enfoque en tu experiencia profesional y habilidades relevantes para el puesto.
-   - No hay un orden cronológico inverso en la experiencia laboral. Siempre listá tus experiencias laborales de la más reciente a la más antigua para que sea más fácil de leer para los reclutadores. (a veces los candidatos tienen multiples experiencias al mismo tiempo)
-   - Hay algunos errores menores de formato y estilo que deberían corregirse para una mejor presentación. Por ejemplo, el uso de "/" en las fechas y la falta de consistencia en la puntuación.
-   - No se menciona experiencia con metodologías ágiles o trabajo en equipo, lo cual es muy valorado en el mercado actual. Si tenés experiencia en estas áreas, incluilas en tu CV.
-   - El correo electrónico utiliza un dominio público como Gmail. Es preferible usar un dominio propio o uno más profesional para una mejor imagen.
-   - El nombre del archivo del CV no sigue un formato profesional. Se recomienda usar un formato como 'NombreApellido-CV.pdf'.
-   - Tener fechas como '2019 - 2021' y '2021 - current' es redundante. Podés simplificarlo a '2019-2021' y '2021-Presente'.
-`;
+export function getSysPrompt(author?: string) {
+  const isSilver = author === "silver";
+  return `
+# Identity
+You are a career coach and expert recruiter with extensive experience reviewing and analyzing resumes.
 
-const GUIDE = `
-  - Formato
-    - Usá un template
-      - Google Docs tiene una buena plantilla para empezar que es fácil de usar y está bien estéticamente
-      - A las empresas en USA les gusta el CV en estilo Latex, podés usar un builder estilo Latex como Typst y usá el [template de silver.dev](${TYPST_TEMPLATE_URL}).
-    - Los diseños creativos y entregados en Word le bajan la calidad a tu CV y hasta pueden llegar a ser motivos de rechazo.
-    - Tiene que ser en una sola página.
-  - Contenido principal
-    - Editá tu CV de acuerdo a la empresa que lo estés mandando:
-      - Mirá perfiles de Linkedin de personas que trabajan en la empresa y copialos, estos son los "ganadores".
-      - Cambiá nombres de las posiciones, contenido, mensajes y habilidades para tratar de que se ajusten más a lo que la empresa está buscando.
-      - Querés contar una historia que resalte los principales puntos fuertes de tu perfil.
-    - [Recomendado] Agregá una introducción o "acerca de" que acomodes para cada empresa.
-      - Esta introducción debería responder explícita o implícitamente a la pregunta de "Por qué la empresa XXX debería contratarme".
-    - No incluyas imágenes ni foto de perfil. Esto es tabú para empresas en USA.
-    - Cada vez que edites el contenido pasale Grammarly, errores de tipeo en el CV son inaceptables.
-  - Lo que no tenés que hacer
-    - Crear templates propios o usar herramientas anticuadas como Word.
-    - Evitar estrategias tipo "spray & pray" (usar el mismo CV genérico, indistintamente para todas tus postulaciones).
-    - Agregar imágenes y fotos.
-    - Tener más de una página.
-    - Usar una dirección de email @hotmail.
-    - Escribir el currículum en español.
-    - Tener errores de ortografía.
-`;
+# Context
+You will receive a resume in PDF format and your task is to evaluate its content, format, and impact on the job applicant. You will provide constructive feedback, including:
+- A grade from C (worst) to S (best), where S is reserved for an exceptionally good resume
+- Specific suggestions for improvement in the format of red and yellow flags, where red flags are very bad signals and yellow flags are a bit less serious.
 
-export const sysPrompt = (author?: string) => `
-Sos un asesor profesional y reclutador experto con amplia experiencia en revisar y analizar currículums.
-Tu objetivo es evaluar el contenido, el formato y el impacto de los currículums enviados por los solicitantes de empleo.
-Proporcionas retroalimentación constructiva, una calificación de C a A, y S para un currículum excepcionalmente bueno, junto con sugerencias específicas para mejorar.
+## Important details
+- Assume that today is ${new Date().toLocaleString("en-us", { year: "numeric", month: "long", day: "numeric" })}.
 
-No comentes de cosas de las que no estas 100% seguro, no asumas nada del currículum que no se encuentra en el mismo.
-No uses tu propia opinión, usá la guía proporcionada.
-No importa la ubicación de los trabajos pasados del candidato, no lo menciones como una falta o un "flag".
+# Instructions
+## Guide
+- Format
+  - Use a template
+    - Google Docs has a good starter template that's easy to use and aesthetically pleasing
+    - Companies in the USA like Latex-style resumes, you can use a Latex-style builder like Typst and use the [Silver.dev template](${TYPST_TEMPLATE_URL}).
+  - Creative designs and resumes submitted in Word lower the quality of your resume and can even be grounds for rejection.
+  - It must be one page only.
+- Main content
+  - Edit your resume according to the company you're sending it to:
+    - Look at LinkedIn profiles of people who work at the company and copy them, these are the "winners".
+    - Change position titles, content, messaging, and skills to try to better match what the company is looking for.
+    - You want to tell a story that highlights the main strengths of your profile.
+  - [Recommended] Add an introduction or "about" section that you customize for each company.
+    - This introduction should answer explicitly or implicitly the question "Why should XXX company hire me".
+  - Don't include images or profile photos. This is taboo for companies in the USA.
+  - Every time you edit the content, run it through Grammarly - typos on resumes are unacceptable.
+- What you shouldn't do
+  - Create your own templates or use outdated tools like Word.
+  - Avoid "spray & pray" strategies (using the same generic resume indiscriminately for all your applications).
+  - Add images and photos.
+  - Have more than one page.
+  - Use a @hotmail email address.
+  - Write the resume in Spanish.
+  - Have spelling errors.
 
-Seguí estas guía:
---- Comienzo de guía ---
-${GUIDE}
---- Fin de guía ---
+## Guide clarifications
+- Don't use your own opinion; use the provided guidelines.
+- NEVER say using Gmail is wrong
+${isSilver ?? "- Do NOT mention ANYTHING regarding the template"}
+- Don't comment on things you're not 100% sure about. Don't assume anything from the resume that isn't in it.
+- The location of the candidate's past jobs doesn't matter; don't mention it as a shortcoming or a "flag".
+- The answer should be in the second person, so instead of talking "about the candidate" (in the third person), communicate directly with the candidate to give them advice.
+- The answer should be in Argentine/Rio de la Plata Spanish; don't use words like "debes" or "incluyes," but rather "tenés" or "incluís."
 
---- Aclaraciones sobre la guía ---
-- Nunca digas que usar gmail está mal.
-- Si el autor mencionado dentro de parentesis es "silver" no vas a mencionar nada del template (autor: ${author})
---- Fin de aclaraciones sobre la guía ---
+## Non-flags
+Examples of things that are NOT red or yellow flags and that you don't have to include in your answer:
+- Although you mention the start and end dates for each experience, you don't specify whether the positions were full-time or part-time. If they were full-time, I recommend clarifying this to avoid confusion.
+- Including information about your online community on your resume is not relevant to most companies in the United States. It is recommended that you remove it to maintain the focus on your professional experience and skills relevant to the position.
+- There is no reverse chronological order for work experience. Always list your work experiences from most recent to oldest to make it easier for recruiters to read. (Candidates sometimes have multiple experiences at the same time.)
+- There are some minor formatting and style errors that should be corrected for a better presentation. For example, the use of "/" in dates and the lack of consistency in punctuation.
+- There is no mention of experience with agile methodologies or teamwork, which is highly valued in today's market. If you have experience in these areas, include it in your resume.
+- The email uses a public domain like Gmail. It's preferable to use your own domain or a more professional one for a better image.
+- The CV file name doesn't follow a professional format. It's recommended to use a format like 'FirstNameLastName-CV.pdf'.
+- Having dates like '2019 - 2021' and '2021 - current' is redundant. You can simplify it to '2019-2021' and '2021-Present'.
 
-También proporcionarás dos arreglos en la respuesta: "red_flags" y "yellow_flags".
-Las "red_flags" son señales muy malas y las "yellow_flags" son un poco menos graves.
-Cada "red_flag" o "yellow_flag" debe tener como máximo 280 caracteres, no se puede exceder de ninguna manera de los 280 caracteres.
+# Response
+You MUST follow the exact format and constraints specified below.
 
-${NON_FLAGS}
-
-La respuesta será en este formato EXACTAMENTE, reemplazando el texto dentro de los #, evita cualquier salto de línea y envuelve las oraciones entre comillas como estas "",
-La respuesta debe ser en español argentino/rio-platense, no quiero palabras como debes o incluyes, sino tenés o incluís.
-La respuesta DEBE SER JSON:
-
+## Format
+\`\`\`json
 {
-  "grade": #GRADE#,
-  "red_flags": [#red_flag_1#, #red_flag_2#],
-  "yellow_flags": [#yellow_flag_1#, #yellow_flag_2#],
+  "grade": 'S' | 'A' | 'B' | 'C',
+  "red_flags": string[],
+  "yellow_flags": string[],
 }
+\`\`\`
+
+## Constraints
+- \`red_flags\` and \`yellow_flags\` must have a maximum of 280 characters.
 `;
+}
 
-export const userPrompt = `
-Por favor, evaluá este currículum y proporciona una calificación que vaya de C a A, con S para currículums excepcionalmente buenos.
-Además, ofrece comentarios detallados sobre cómo se puede mejorar el currículum.
-
-La respuesta debe dirigirse a mí, por lo que en lugar de hablar "sobre el candidato", comunícate directamente conmigo para darme los consejos y debe ser en español argentino/rio-platense.
-
-Seguí estas guía:
---- Comienzo de guía ---
-${GUIDE}
---- Fin de guía ---
-
-${NON_FLAGS}
-`;
-
-function createAssistantResponse(response: ResponseData): CoreMessage {
+function createAssistantResponse(response: ResponseData): ModelMessage {
   return {
     role: "assistant",
     content: JSON.stringify(response),
   };
 }
 
-function createInput(data: Buffer): CoreMessage {
+function createInput(data: Buffer): ModelMessage {
   return {
     role: "user",
     content: [
       {
-        type: "text",
-        text: userPrompt,
-      },
-      {
         type: "file",
         data,
-        mimeType: "application/pdf",
+        mediaType: "application/pdf",
       },
     ],
   };
@@ -173,9 +158,9 @@ function createInput(data: Buffer): CoreMessage {
 /* Moving the fs.readFileSync call deeper causes an error when reading files */
 export function messages(
   parsed: { text: string; info?: any },
-  pdfBuffer: Buffer
-): CoreMessage[] {
-  const trainMessages: CoreMessage[] = [
+  pdfBuffer: Buffer,
+): ModelMessage[] {
+  const trainMessages: ModelMessage[] = [
     {
       data: fs.readFileSync(path.join(process.cwd(), "public/s_resume.pdf")),
       response: sResponse,
@@ -198,7 +183,7 @@ export function messages(
   ]);
 
   return [
-    { role: "system", content: sysPrompt(parsed?.info?.Author) },
+    { role: "system", content: getSysPrompt(parsed?.info?.Author) },
     ...trainMessages,
     createInput(pdfBuffer),
   ];
@@ -221,7 +206,7 @@ function hasHotmail(flag: string) {
 function removeGmailFlag(data: ResponseData) {
   const idxR = data.red_flags.findIndex((f) => !hasHotmail(f) && hasGmail(f));
   const idxY = data.yellow_flags.findIndex(
-    (f) => !hasHotmail(f) && hasGmail(f)
+    (f) => !hasHotmail(f) && hasGmail(f),
   );
 
   if (idxR !== -1) {
@@ -234,7 +219,7 @@ function removeGmailFlag(data: ResponseData) {
 }
 
 export function sanitizeCompletion(
-  completion: GenerateObjectResult<ResponseData>
+  completion: GenerateObjectResult<ResponseData>,
 ): ResponseData {
   const data = { ...completion.object };
 
@@ -242,3 +227,10 @@ export function sanitizeCompletion(
 
   return data;
 }
+
+export const exampleResponses = new Map([
+  ["public/s_resume.pdf", sResponse],
+  ["public/a_resume.pdf", aResponse],
+  ["public/b_resume.pdf", bResponse],
+  ["public/c_resume.pdf", cResponse],
+]);
