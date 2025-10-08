@@ -35,6 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { CheckedState } from "@radix-ui/react-checkbox";
 
 interface InvoiceItem {
   id: string;
@@ -66,6 +67,85 @@ const formSchema = z.object({
   billingAddress: z.string().min(1, "Billing address is required"),
 });
 
+function getDefaultDueDate() {
+  const today = new Date();
+  const futureDate = new Date(today);
+  futureDate.setDate(today.getDate() + 30);
+  return futureDate;
+}
+
+function getLocale() {
+  const userLocale = navigator.language || "en-US";
+  return userLocale.startsWith("es") || userLocale.startsWith("ar") ? es : enUS;
+}
+
+function getDateFormat() {
+  const userLocale = navigator.language || "en-US";
+  return userLocale.startsWith("es") || userLocale.startsWith("ar")
+    ? "dd/MM/yy"
+    : "MM/dd/yy";
+}
+
+function parseTime(timeStr: string) {
+  const [time, period] = timeStr.split(/([ap]m)/);
+  const [hours, minutes] = time.split(":").map(Number);
+  const adjustedHours =
+    period === "pm" && hours !== 12
+      ? hours + 12
+      : period === "am" && hours === 12
+        ? 0
+        : hours;
+  return adjustedHours * 60 + minutes;
+}
+
+function calculateDuration(startTime: string, endTime: string) {
+  const startMinutes = parseTime(startTime);
+  const endMinutes = parseTime(endTime);
+  return endMinutes - startMinutes;
+}
+
+function parseInterviewText(text: string) {
+  const lines = text
+    .trim()
+    .split("\n")
+    .filter((line) => line.trim() !== "");
+  const interviews = [];
+
+  for (let i = 0; i < lines.length; i += 4) {
+    if (i + 3 < lines.length) {
+      const dateTimeLine = lines[i].trim();
+      const typeLine = lines[i + 1].trim();
+      const interviewerLine = lines[i + 2].trim();
+      const companyLine = lines[i + 3].trim();
+
+      const timeMatch = dateTimeLine.match(
+        /(\d{1,2}:\d{2}[ap]m)\s*-\s*(\d{1,2}:\d{2}[ap]m)/,
+      );
+      let duration = 45;
+
+      if (timeMatch) {
+        const startTime = timeMatch[1];
+        const endTime = timeMatch[2];
+        duration = calculateDuration(startTime, endTime);
+      }
+
+      const dateMatch = dateTimeLine.match(/^([^,]+,\s*[^,]+,\s*\d{4})/);
+      const date = dateMatch ? dateMatch[1] : "Unknown Date";
+
+      const interview = {
+        id: `${Date.now()}-${i}`,
+        name: `${typeLine} - ${interviewerLine} (${companyLine}) - ${date}`,
+        price: duration * 2,
+        isBonified: false,
+      };
+
+      interviews.push(interview);
+    }
+  }
+
+  return interviews;
+}
+
 export default function Component() {
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [itemName, setItemName] = useState("");
@@ -79,17 +159,7 @@ export default function Component() {
     null,
   );
   const [bonifyReason, setBonifyReason] = useState("");
-  const [saveData, setSaveData] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-
-  // Due Date (30 days from today by default)
-  const getDefaultDueDate = () => {
-    const today = new Date();
-    const futureDate = new Date(today);
-    futureDate.setDate(today.getDate() + 30);
-    return futureDate;
-  };
-
   const [dueDate, setDueDate] = useState<Date>(getDefaultDueDate());
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -123,32 +193,14 @@ export default function Component() {
         setValue("routingNumber", data.routingNumber || "");
         setValue("billingName", data.billingName || "");
         setValue("billingAddress", data.billingAddress || "");
-        setSaveData(true);
       } catch (error) {
         console.error("Error loading saved data:", error);
       }
     }
   }, [setValue]);
 
-  // Add this useEffect after the localStorage loading effect
-  useEffect(() => {
-    // Trigger form validation after data is loaded from localStorage
-    if (
-      watchedValues.invoiceName ||
-      watchedValues.invoiceSubtitle ||
-      watchedValues.bankName
-    ) {
-      form.trigger(); // This will validate all fields and update formState.isValid
-    }
-  }, [
-    watchedValues.invoiceName,
-    watchedValues.invoiceSubtitle,
-    watchedValues.bankName,
-    form,
-  ]);
-
   // Save data to localStorage when checkbox is checked
-  useEffect(() => {
+  function saveToLocalStorage(saveData: CheckedState) {
     if (saveData) {
       const dataToSave: SavedData = {
         invoiceName: watchedValues.invoiceName,
@@ -164,13 +216,7 @@ export default function Component() {
     } else {
       localStorage.removeItem("invoiceData");
     }
-  }, [saveData, watchedValues]);
-
-  // Update document title when name or service changes
-  useEffect(() => {
-    const title = `${watchedValues.invoiceName} | ${watchedValues.invoiceSubtitle} | Invoice`;
-    document.title = title;
-  }, [watchedValues.invoiceName, watchedValues.invoiceSubtitle]);
+  }
 
   // Generate invoice number on client side only
   useEffect(() => {
@@ -191,7 +237,7 @@ export default function Component() {
   const isFormValid = formState.isValid;
 
   // Custom print function with filename
-  const handlePrint = () => {
+  function handlePrint() {
     if (!isFormValid) {
       alert("Please fill in all required fields before printing.");
       return;
@@ -211,9 +257,9 @@ export default function Component() {
     setTimeout(() => {
       document.title = originalTitle;
     }, 1000);
-  };
+  }
 
-  const addItem = () => {
+  function addItem() {
     if (itemName.trim() && itemPrice.trim()) {
       const newItem: InvoiceItem = {
         id: Date.now().toString(),
@@ -225,22 +271,22 @@ export default function Component() {
       setItemName("");
       setItemPrice("");
     }
-  };
+  }
 
-  const removeItem = (id: string) => {
+  function removeItem(id: string) {
     setItems(items.filter((item) => item.id !== id));
-  };
+  }
 
-  const openBonifyDialog = (id: string) => {
+  function openBonifyDialog(id: string) {
     const item = items.find((item) => item.id === id);
     if (item) {
       setCurrentBonifyItem(id);
       setBonifyReason(item.bonifiedReason || "");
       setBonifyDialogOpen(true);
     }
-  };
+  }
 
-  const handleBonifySubmit = () => {
+  function handleBonifySubmit() {
     if (currentBonifyItem) {
       setItems(
         items.map((item) =>
@@ -257,9 +303,9 @@ export default function Component() {
     setBonifyDialogOpen(false);
     setCurrentBonifyItem(null);
     setBonifyReason("");
-  };
+  }
 
-  const toggleBonified = (id: string) => {
+  function toggleBonified(id: string) {
     const item = items.find((item) => item.id === id);
     if (!item) return;
 
@@ -276,7 +322,7 @@ export default function Component() {
       // If not bonified, open dialog to add reason
       openBonifyDialog(id);
     }
-  };
+  }
 
   const subtotal = items.reduce(
     (sum, item) => sum + (item.isBonified ? 0 : item.price),
@@ -287,22 +333,6 @@ export default function Component() {
     0,
   );
 
-  // Add locale detection function
-  const getLocale = () => {
-    const userLocale = navigator.language || "en-US";
-    return userLocale.startsWith("es") || userLocale.startsWith("ar")
-      ? es
-      : enUS;
-  };
-
-  const getDateFormat = () => {
-    const userLocale = navigator.language || "en-US";
-    // US format: MM/dd/yy, ES/AR format: dd/MM/yy
-    return userLocale.startsWith("es") || userLocale.startsWith("ar")
-      ? "dd/MM/yy"
-      : "MM/dd/yy";
-  };
-
   const formattedDueDate = format(dueDate, getDateFormat(), {
     locale: getLocale(),
   });
@@ -311,76 +341,14 @@ export default function Component() {
     locale: getLocale(),
   });
 
-  const parseInterviewText = (text: string) => {
-    const lines = text
-      .trim()
-      .split("\n")
-      .filter((line) => line.trim() !== "");
-    const interviews = [];
-
-    for (let i = 0; i < lines.length; i += 4) {
-      if (i + 3 < lines.length) {
-        const dateTimeLine = lines[i].trim();
-        const typeLine = lines[i + 1].trim();
-        const interviewerLine = lines[i + 2].trim();
-        const companyLine = lines[i + 3].trim();
-
-        // Extract time range and calculate duration
-        const timeMatch = dateTimeLine.match(
-          /(\d{1,2}:\d{2}[ap]m)\s*-\s*(\d{1,2}:\d{2}[ap]m)/,
-        );
-        let duration = 45; // default 45 minutes
-
-        if (timeMatch) {
-          const startTime = timeMatch[1];
-          const endTime = timeMatch[2];
-          duration = calculateDuration(startTime, endTime);
-        }
-
-        // Extract date
-        const dateMatch = dateTimeLine.match(/^([^,]+,\s*[^,]+,\s*\d{4})/);
-        const date = dateMatch ? dateMatch[1] : "Unknown Date";
-
-        const interview = {
-          id: `${Date.now()}-${i}`,
-          name: `${typeLine} - ${interviewerLine} (${companyLine}) - ${date}`,
-          price: duration * 2, // $2 per minute as example rate
-          isBonified: false,
-        };
-
-        interviews.push(interview);
-      }
-    }
-
-    return interviews;
-  };
-
-  const calculateDuration = (startTime: string, endTime: string) => {
-    const parseTime = (timeStr: string) => {
-      const [time, period] = timeStr.split(/([ap]m)/);
-      const [hours, minutes] = time.split(":").map(Number);
-      const adjustedHours =
-        period === "pm" && hours !== 12
-          ? hours + 12
-          : period === "am" && hours === 12
-            ? 0
-            : hours;
-      return adjustedHours * 60 + minutes;
-    };
-
-    const startMinutes = parseTime(startTime);
-    const endMinutes = parseTime(endTime);
-    return endMinutes - startMinutes;
-  };
-
-  const parseInterviews = () => {
+  function parseInterviews() {
     if (bulkText.trim()) {
       const parsed = parseInterviewText(bulkText);
       setParsedInterviews(parsed);
     }
-  };
+  }
 
-  const addParsedInterviews = () => {
+  function addParsedInterviews() {
     if (parsedInterviews.length > 0) {
       const price = bulkPrice ? Number.parseFloat(bulkPrice) : 0;
       const itemsWithBulkPrice = parsedInterviews.map((item) => ({
@@ -393,13 +361,13 @@ export default function Component() {
       setBulkText("");
       setBulkPrice("");
     }
-  };
+  }
 
-  const clearParsedInterviews = () => {
+  function clearParsedInterviews() {
     setParsedInterviews([]);
     setBulkText("");
     setBulkPrice("");
-  };
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
@@ -957,11 +925,7 @@ DevSolutions - Full Stack Engineer"
       {items.length > 0 && (
         <div className="print:hidden">
           <div className="flex items-center space-x-2 mb-4">
-            <Checkbox
-              id="save-data"
-              checked={saveData}
-              onCheckedChange={(checked) => setSaveData(checked as boolean)}
-            />
+            <Checkbox id="save-data" onCheckedChange={saveToLocalStorage} />
             <Label htmlFor="save-data" className="text-sm">
               Store all data in local storage for future use, this is not stored
               in any database
