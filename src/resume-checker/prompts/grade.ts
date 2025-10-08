@@ -96,10 +96,12 @@ const GUIDE = `
     - Tener errores de ortografía.
 `;
 
-export const sysPrompt = (author?: string) => `
+export const sysPrompt = (author?: string, currentDate?: string) => `
 Sos un asesor profesional y reclutador experto con amplia experiencia en revisar y analizar currículums.
 Tu objetivo es evaluar el contenido, el formato y el impacto de los currículums enviados por los solicitantes de empleo.
 Proporcionas retroalimentación constructiva, una calificación de C a A, y S para un currículum excepcionalmente bueno, junto con sugerencias específicas para mejorar.
+
+Fecha actual: ${currentDate || new Date().toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}
 
 No comentes de cosas de las que no estas 100% seguro, no asumas nada del currículum que no se encuentra en el mismo.
 No uses tu propia opinión, usá la guía proporcionada.
@@ -175,6 +177,12 @@ export function messages(
   parsed: { text: string; info?: any },
   pdfBuffer: Buffer
 ): CoreMessage[] {
+  const currentDate = new Date().toLocaleDateString('es-AR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   const trainMessages: CoreMessage[] = [
     {
       data: fs.readFileSync(path.join(process.cwd(), "public/s_resume.pdf")),
@@ -198,7 +206,7 @@ export function messages(
   ]);
 
   return [
-    { role: "system", content: sysPrompt(parsed?.info?.Author) },
+    { role: "system", content: sysPrompt(parsed?.info?.Author, currentDate) },
     ...trainMessages,
     createInput(pdfBuffer),
   ];
