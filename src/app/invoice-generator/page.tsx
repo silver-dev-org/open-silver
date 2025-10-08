@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Plus, Trash2, Gift, Edit3, Calendar } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
@@ -37,24 +37,13 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { CheckedState } from "@radix-ui/react-checkbox";
 
-interface InvoiceItem {
-  id: string;
-  name: string;
-  price: number;
-  isBonified: boolean;
-  bonifiedReason?: string;
-}
-
-interface SavedData {
-  invoiceName: string;
-  invoiceSubtitle: string;
-  bankName: string;
-  bankAddress: string;
-  accountNumber: string;
-  routingNumber: string;
-  billingName: string;
-  billingAddress: string;
-}
+const invoiceItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Item name is required"),
+  price: z.number().min(0, "Price must be positive"),
+  isBonified: z.boolean(),
+  bonifiedReason: z.string().optional(),
+});
 
 const formSchema = z.object({
   invoiceName: z.string().min(1, "Name is required"),
@@ -65,7 +54,16 @@ const formSchema = z.object({
   routingNumber: z.string().min(1, "Routing number is required"),
   billingName: z.string().min(1, "Name or Company Name is required"),
   billingAddress: z.string().min(1, "Billing address is required"),
+  items: z.array(invoiceItemSchema),
+  dueDate: z.date(),
+  itemName: z.string(),
+  itemPrice: z.string(),
+  bulkText: z.string(),
+  bulkPrice: z.string(),
 });
+
+type FormData = z.infer<typeof formSchema>;
+type InvoiceItem = z.infer<typeof invoiceItemSchema>;
 
 function getDefaultDueDate() {
   const today = new Date();
@@ -147,22 +145,16 @@ function parseInterviewText(text: string) {
 }
 
 export default function Component() {
-  const [items, setItems] = useState<InvoiceItem[]>([]);
-  const [itemName, setItemName] = useState("");
-  const [itemPrice, setItemPrice] = useState("");
-  const [bulkText, setBulkText] = useState("");
-  const [parsedInterviews, setParsedInterviews] = useState<InvoiceItem[]>([]);
-  const [bulkPrice, setBulkPrice] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState("750000");
   const [bonifyDialogOpen, setBonifyDialogOpen] = useState(false);
-  const [currentBonifyItem, setCurrentBonifyItem] = useState<string | null>(
+  const [currentBonifyIndex, setCurrentBonifyIndex] = useState<number | null>(
     null,
   );
   const [bonifyReason, setBonifyReason] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [dueDate, setDueDate] = useState<Date>(getDefaultDueDate());
+  const [parsedInterviews, setParsedInterviews] = useState<InvoiceItem[]>([]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       invoiceName: "",
@@ -173,70 +165,94 @@ export default function Component() {
       routingNumber: "",
       billingName: "",
       billingAddress: "",
+      items: [],
+      dueDate: getDefaultDueDate(),
+      itemName: "",
+      itemPrice: "",
+      bulkText: "",
+      bulkPrice: "",
     },
   });
 
-  const { watch, setValue, formState } = form;
-  const watchedValues = watch();
+  const { control, watch, setValue, formState } = form;
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: "items",
+  });
 
-  // Load saved data from localStorage on component mount
   useEffect(() => {
     const savedData = localStorage.getItem("invoiceData");
     if (savedData) {
       try {
-        const data: SavedData = JSON.parse(savedData);
-        setValue("invoiceName", data.invoiceName || "");
-        setValue("invoiceSubtitle", data.invoiceSubtitle || "");
-        setValue("bankName", data.bankName || "");
-        setValue("bankAddress", data.bankAddress || "");
-        setValue("accountNumber", data.accountNumber || "");
-        setValue("routingNumber", data.routingNumber || "");
-        setValue("billingName", data.billingName || "");
-        setValue("billingAddress", data.billingAddress || "");
+        const data = JSON.parse(savedData);
+        form.reset(data);
       } catch (error) {
         console.error("Error loading saved data:", error);
       }
     }
-  }, [setValue]);
+  }, [form]);
 
-  // Save data to localStorage when checkbox is checked
   function saveToLocalStorage(saveData: CheckedState) {
     if (saveData) {
-      const dataToSave: SavedData = {
-        invoiceName: watchedValues.invoiceName,
-        invoiceSubtitle: watchedValues.invoiceSubtitle,
-        bankName: watchedValues.bankName,
-        bankAddress: watchedValues.bankAddress || "",
-        accountNumber: watchedValues.accountNumber,
-        routingNumber: watchedValues.routingNumber,
-        billingName: watchedValues.billingName,
-        billingAddress: watchedValues.billingAddress,
-      };
+      const dataToSave = form.getValues();
       localStorage.setItem("invoiceData", JSON.stringify(dataToSave));
     } else {
       localStorage.removeItem("invoiceData");
     }
   }
 
-  // Generate invoice number on client side only
   useEffect(() => {
-    const generateInvoiceNumber = () => {
-      // Get current counter from localStorage, default to 750000
+    function generateInvoiceNumber() {
       const currentCounter = Number.parseInt(
         localStorage.getItem("invoiceCounter") || "750000",
       );
       const newCounter = currentCounter + 1;
       localStorage.setItem("invoiceCounter", newCounter.toString());
       return newCounter.toString().padStart(6, "0");
-    };
+    }
 
     setInvoiceNumber(generateInvoiceNumber());
   }, []);
 
-  // Check if form is valid
+  const items = watch("items");
+  const dueDate = watch("dueDate");
+  const itemName = watch("itemName");
+  const itemPrice = watch("itemPrice");
+  const bulkText = watch("bulkText");
+  const bulkPrice = watch("bulkPrice");
+  const invoiceName = watch("invoiceName");
+  const invoiceSubtitle = watch("invoiceSubtitle");
+  const billingName = watch("billingName");
+  const billingAddress = watch("billingAddress");
+  const bankName = watch("bankName");
+  const bankAddress = watch("bankAddress");
+  const accountNumber = watch("accountNumber");
+  const routingNumber = watch("routingNumber");
+
   const isFormValid = formState.isValid;
 
-  // Custom print function with filename
+  const subtotal = useMemo(
+    () =>
+      items.reduce((sum, item) => sum + (item.isBonified ? 0 : item.price), 0),
+    [items],
+  );
+
+  const bonifiedTotal = useMemo(
+    () =>
+      items.reduce((sum, item) => sum + (item.isBonified ? item.price : 0), 0),
+    [items],
+  );
+
+  const formattedDueDate = useMemo(
+    () => format(dueDate, getDateFormat(), { locale: getLocale() }),
+    [dueDate],
+  );
+
+  const currentDate = useMemo(
+    () => format(new Date(), getDateFormat(), { locale: getLocale() }),
+    [],
+  );
+
   function handlePrint() {
     if (!isFormValid) {
       alert("Please fill in all required fields before printing.");
@@ -247,13 +263,11 @@ export default function Component() {
     const dateString = currentDate.toISOString().slice(0, 10).replace(/-/g, "");
     const filename = `${dateString}_invoice.pdf`;
 
-    // Set the document title for printing
     const originalTitle = document.title;
     document.title = filename.replace(".pdf", "");
 
     window.print();
 
-    // Restore original title after print
     setTimeout(() => {
       document.title = originalTitle;
     }, 1000);
@@ -261,85 +275,58 @@ export default function Component() {
 
   function addItem() {
     if (itemName.trim() && itemPrice.trim()) {
-      const newItem: InvoiceItem = {
+      append({
         id: Date.now().toString(),
         name: itemName.trim(),
         price: Number.parseFloat(itemPrice),
         isBonified: false,
-      };
-      setItems([...items, newItem]);
-      setItemName("");
-      setItemPrice("");
+      });
+      setValue("itemName", "");
+      setValue("itemPrice", "");
     }
   }
 
-  function removeItem(id: string) {
-    setItems(items.filter((item) => item.id !== id));
+  function removeItem(index: number) {
+    remove(index);
   }
 
-  function openBonifyDialog(id: string) {
-    const item = items.find((item) => item.id === id);
+  function openBonifyDialog(index: number) {
+    const item = fields[index];
     if (item) {
-      setCurrentBonifyItem(id);
+      setCurrentBonifyIndex(index);
       setBonifyReason(item.bonifiedReason || "");
       setBonifyDialogOpen(true);
     }
   }
 
   function handleBonifySubmit() {
-    if (currentBonifyItem) {
-      setItems(
-        items.map((item) =>
-          item.id === currentBonifyItem
-            ? {
-                ...item,
-                isBonified: true,
-                bonifiedReason: bonifyReason.trim() || "No reason provided",
-              }
-            : item,
-        ),
-      );
+    if (currentBonifyIndex !== null) {
+      const item = fields[currentBonifyIndex];
+      update(currentBonifyIndex, {
+        ...item,
+        isBonified: true,
+        bonifiedReason: bonifyReason.trim() || "No reason provided",
+      });
     }
     setBonifyDialogOpen(false);
-    setCurrentBonifyItem(null);
+    setCurrentBonifyIndex(null);
     setBonifyReason("");
   }
 
-  function toggleBonified(id: string) {
-    const item = items.find((item) => item.id === id);
+  function toggleBonified(index: number) {
+    const item = fields[index];
     if (!item) return;
 
     if (item.isBonified) {
-      // If already bonified, remove bonification
-      setItems(
-        items.map((item) =>
-          item.id === id
-            ? { ...item, isBonified: false, bonifiedReason: undefined }
-            : item,
-        ),
-      );
+      update(index, {
+        ...item,
+        isBonified: false,
+        bonifiedReason: undefined,
+      });
     } else {
-      // If not bonified, open dialog to add reason
-      openBonifyDialog(id);
+      openBonifyDialog(index);
     }
   }
-
-  const subtotal = items.reduce(
-    (sum, item) => sum + (item.isBonified ? 0 : item.price),
-    0,
-  );
-  const bonifiedTotal = items.reduce(
-    (sum, item) => sum + (item.isBonified ? item.price : 0),
-    0,
-  );
-
-  const formattedDueDate = format(dueDate, getDateFormat(), {
-    locale: getLocale(),
-  });
-
-  const currentDate = format(new Date(), getDateFormat(), {
-    locale: getLocale(),
-  });
 
   function parseInterviews() {
     if (bulkText.trim()) {
@@ -351,22 +338,22 @@ export default function Component() {
   function addParsedInterviews() {
     if (parsedInterviews.length > 0) {
       const price = bulkPrice ? Number.parseFloat(bulkPrice) : 0;
-      const itemsWithBulkPrice = parsedInterviews.map((item) => ({
+      const itemsWithBulkPrice = parsedInterviews.map((item, idx) => ({
         ...item,
         price: price,
-        id: `${Date.now()}-${Math.random()}`, // Ensure unique IDs
+        id: `${Date.now()}-${idx}`,
       }));
-      setItems([...items, ...itemsWithBulkPrice]);
+      append(itemsWithBulkPrice);
       setParsedInterviews([]);
-      setBulkText("");
-      setBulkPrice("");
+      setValue("bulkText", "");
+      setValue("bulkPrice", "");
     }
   }
 
   function clearParsedInterviews() {
     setParsedInterviews([]);
-    setBulkText("");
-    setBulkPrice("");
+    setValue("bulkText", "");
+    setValue("bulkPrice", "");
   }
 
   return (
@@ -443,7 +430,7 @@ export default function Component() {
                         selected={dueDate}
                         onSelect={(date) => {
                           if (date) {
-                            setDueDate(date);
+                            setValue("dueDate", date);
                             setCalendarOpen(false);
                           }
                         }}
@@ -457,7 +444,7 @@ export default function Component() {
               <div className="text-right space-y-2">
                 <div>
                   <FormField
-                    control={form.control}
+                    control={control}
                     name="invoiceName"
                     render={({ field }) => (
                       <FormItem>
@@ -474,7 +461,7 @@ export default function Component() {
                 </div>
                 <div>
                   <FormField
-                    control={form.control}
+                    control={control}
                     name="invoiceSubtitle"
                     render={({ field }) => (
                       <FormItem>
@@ -502,7 +489,7 @@ export default function Component() {
           <CardContent>
             <div className="space-y-4">
               <FormField
-                control={form.control}
+                control={control}
                 name="billingName"
                 render={({ field }) => (
                   <FormItem>
@@ -515,7 +502,7 @@ export default function Component() {
                 )}
               />
               <FormField
-                control={form.control}
+                control={control}
                 name="billingAddress"
                 render={({ field }) => (
                   <FormItem>
@@ -535,7 +522,7 @@ export default function Component() {
           </CardContent>
         </Card>
 
-        {/* Bank Information - Hidden when printing */}
+        {/* Add Item Form - Hidden when printing */}
         <Card className="print:hidden">
           <CardHeader>
             <CardTitle>Bank Information</CardTitle>
@@ -544,7 +531,7 @@ export default function Component() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="bankName"
                   render={({ field }) => (
                     <FormItem>
@@ -559,7 +546,7 @@ export default function Component() {
               </div>
               <div className="md:col-span-2">
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="bankAddress"
                   render={({ field }) => (
                     <FormItem>
@@ -577,7 +564,7 @@ export default function Component() {
               </div>
               <div>
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="accountNumber"
                   render={({ field }) => (
                     <FormItem>
@@ -592,7 +579,7 @@ export default function Component() {
               </div>
               <div>
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="routingNumber"
                   render={({ field }) => (
                     <FormItem>
@@ -608,58 +595,73 @@ export default function Component() {
             </div>
           </CardContent>
         </Card>
-      </Form>
 
-      {/* Add Item Form - Hidden when printing */}
-      <Card className="print:hidden">
-        <CardHeader>
-          <CardTitle>Add Item</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <Label htmlFor="item-name">Item Name</Label>
-              <Input
-                id="item-name"
-                value={itemName}
-                onChange={(e) => setItemName(e.target.value)}
-                placeholder="Enter item name"
-              />
+        {/* Add Item Form - Hidden when printing */}
+        <Card className="print:hidden">
+          <CardHeader>
+            <CardTitle>Add Item</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <FormField
+                  control={control}
+                  name="itemName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Item Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter item name" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="w-32">
+                <FormField
+                  control={control}
+                  name="itemPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price ($)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <Button onClick={addItem} className="shrink-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
             </div>
-            <div className="w-32">
-              <Label htmlFor="item-price">Price ($)</Label>
-              <Input
-                id="item-price"
-                type="number"
-                step="0.01"
-                value={itemPrice}
-                onChange={(e) => setItemPrice(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-            <Button onClick={addItem} className="shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Item
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Bulk Import - Hidden when printing */}
-      <Card className="print:hidden">
-        <CardHeader>
-          <CardTitle>Bulk Import Interviews</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="bulk-text">Paste Interview Schedule</Label>
-              <textarea
-                id="bulk-text"
-                className="w-full min-h-[200px] p-3 border border-input rounded-md resize-vertical"
-                value={bulkText}
-                onChange={(e) => setBulkText(e.target.value)}
-                placeholder="Paste your interview schedule here...
+        {/* Bulk Import - Hidden when printing */}
+        <Card className="print:hidden">
+          <CardHeader>
+            <CardTitle>Bulk Import Interviews</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <FormField
+                control={control}
+                name="bulkText"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Paste Interview Schedule</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="w-full min-h-[200px] p-3 border border-input rounded-md resize-vertical"
+                        placeholder="Paste your interview schedule here...
 
 Example format:
 Wed, Jun 25, 2025 4:30pm - 5:15pm
@@ -671,322 +673,322 @@ Tue, Jun 24, 2025 5:00pm - 5:45pm
 Live Coding Interview
 Sarah Wilson
 DevSolutions - Full Stack Engineer"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
+              <Button onClick={parseInterviews} disabled={!bulkText.trim()}>
+                Parse Interviews
+              </Button>
             </div>
-            <Button onClick={parseInterviews} disabled={!bulkText.trim()}>
-              Parse Interviews
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Parsed Interviews Preview - Hidden when printing */}
-      {parsedInterviews.length > 0 && (
-        <Card className="print:hidden">
+        {/* Parsed Interviews Preview - Hidden when printing */}
+        {parsedInterviews.length > 0 && (
+          <Card className="print:hidden">
+            <CardHeader>
+              <CardTitle>
+                Parsed Interviews Preview ({parsedInterviews.length} items)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Bulk Price Setting */}
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <FormField
+                      control={control}
+                      name="bulkPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Set Price for All Items ($)</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              step="0.01"
+                              placeholder="Enter price for all interviews"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button onClick={addParsedInterviews} disabled={!bulkPrice}>
+                    Add All to Invoice
+                  </Button>
+                  <Button variant="outline" onClick={clearParsedInterviews}>
+                    Clear
+                  </Button>
+                </div>
+
+                {/* Preview Table */}
+                <div className="border rounded-md">
+                  <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-muted-foreground border-b p-3">
+                    <div className="col-span-10">Interview Details</div>
+                    <div className="col-span-2 text-right">Price</div>
+                  </div>
+                  {parsedInterviews.map((interview, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-12 gap-4 items-center p-3 border-b last:border-b-0"
+                    >
+                      <div className="col-span-10">
+                        <span className="text-sm">{interview.name}</span>
+                      </div>
+                      <div className="col-span-2 text-right">
+                        <span className="text-sm">
+                          $
+                          {bulkPrice
+                            ? Number.parseFloat(bulkPrice).toFixed(2)
+                            : "0.00"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Bill To Information - Shown on printed invoice */}
+        {billingName && (
+          <Card className="hidden print:block">
+            <CardHeader>
+              <CardTitle>Bill To</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                <p className="font-semibold">{billingName}</p>
+                <p>{billingAddress}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Invoice Items */}
+        <Card>
           <CardHeader>
-            <CardTitle>
-              Parsed Interviews Preview ({parsedInterviews.length} items)
-            </CardTitle>
+            <CardTitle>Invoice Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Bulk Price Setting */}
-              <div className="flex gap-4 items-end">
-                <div className="flex-1">
-                  <Label htmlFor="bulk-price">
-                    Set Price for All Items ($)
-                  </Label>
-                  <Input
-                    id="bulk-price"
-                    type="number"
-                    step="0.01"
-                    value={bulkPrice}
-                    onChange={(e) => setBulkPrice(e.target.value)}
-                    placeholder="Enter price for all interviews"
-                  />
-                </div>
-                <Button onClick={addParsedInterviews} disabled={!bulkPrice}>
-                  Add All to Invoice
-                </Button>
-                <Button variant="outline" onClick={clearParsedInterviews}>
-                  Clear
-                </Button>
-              </div>
-
-              {/* Preview Table */}
-              <div className="border rounded-md">
-                <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-muted-foreground border-b p-3">
-                  <div className="col-span-10">Interview Details</div>
+            {items.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                No items added yet. Add your first item above.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {/* Header */}
+                <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-muted-foreground border-b pb-2">
+                  <div className="col-span-6">Item</div>
                   <div className="col-span-2 text-right">Price</div>
+                  <div className="col-span-2 text-center">Status</div>
+                  <div className="col-span-2 text-center print:hidden">
+                    Actions
+                  </div>
                 </div>
-                {parsedInterviews.map((interview, index) => (
+
+                {/* Items */}
+                {fields.map((item, index) => (
                   <div
-                    key={index}
-                    className="grid grid-cols-12 gap-4 items-center p-3 border-b last:border-b-0"
+                    key={item.id}
+                    className="grid grid-cols-12 gap-4 items-center py-2 border-b"
                   >
-                    <div className="col-span-10">
-                      <span className="text-sm">{interview.name}</span>
+                    <div className="col-span-6">
+                      <span
+                        className={
+                          item.isBonified
+                            ? "line-through text-muted-foreground"
+                            : ""
+                        }
+                      >
+                        {item.name}
+                      </span>
+                      {item.isBonified && item.bonifiedReason && (
+                        <div className="text-xs text-green-600 mt-1">
+                          Reason: {item.bonifiedReason}
+                        </div>
+                      )}
                     </div>
                     <div className="col-span-2 text-right">
-                      <span className="text-sm">
-                        $
-                        {bulkPrice
-                          ? Number.parseFloat(bulkPrice).toFixed(2)
-                          : "0.00"}
+                      <span
+                        className={
+                          item.isBonified
+                            ? "line-through text-muted-foreground"
+                            : ""
+                        }
+                      >
+                        ${item.price.toFixed(2)}
                       </span>
+                      {item.isBonified && (
+                        <div className="text-green-600 font-semibold">FREE</div>
+                      )}
+                    </div>
+                    <div className="col-span-2 text-center">
+                      {item.isBonified ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-800"
+                        >
+                          <Gift className="w-3 h-3 mr-1" />
+                          Bonified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Regular</Badge>
+                      )}
+                    </div>
+                    <div className="col-span-2 flex justify-center gap-2 print:hidden">
+                      <Button
+                        size="sm"
+                        variant={item.isBonified ? "default" : "outline"}
+                        onClick={() => toggleBonified(index)}
+                      >
+                        <Gift className="w-3 h-3" />
+                      </Button>
+                      {item.isBonified && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openBonifyDialog(index)}
+                          title="Edit bonification reason"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => removeItem(index)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
-      )}
 
-      {/* Bill To Information - Shown on printed invoice */}
-      {watchedValues.billingName && (
-        <Card className="hidden print:block">
-          <CardHeader>
-            <CardTitle>Bill To</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-1">
-              <p className="font-semibold">{watchedValues.billingName}</p>
-              <p>{watchedValues.billingAddress}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Invoice Items */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoice Items</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {items.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No items added yet. Add your first item above.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {/* Header */}
-              <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-muted-foreground border-b pb-2">
-                <div className="col-span-6">Item</div>
-                <div className="col-span-2 text-right">Price</div>
-                <div className="col-span-2 text-center">Status</div>
-                <div className="col-span-2 text-center print:hidden">
-                  Actions
+        {/* Invoice Summary */}
+        {items.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Invoice Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
-              </div>
-
-              {/* Items */}
-              {items.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid grid-cols-12 gap-4 items-center py-2 border-b"
-                >
-                  <div className="col-span-6">
-                    <span
-                      className={
-                        item.isBonified
-                          ? "line-through text-muted-foreground"
-                          : ""
-                      }
-                    >
-                      {item.name}
-                    </span>
-                    {item.isBonified && item.bonifiedReason && (
-                      <div className="text-xs text-green-600 mt-1">
-                        Reason: {item.bonifiedReason}
-                      </div>
-                    )}
+                {bonifiedTotal > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Bonified Items (Discount):</span>
+                    <span>-${bonifiedTotal.toFixed(2)}</span>
                   </div>
-                  <div className="col-span-2 text-right">
-                    <span
-                      className={
-                        item.isBonified
-                          ? "line-through text-muted-foreground"
-                          : ""
-                      }
-                    >
-                      ${item.price.toFixed(2)}
-                    </span>
-                    {item.isBonified && (
-                      <div className="text-green-600 font-semibold">FREE</div>
-                    )}
-                  </div>
-                  <div className="col-span-2 text-center">
-                    {item.isBonified ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-800"
-                      >
-                        <Gift className="w-3 h-3 mr-1" />
-                        Bonified
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">Regular</Badge>
-                    )}
-                  </div>
-                  <div className="col-span-2 flex justify-center gap-2 print:hidden">
-                    <Button
-                      size="sm"
-                      variant={item.isBonified ? "default" : "outline"}
-                      onClick={() => toggleBonified(item.id)}
-                    >
-                      <Gift className="w-3 h-3" />
-                    </Button>
-                    {item.isBonified && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openBonifyDialog(item.id)}
-                        title="Edit bonification reason"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between text-lg font-bold">
+                  <span>Total:</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Invoice Summary */}
-      {items.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoice Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
+                {bonifiedTotal > 0 && (
+                  <p className="text-sm text-muted-foreground text-right">
+                    Original total: ${(subtotal + bonifiedTotal).toFixed(2)}
+                  </p>
+                )}
               </div>
-              {bonifiedTotal > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Bonified Items (Discount):</span>
-                  <span>-${bonifiedTotal.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="border-t pt-2 flex justify-between text-lg font-bold">
-                <span>Total:</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              {bonifiedTotal > 0 && (
-                <p className="text-sm text-muted-foreground text-right">
-                  Original total: ${(subtotal + bonifiedTotal).toFixed(2)}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Payment Information - Shown on printed invoice */}
-      {watchedValues.bankName && (
-        <Card className="hidden print:block">
-          <CardHeader>
-            <CardTitle>Payment Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p>
-                <strong>Bank:</strong> {watchedValues.bankName}
-              </p>
-              {watchedValues.bankAddress && (
+        {/* Payment Information - Shown on printed invoice */}
+        {bankName && (
+          <Card className="hidden print:block">
+            <CardHeader>
+              <CardTitle>Payment Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
                 <p>
-                  <strong>Bank Address:</strong> {watchedValues.bankAddress}
+                  <strong>Bank:</strong> {bankName}
                 </p>
-              )}
-              <p>
-                <strong>Account Number:</strong> {watchedValues.accountNumber}
-              </p>
-              <p>
-                <strong>Routing Number:</strong> {watchedValues.routingNumber}
-              </p>
+                {bankAddress && (
+                  <p>
+                    <strong>Bank Address:</strong> {bankAddress}
+                  </p>
+                )}
+                <p>
+                  <strong>Account Number:</strong> {accountNumber}
+                </p>
+                <p>
+                  <strong>Routing Number:</strong> {routingNumber}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Data Storage - Hidden when printing */}
+        {items.length > 0 && (
+          <div className="print:hidden">
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox id="save-data" onCheckedChange={saveToLocalStorage} />
+              <Label htmlFor="save-data" className="text-sm">
+                Store all data in local storage for future use, this is not
+                stored in any database
+              </Label>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Data Storage - Hidden when printing */}
-      {items.length > 0 && (
-        <div className="print:hidden">
-          <div className="flex items-center space-x-2 mb-4">
-            <Checkbox id="save-data" onCheckedChange={saveToLocalStorage} />
-            <Label htmlFor="save-data" className="text-sm">
-              Store all data in local storage for future use, this is not stored
-              in any database
-            </Label>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Form Validation Status - Hidden when printing */}
-      {items.length > 0 && (
-        <div className="print:hidden">
-          {!isFormValid && (
-            <Card className="border-red-200 bg-red-50">
-              <CardContent className="pt-4">
-                <div className="flex items-start gap-2">
-                  <div className="text-red-600 text-sm">
-                    <strong>
-                      Please complete the following required fields:
-                    </strong>
-                    <ul className="mt-2 space-y-1">
-                      {!watchedValues.invoiceName && <li>• Your name</li>}
-                      {!watchedValues.invoiceSubtitle && (
-                        <li>• Your business/service</li>
-                      )}
-                      {!watchedValues.billingName && (
-                        <li>• Client name or company name</li>
-                      )}
-                      {!watchedValues.billingAddress && (
-                        <li>• Complete billing address</li>
-                      )}
-                      {!watchedValues.bankName && <li>• Bank name</li>}
-                      {!watchedValues.accountNumber && (
-                        <li>• Account number</li>
-                      )}
-                      {!watchedValues.routingNumber && (
-                        <li>• Routing number</li>
-                      )}
-                    </ul>
+        {/* Form Validation Status - Hidden when printing */}
+        {items.length > 0 && (
+          <div className="print:hidden">
+            {!isFormValid && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="pt-4">
+                  <div className="flex items-start gap-2">
+                    <div className="text-red-600 text-sm">
+                      <strong>
+                        Please complete the following required fields:
+                      </strong>
+                      <ul className="mt-2 space-y-1">
+                        {!invoiceName && <li>• Your name</li>}
+                        {!invoiceSubtitle && <li>• Your business/service</li>}
+                        {!billingName && <li>• Client name or company name</li>}
+                        {!billingAddress && <li>• Complete billing address</li>}
+                        {!bankName && <li>• Bank name</li>}
+                        {!accountNumber && <li>• Account number</li>}
+                        {!routingNumber && <li>• Routing number</li>}
+                      </ul>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
-      {/* Print Button - Hidden when printing */}
-      {items.length > 0 && (
-        <div className="flex justify-end print:hidden">
-          <Button
-            onClick={handlePrint}
-            size="lg"
-            disabled={!isFormValid}
-            className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
-          >
-            {isFormValid
-              ? "Print Invoice"
-              : "Complete Required Fields to Print"}
-          </Button>
-        </div>
-      )}
+        {/* Print Button - Hidden when printing */}
+        {items.length > 0 && (
+          <div className="flex justify-end print:hidden">
+            <Button
+              onClick={handlePrint}
+              size="lg"
+              disabled={!isFormValid}
+              className={!isFormValid ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              {isFormValid
+                ? "Print Invoice"
+                : "Complete Required Fields to Print"}
+            </Button>
+          </div>
+        )}
+      </Form>
     </div>
   );
 }
