@@ -222,3 +222,10 @@ export function sanitizeCompletion(
 
   return data;
 }
+
+export const exampleResponses = new Map([
+  ["public/s_resume.pdf", sResponse],
+  ["public/a_resume.pdf", aResponse],
+  ["public/b_resume.pdf", bResponse],
+  ["public/c_resume.pdf", cResponse],
+]);
