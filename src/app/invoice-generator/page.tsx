@@ -26,6 +26,8 @@ import { BulkImportInterviews } from "./components/BulkImportInterviews";
 import { InvoiceItemsList } from "./components/InvoiceItemsList";
 import { InvoiceSummary } from "./components/InvoiceSummary";
 import { ValidationErrors } from "./components/ValidationErrors";
+import { SilverEdForm } from "./components/SilverEdForm";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const invoiceItemSchema = z.object({
   id: z.string(),
@@ -35,22 +37,45 @@ const invoiceItemSchema = z.object({
   bonifiedReason: z.string().optional(),
 });
 
-const formSchema = z.object({
-  invoiceName: z.string().min(1, "Name is required"),
-  invoiceSubtitle: z.string().min(1, "Service is required"),
-  bankName: z.string().min(1, "Bank name is required"),
-  bankAddress: z.string().optional(),
-  accountNumber: z.string().min(1, "Account number is required"),
-  routingNumber: z.string().min(1, "Routing number is required"),
-  billingName: z.string().min(1, "Name or Company Name is required"),
-  billingAddress: z.string().min(1, "Billing address is required"),
-  items: z.array(invoiceItemSchema),
-  dueDate: z.date(),
-  itemName: z.string().optional(),
-  itemPrice: z.string().optional(),
-  bulkText: z.string().optional(),
-  bulkPrice: z.string().optional(),
-});
+const formSchema = z
+  .object({
+    invoiceType: z.enum(["interviewers", "silvered"]),
+    invoiceName: z.string().min(1, "Name is required"),
+    invoiceSubtitle: z.string().min(1, "Service is required"),
+    bankName: z.string().min(1, "Bank name is required"),
+    bankAddress: z.string().optional(),
+    accountNumber: z.string().min(1, "Account number is required"),
+    routingNumber: z.string().min(1, "Routing number is required"),
+    billingName: z.string().min(1, "Name or Company Name is required"),
+    billingAddress: z.string().min(1, "Billing address is required"),
+    items: z.array(invoiceItemSchema),
+    dueDate: z.date(),
+    itemName: z.string().optional(),
+    itemPrice: z.string().optional(),
+    bulkText: z.string().optional(),
+    bulkPrice: z.string().optional(),
+    silveredCourse: z.string().optional(),
+    silveredInvoiceFile: z.instanceof(File).optional(),
+    silveredDescription: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.invoiceType === "silvered") {
+      if (!data.silveredCourse || data.silveredCourse.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Course is required for SilverEd invoices",
+          path: ["silveredCourse"],
+        });
+      }
+      if (!data.silveredInvoiceFile) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Course invoice PDF is required",
+          path: ["silveredInvoiceFile"],
+        });
+      }
+    }
+  });
 
 type FormData = z.infer<typeof formSchema>;
 type InvoiceItem = z.infer<typeof invoiceItemSchema>;
@@ -135,6 +160,7 @@ export default function Component() {
     resolver: zodResolver(formSchema),
     reValidateMode: "onChange",
     defaultValues: {
+      invoiceType: "interviewers",
       invoiceName: "",
       invoiceSubtitle: "",
       bankName: "",
@@ -149,6 +175,8 @@ export default function Component() {
       itemPrice: "",
       bulkText: "",
       bulkPrice: "",
+      silveredCourse: "",
+      silveredDescription: "",
     },
   });
 
@@ -159,6 +187,7 @@ export default function Component() {
   });
 
   const items = watch("items");
+  const invoiceType = watch("invoiceType");
 
   useEffect(() => {
     const savedData = localStorage.getItem("invoiceData");
@@ -297,8 +326,6 @@ export default function Component() {
     setValue("bulkPrice", "");
   }
 
-  console.log(form.watch(), formState.isValid, formState.errors);
-
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <style jsx global>{`
@@ -349,24 +376,73 @@ export default function Component() {
 
         <BankInformation control={control} />
 
-        <AddItemForm control={control} addItemAction={addItem} />
+        <div className="print:hidden">
+          <RadioGroup
+            value={invoiceType}
+            onValueChange={(value) =>
+              setValue("invoiceType", value as "interviewers" | "silvered")
+            }
+            className="grid grid-cols-2 gap-4"
+          >
+            <Label
+              htmlFor="interviewers"
+              className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                invoiceType === "interviewers"
+                  ? "border-primary bg-primary/10 font-semibold"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <RadioGroupItem
+                value="interviewers"
+                id="interviewers"
+                className="sr-only"
+              />
+              <span className="text-lg">Interviewers</span>
+            </Label>
+            <Label
+              htmlFor="silvered"
+              className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                invoiceType === "silvered"
+                  ? "border-primary bg-primary/10 font-semibold"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <RadioGroupItem
+                value="silvered"
+                id="silvered"
+                className="sr-only"
+              />
+              <span className="text-lg">SilverEd</span>
+            </Label>
+          </RadioGroup>
+        </div>
 
-        <BulkImportInterviews
-          control={control}
-          parseInterviewsAction={parseInterviews}
-          addParsedInterviewsAction={addParsedInterviews}
-          clearParsedInterviewsAction={clearParsedInterviews}
-          parsedInterviews={parsedInterviews}
-        />
+        {invoiceType === "interviewers" ? (
+          <>
+            <AddItemForm control={control} addItemAction={addItem} />
+
+            <BulkImportInterviews
+              control={control}
+              parseInterviewsAction={parseInterviews}
+              addParsedInterviewsAction={addParsedInterviews}
+              clearParsedInterviewsAction={clearParsedInterviews}
+              parsedInterviews={parsedInterviews}
+            />
+          </>
+        ) : (
+          <SilverEdForm control={control} />
+        )}
 
         <BillingInformation control={control} printOnly />
 
-        <InvoiceItemsList
-          fields={fields}
-          removeItemAction={removeItem}
-          toggleBonifiedAction={toggleBonified}
-          openBonifyDialogAction={openBonifyDialog}
-        />
+        {invoiceType === "interviewers" ? (
+          <InvoiceItemsList
+            fields={fields}
+            removeItemAction={removeItem}
+            toggleBonifiedAction={toggleBonified}
+            openBonifyDialogAction={openBonifyDialog}
+          />
+        ) : null}
 
         <InvoiceSummary control={control} />
 
