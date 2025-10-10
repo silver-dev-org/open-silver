@@ -3,7 +3,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs";
 import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { InvoicePDF } from "@/app/invoice-generator/utils/generate-invoice-pdf";
+import { InvoicePDF } from "@/app/invoice-generator/components/InvoicePDF";
+import { InvoiceEmail } from "@/app/invoice-generator/components/InvoiceEmail";
 
 const resend = new Resend(process.env.RESEND_KEY);
 
@@ -72,25 +73,22 @@ export default async function handler(
         ? `Invoice #${invoiceData.invoiceNumber} - ${invoiceData.billingName}`
         : `SilverEd Course Invoice - ${invoiceData.silveredCourse}`;
 
-    const emailText = `Invoice #${invoiceData.invoiceNumber}
-
-BILLING INFORMATION:
-${invoiceData.billingName}
-${invoiceData.billingAddress}
-
-BANK INFORMATION:
-Bank: ${invoiceData.bankName}${invoiceData.bankAddress ? `\nBank Address: ${invoiceData.bankAddress}` : ""}
-Account Number: ${invoiceData.accountNumber}
-Routing Number: ${invoiceData.routingNumber}
-
-Please find the invoice attached.${invoiceType === "silvered" ? `\n\nCourse: ${invoiceData.silveredCourse}\nAmount Paid: $${invoiceData.silveredAmount}` : ""}
-`;
-
     const { error } = await resend.emails.send({
       from: "Invoice Generator <invoices@silver.dev>",
       to: ["jen.calvineo@gmail.com"],
       subject: emailSubject,
-      text: emailText,
+      react: InvoiceEmail({
+        invoiceNumber: invoiceData.invoiceNumber,
+        invoiceType: invoiceType,
+        billingName: invoiceData.billingName,
+        billingAddress: invoiceData.billingAddress,
+        bankName: invoiceData.bankName,
+        bankAddress: invoiceData.bankAddress,
+        accountNumber: invoiceData.accountNumber,
+        routingNumber: invoiceData.routingNumber,
+        silveredCourse: invoiceData.silveredCourse,
+        silveredAmount: invoiceData.silveredAmount,
+      }),
       attachments: attachments.length > 0 ? attachments : undefined,
     });
 
