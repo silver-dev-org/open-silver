@@ -14,9 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Form } from "@/components/ui/form";
-import { CheckedState } from "@radix-ui/react-checkbox";
 
 import { InvoiceHeader } from "./components/InvoiceHeader";
 import { BillingInformation } from "./components/BillingInformation";
@@ -48,14 +46,14 @@ const formSchema = z
     routingNumber: z.string().min(1, "Routing number is required"),
     billingName: z.string().min(1, "Name or Company Name is required"),
     billingAddress: z.string().min(1, "Billing address is required"),
-    items: z.array(invoiceItemSchema),
+    items: z.array(invoiceItemSchema).optional(),
     dueDate: z.date(),
     itemName: z.string().optional(),
     itemPrice: z.string().optional(),
     bulkText: z.string().optional(),
     bulkPrice: z.string().optional(),
     silveredCourse: z.string().optional(),
-    silveredInvoiceFile: z.instanceof(File).optional(),
+    silveredInvoiceFile: z.instanceof(File).optional().or(z.undefined()),
     silveredDescription: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -155,6 +153,8 @@ export default function Component() {
   );
   const [bonifyReason, setBonifyReason] = useState("");
   const [parsedInterviews, setParsedInterviews] = useState<InvoiceItem[]>([]);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -186,7 +186,6 @@ export default function Component() {
     name: "items",
   });
 
-  const items = watch("items");
   const invoiceType = watch("invoiceType");
 
   useEffect(() => {
@@ -201,15 +200,6 @@ export default function Component() {
     }
   }, [form]);
 
-  function saveToLocalStorage(saveData: CheckedState) {
-    if (saveData) {
-      const dataToSave = form.getValues();
-      localStorage.setItem("invoiceData", JSON.stringify(dataToSave));
-    } else {
-      localStorage.removeItem("invoiceData");
-    }
-  }
-
   useEffect(() => {
     function generateInvoiceNumber() {
       const currentCounter = Number.parseInt(
@@ -223,19 +213,75 @@ export default function Component() {
     setInvoiceNumber(generateInvoiceNumber());
   }, []);
 
-  function handlePrint() {
-    const currentDate = new Date();
-    const dateString = currentDate.toISOString().slice(0, 10).replace(/-/g, "");
-    const filename = `${dateString}_invoice.pdf`;
+  async function handleSubmit(data: FormData) {
+    setSubmitError(null);
+    setSubmitSuccess(false);
 
-    const originalTitle = document.title;
-    document.title = filename.replace(".pdf", "");
+    try {
+      const formData = new FormData();
 
-    window.print();
+      formData.append("invoiceType", data.invoiceType);
+      formData.append(
+        "invoiceData",
+        JSON.stringify({
+          invoiceNumber,
+          invoiceName: data.invoiceName,
+          invoiceSubtitle: data.invoiceSubtitle,
+          billingName: data.billingName,
+          billingAddress: data.billingAddress,
+          bankName: data.bankName,
+          bankAddress: data.bankAddress,
+          accountNumber: data.accountNumber,
+          routingNumber: data.routingNumber,
+          items: data.items || [],
+          dueDate: data.dueDate,
+          silveredCourse: data.silveredCourse,
+          silveredDescription: data.silveredDescription,
+        }),
+      );
 
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 1000);
+      if (data.invoiceType === "silvered" && data.silveredInvoiceFile) {
+        formData.append("silveredInvoiceFile", data.silveredInvoiceFile);
+      }
+
+      const response = await fetch("/api/submit-invoice", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit invoice");
+      }
+
+      if (data.invoiceType === "interviewers") {
+        const dataToSave = {
+          invoiceType: data.invoiceType,
+          invoiceName: data.invoiceName,
+          invoiceSubtitle: data.invoiceSubtitle,
+          bankName: data.bankName,
+          bankAddress: data.bankAddress,
+          accountNumber: data.accountNumber,
+          routingNumber: data.routingNumber,
+          billingName: data.billingName,
+          billingAddress: data.billingAddress,
+          items: [],
+          dueDate: data.dueDate,
+          itemName: "",
+          itemPrice: "",
+          bulkText: "",
+          bulkPrice: "",
+        };
+        localStorage.setItem("invoiceData", JSON.stringify(dataToSave));
+      }
+
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setSubmitSuccess(false);
+      }, 5000);
+    } catch (error) {
+      console.error("Error submitting invoice:", error);
+      setSubmitError("Failed to submit invoice. Please try again.");
+    }
   }
 
   function addItem() {
@@ -370,105 +416,114 @@ export default function Component() {
       </Dialog>
 
       <Form {...form}>
-        <InvoiceHeader control={control} invoiceNumber={invoiceNumber} />
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="flex flex-col gap-4"
+        >
+          <InvoiceHeader control={control} invoiceNumber={invoiceNumber} />
 
-        <BillingInformation control={control} />
+          <BillingInformation control={control} />
 
-        <BankInformation control={control} />
+          <BankInformation control={control} />
 
-        <div className="print:hidden">
-          <RadioGroup
-            value={invoiceType}
-            onValueChange={(value) =>
-              setValue("invoiceType", value as "interviewers" | "silvered")
-            }
-            className="grid grid-cols-2 gap-4"
-          >
-            <Label
-              htmlFor="interviewers"
-              className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
-                invoiceType === "interviewers"
-                  ? "border-primary bg-primary/10 font-semibold"
-                  : "border-border hover:border-primary/50"
-              }`}
-            >
-              <RadioGroupItem
-                value="interviewers"
-                id="interviewers"
-                className="sr-only"
-              />
-              <span className="text-lg">Interviewers</span>
-            </Label>
-            <Label
-              htmlFor="silvered"
-              className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
-                invoiceType === "silvered"
-                  ? "border-primary bg-primary/10 font-semibold"
-                  : "border-border hover:border-primary/50"
-              }`}
-            >
-              <RadioGroupItem
-                value="silvered"
-                id="silvered"
-                className="sr-only"
-              />
-              <span className="text-lg">SilverEd</span>
-            </Label>
-          </RadioGroup>
-        </div>
-
-        {invoiceType === "interviewers" ? (
-          <>
-            <AddItemForm control={control} addItemAction={addItem} />
-
-            <BulkImportInterviews
-              control={control}
-              parseInterviewsAction={parseInterviews}
-              addParsedInterviewsAction={addParsedInterviews}
-              clearParsedInterviewsAction={clearParsedInterviews}
-              parsedInterviews={parsedInterviews}
-            />
-          </>
-        ) : (
-          <SilverEdForm control={control} />
-        )}
-
-        <BillingInformation control={control} printOnly />
-
-        {invoiceType === "interviewers" ? (
-          <InvoiceItemsList
-            fields={fields}
-            removeItemAction={removeItem}
-            toggleBonifiedAction={toggleBonified}
-            openBonifyDialogAction={openBonifyDialog}
-          />
-        ) : null}
-
-        <InvoiceSummary control={control} />
-
-        <BankInformation control={control} printOnly />
-
-        {items.length > 0 && (
           <div className="print:hidden">
-            <div className="flex items-center space-x-2 mb-4">
-              <Checkbox id="save-data" onCheckedChange={saveToLocalStorage} />
-              <Label htmlFor="save-data" className="text-sm">
-                Store all data in local storage for future use, this is not
-                stored in any database
+            <RadioGroup
+              value={invoiceType}
+              onValueChange={(value) =>
+                setValue("invoiceType", value as "interviewers" | "silvered")
+              }
+              className="grid grid-cols-2 gap-4"
+            >
+              <Label
+                htmlFor="interviewers"
+                className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  invoiceType === "interviewers"
+                    ? "border-primary bg-primary/10 font-semibold"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <RadioGroupItem
+                  value="interviewers"
+                  id="interviewers"
+                  className="sr-only"
+                />
+                <span className="text-lg">Interviewers</span>
               </Label>
-            </div>
+              <Label
+                htmlFor="silvered"
+                className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  invoiceType === "silvered"
+                    ? "border-primary bg-primary/10 font-semibold"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <RadioGroupItem
+                  value="silvered"
+                  id="silvered"
+                  className="sr-only"
+                />
+                <span className="text-lg">SilverEd</span>
+              </Label>
+            </RadioGroup>
           </div>
-        )}
 
-        <ValidationErrors errors={formState.errors} />
+          {invoiceType === "interviewers" ? (
+            <>
+              <AddItemForm control={control} addItemAction={addItem} />
 
-        {items.length > 0 && (
+              <BulkImportInterviews
+                control={control}
+                parseInterviewsAction={parseInterviews}
+                addParsedInterviewsAction={addParsedInterviews}
+                clearParsedInterviewsAction={clearParsedInterviews}
+                parsedInterviews={parsedInterviews}
+              />
+            </>
+          ) : (
+            <SilverEdForm control={control} />
+          )}
+
+          <BillingInformation control={control} printOnly />
+
+          {invoiceType === "interviewers" ? (
+            <InvoiceItemsList
+              fields={fields}
+              removeItemAction={removeItem}
+              toggleBonifiedAction={toggleBonified}
+              openBonifyDialogAction={openBonifyDialog}
+            />
+          ) : null}
+
+          <InvoiceSummary control={control} />
+
+          <BankInformation control={control} printOnly />
+
+          <ValidationErrors errors={formState.errors} />
+
+          {submitSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg print:hidden">
+              <p className="font-semibold">Invoice submitted successfully!</p>
+              <p className="text-sm">The invoice has been sent via email.</p>
+            </div>
+          )}
+
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg print:hidden">
+              <p className="font-semibold">Error submitting invoice</p>
+              <p className="text-sm">{submitError}</p>
+            </div>
+          )}
+
           <div className="flex justify-end print:hidden">
-            <Button onClick={handlePrint} size="lg">
-              Print Invoice
+            <Button
+              size="lg"
+              disabled={formState.isSubmitting || !formState.isValid}
+              type="submit"
+            >
+              {formState.isSubmitting ? "Submitting..." : "Submit Invoice"}
             </Button>
           </div>
-        )}
+        </form>
       </Form>
     </div>
   );
