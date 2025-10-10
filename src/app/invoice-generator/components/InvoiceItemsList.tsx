@@ -111,6 +111,7 @@ export function InvoiceItemsList({
                     size="sm"
                     variant={invoiceItem.isBonified ? "default" : "outline"}
                     onClick={() => toggleBonifiedAction(index)}
+                    type="button"
                   >
                     <Gift className="w-3 h-3" />
                   </Button>
@@ -120,6 +121,7 @@ export function InvoiceItemsList({
                       variant="outline"
                       onClick={() => openBonifyDialogAction(index)}
                       title="Edit bonification reason"
+                      type="button"
                     >
                       <Edit3 className="w-3 h-3" />
                     </Button>
@@ -128,6 +130,7 @@ export function InvoiceItemsList({
                     size="sm"
                     variant="outline"
                     onClick={() => removeItemAction(index)}
+                    type="button"
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>

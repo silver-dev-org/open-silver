@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Control, useWatch } from "react-hook-form";
 import { Upload, File, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   FormControl,
@@ -137,15 +137,16 @@ export function SilverEdForm({ control }: SilverEdFormProps) {
 
           <FormField
             control={control}
-            name="silveredDescription"
+            name="silveredAmount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description (Optional)</FormLabel>
+                <FormLabel>Amount Paid ($)</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <Input
                     {...field}
-                    placeholder="Add any additional notes or description..."
-                    className="min-h-[100px]"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
                   />
                 </FormControl>
                 <FormMessage />
