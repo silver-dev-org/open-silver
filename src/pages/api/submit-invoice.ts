@@ -80,7 +80,7 @@ Bank: ${invoiceData.bankName}${invoiceData.bankAddress ? `\nBank Address: ${invo
 Account Number: ${invoiceData.accountNumber}
 Routing Number: ${invoiceData.routingNumber}
 
-${invoiceType === "silvered" ? `\n\nCourse: ${invoiceData.silveredCourse}${invoiceData.silveredDescription ? `\nDescription: ${invoiceData.silveredDescription}` : ""}` : ""}
+Please find the invoice attached.${invoiceType === "silvered" ? `\n\nCourse: ${invoiceData.silveredCourse}\nAmount Paid: $${invoiceData.silveredAmount}` : ""}
 `;
 
     const { error } = await resend.emails.send({

@@ -56,7 +56,7 @@ const formSchema = z
     bulkPrice: z.string().optional(),
     silveredCourse: z.string().optional(),
     silveredInvoiceFile: z.instanceof(File).optional().or(z.undefined()),
-    silveredDescription: z.string().optional(),
+    silveredAmount: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.invoiceType === "silvered") {
@@ -72,6 +72,13 @@ const formSchema = z
           code: z.ZodIssueCode.custom,
           message: "Course invoice PDF is required",
           path: ["silveredInvoiceFile"],
+        });
+      }
+      if (!data.silveredAmount || data.silveredAmount.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Amount paid is required for SilverEd invoices",
+          path: ["silveredAmount"],
         });
       }
     }
@@ -176,7 +183,7 @@ export default function Component() {
       bulkText: "",
       bulkPrice: "",
       silveredCourse: "",
-      silveredDescription: "",
+      silveredAmount: "",
     },
   });
 
@@ -208,7 +215,7 @@ export default function Component() {
           items: data.items || [],
           dueDate: data.dueDate,
           silveredCourse: data.silveredCourse,
-          silveredDescription: data.silveredDescription,
+          silveredAmount: data.silveredAmount,
         }),
       );
 
@@ -269,7 +276,7 @@ export default function Component() {
         delete data.items;
         delete data.silveredCourse;
         delete data.silveredInvoiceFile;
-        delete data.silveredDescription;
+        delete data.silveredAmount;
         form.reset(
           { ...data, dueDate: getDefaultDueDate(), items: [] },
           { keepDefaultValues: false },
@@ -447,7 +454,7 @@ export default function Component() {
                 setValue("items", []);
                 setValue("silveredCourse", undefined);
                 setValue("silveredInvoiceFile", undefined);
-                setValue("silveredDescription", undefined);
+                setValue("silveredAmount", undefined);
               }}
               className="grid grid-cols-2 gap-4"
             >
