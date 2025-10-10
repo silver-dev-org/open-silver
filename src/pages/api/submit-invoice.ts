@@ -75,7 +75,7 @@ export default async function handler(
 
     const { error } = await resend.emails.send({
       from: "Invoice Generator <invoices@silver.dev>",
-      to: ["jen.calvineo@gmail.com"],
+      to: ["silver-dev@ap.mercury.com"],
       subject: emailSubject,
       react: InvoiceEmail({
         invoiceNumber: invoiceData.invoiceNumber,
