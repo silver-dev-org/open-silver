@@ -73,6 +73,7 @@ DevSolutions - Full Stack Engineer"
               )}
             />
             <Button
+              type="button"
               onClick={parseInterviewsAction}
               disabled={!bulkText?.trim()}
             >
@@ -114,10 +115,15 @@ DevSolutions - Full Stack Engineer"
                 <Button
                   onClick={addParsedInterviewsAction}
                   disabled={!bulkPrice}
+                  type="button"
                 >
                   Add All to Invoice
                 </Button>
-                <Button variant="outline" onClick={clearParsedInterviewsAction}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={clearParsedInterviewsAction}
+                >
                   Clear
                 </Button>
               </div>

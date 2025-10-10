@@ -67,6 +67,7 @@ export function InvoiceHeader({ control, invoiceNumber }: InvoiceHeaderProps) {
               <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     className="h-6 w-6 p-0 print:hidden"

@@ -424,12 +424,15 @@ export default function Component() {
             </div>
             <div className="flex justify-end gap-2">
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setBonifyDialogOpen(false)}
               >
                 Cancel
               </Button>
-              <Button onClick={handleBonifySubmit}>Mark as Free</Button>
+              <Button type="button" onClick={handleBonifySubmit}>
+                Mark as Free
+              </Button>
             </div>
           </div>
         </DialogContent>
