@@ -8,7 +8,12 @@ import { Control, useWatch } from "react-hook-form";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FormControl, FormField, FormItem } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Popover,
   PopoverContent,
@@ -106,6 +111,7 @@ export function InvoiceHeader({ control, invoiceNumber }: InvoiceHeaderProps) {
                         placeholder="Enter your name"
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -123,6 +129,7 @@ export function InvoiceHeader({ control, invoiceNumber }: InvoiceHeaderProps) {
                         placeholder="Enter your business/service"
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
