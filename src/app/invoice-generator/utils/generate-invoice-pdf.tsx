@@ -142,6 +142,9 @@ interface InvoiceData {
   routingNumber: string;
   items: InvoiceItem[];
   dueDate: Date;
+  invoiceType?: string;
+  silveredAmount?: string;
+  silveredCourse?: string;
 }
 
 export function InvoicePDF({ data }: { data: InvoiceData }) {
@@ -152,14 +155,21 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
     locale: getLocale(),
   });
 
-  const subtotal = data.items.reduce(
-    (sum, item) => sum + (item.isBonified ? 0 : item.price),
-    0,
-  );
-  const bonifiedTotal = data.items.reduce(
-    (sum, item) => sum + (item.isBonified ? item.price : 0),
-    0,
-  );
+  const subtotal =
+    data.items?.reduce(
+      (sum, item) => sum + (item.isBonified ? 0 : item.price),
+      0,
+    ) || 0;
+  const bonifiedTotal =
+    data.items?.reduce(
+      (sum, item) => sum + (item.isBonified ? item.price : 0),
+      0,
+    ) || 0;
+
+  const total =
+    data.invoiceType === "silvered" && data.silveredAmount
+      ? parseFloat(data.silveredAmount)
+      : subtotal;
 
   return (
     <Document>
@@ -185,64 +195,83 @@ export function InvoicePDF({ data }: { data: InvoiceData }) {
           <Text style={styles.text}>{data.billingAddress}</Text>
         </View>
 
-        {/* Items Table */}
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={styles.col1}>Item</Text>
-            <Text style={styles.col2}>Price</Text>
-            <Text style={styles.col3}>Status</Text>
+        {/* Items Table or Course Info */}
+        {data.invoiceType === "silvered" ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Course Information</Text>
+            <Text style={styles.text}>
+              <Text style={styles.bold}>Course:</Text> {data.silveredCourse}
+            </Text>
+            <Text style={styles.text}>
+              <Text style={styles.bold}>Amount:</Text> $
+              {parseFloat(data.silveredAmount || "0").toFixed(2)}
+            </Text>
           </View>
-
-          {data.items.map((item) => (
-            <View key={item.id} style={styles.tableRow}>
-              <View style={styles.col1}>
-                <Text style={item.isBonified ? styles.strikethrough : {}}>
-                  {item.name}
-                </Text>
-                {item.isBonified && item.bonifiedReason && (
-                  <Text style={{ fontSize: 8, color: "#22c55e", marginTop: 2 }}>
-                    Reason: {item.bonifiedReason}
-                  </Text>
-                )}
-              </View>
-              <View style={styles.col2}>
-                <Text style={item.isBonified ? styles.strikethrough : {}}>
-                  ${item.price.toFixed(2)}
-                </Text>
-                {item.isBonified && (
-                  <Text style={{ color: "#22c55e", fontWeight: "bold" }}>
-                    FREE
-                  </Text>
-                )}
-              </View>
-              <Text style={styles.col3}>
-                {item.isBonified ? "Bonified" : "Regular"}
-              </Text>
+        ) : (
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={styles.col1}>Item</Text>
+              <Text style={styles.col2}>Price</Text>
+              <Text style={styles.col3}>Status</Text>
             </View>
-          ))}
-        </View>
+
+            {data.items?.map((item) => (
+              <View key={item.id} style={styles.tableRow}>
+                <View style={styles.col1}>
+                  <Text style={item.isBonified ? styles.strikethrough : {}}>
+                    {item.name}
+                  </Text>
+                  {item.isBonified && item.bonifiedReason && (
+                    <Text
+                      style={{ fontSize: 8, color: "#22c55e", marginTop: 2 }}
+                    >
+                      Reason: {item.bonifiedReason}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.col2}>
+                  <Text style={item.isBonified ? styles.strikethrough : {}}>
+                    ${item.price.toFixed(2)}
+                  </Text>
+                  {item.isBonified && (
+                    <Text style={{ color: "#22c55e", fontWeight: "bold" }}>
+                      FREE
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.col3}>
+                  {item.isBonified ? "Bonified" : "Regular"}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Summary */}
         <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
-          </View>
-          {bonifiedTotal > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: "#22c55e" }]}>
-                Bonified Items (Discount):
-              </Text>
-              <Text style={[styles.summaryValue, { color: "#22c55e" }]}>
-                -${bonifiedTotal.toFixed(2)}
-              </Text>
-            </View>
+          {data.invoiceType === "interviewers" && (
+            <>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Subtotal:</Text>
+                <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+              </View>
+              {bonifiedTotal > 0 && (
+                <View style={styles.summaryRow}>
+                  <Text style={[styles.summaryLabel, { color: "#22c55e" }]}>
+                    Bonified Items (Discount):
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: "#22c55e" }]}>
+                    -${bonifiedTotal.toFixed(2)}
+                  </Text>
+                </View>
+              )}
+            </>
           )}
           <View style={styles.totalRow}>
             <Text style={styles.summaryLabel}>Total:</Text>
-            <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
+            <Text style={styles.summaryValue}>${total.toFixed(2)}</Text>
           </View>
-          {bonifiedTotal > 0 && (
+          {data.invoiceType === "interviewers" && bonifiedTotal > 0 && (
             <Text style={{ fontSize: 8, color: "#666", marginTop: 5 }}>
               Original total: ${(subtotal + bonifiedTotal).toFixed(2)}
             </Text>

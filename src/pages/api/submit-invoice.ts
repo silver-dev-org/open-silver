@@ -45,6 +45,9 @@ export default async function handler(
           routingNumber: invoiceData.routingNumber,
           items: invoiceData.items || [],
           dueDate: new Date(invoiceData.dueDate),
+          invoiceType: invoiceType,
+          silveredAmount: invoiceData.silveredAmount,
+          silveredCourse: invoiceData.silveredCourse,
         },
       }),
     );
