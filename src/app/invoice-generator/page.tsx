@@ -266,8 +266,12 @@ export default function Component() {
       try {
         const data = JSON.parse(savedData);
         delete data.dueDate;
+        delete data.items;
+        delete data.silveredCourse;
+        delete data.silveredInvoiceFile;
+        delete data.silveredDescription;
         form.reset(
-          { ...data, dueDate: getDefaultDueDate() },
+          { ...data, dueDate: getDefaultDueDate(), items: [] },
           { keepDefaultValues: false },
         );
       } catch (error) {
@@ -438,9 +442,13 @@ export default function Component() {
           <div className="print:hidden">
             <RadioGroup
               value={invoiceType}
-              onValueChange={(value) =>
-                setValue("invoiceType", value as "interviewers" | "silvered")
-              }
+              onValueChange={(value) => {
+                setValue("invoiceType", value as "interviewers" | "silvered");
+                setValue("items", []);
+                setValue("silveredCourse", undefined);
+                setValue("silveredInvoiceFile", undefined);
+                setValue("silveredDescription", undefined);
+              }}
               className="grid grid-cols-2 gap-4"
             >
               <Label

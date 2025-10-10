@@ -31,30 +31,30 @@ export default async function handler(
       filename: string;
     }> = [];
 
-    if (invoiceType === "interviewers") {
-      const pdfBuffer = await renderToBuffer(
-        InvoicePDF({
-          data: {
-            invoiceNumber: invoiceData.invoiceNumber,
-            invoiceName: invoiceData.invoiceName,
-            invoiceSubtitle: invoiceData.invoiceSubtitle,
-            billingName: invoiceData.billingName,
-            billingAddress: invoiceData.billingAddress,
-            bankName: invoiceData.bankName,
-            bankAddress: invoiceData.bankAddress,
-            accountNumber: invoiceData.accountNumber,
-            routingNumber: invoiceData.routingNumber,
-            items: invoiceData.items,
-            dueDate: new Date(invoiceData.dueDate),
-          },
-        }),
-      );
+    const pdfBuffer = await renderToBuffer(
+      InvoicePDF({
+        data: {
+          invoiceNumber: invoiceData.invoiceNumber,
+          invoiceName: invoiceData.invoiceName,
+          invoiceSubtitle: invoiceData.invoiceSubtitle,
+          billingName: invoiceData.billingName,
+          billingAddress: invoiceData.billingAddress,
+          bankName: invoiceData.bankName,
+          bankAddress: invoiceData.bankAddress,
+          accountNumber: invoiceData.accountNumber,
+          routingNumber: invoiceData.routingNumber,
+          items: invoiceData.items || [],
+          dueDate: new Date(invoiceData.dueDate),
+        },
+      }),
+    );
 
-      attachments.push({
-        content: pdfBuffer.toString("base64"),
-        filename: `invoice_${invoiceData.invoiceNumber}.pdf`,
-      });
-    } else if (invoiceType === "silvered") {
+    attachments.push({
+      content: pdfBuffer.toString("base64"),
+      filename: `invoice_${invoiceData.invoiceNumber}.pdf`,
+    });
+
+    if (invoiceType === "silvered") {
       const silveredFile = files.silveredInvoiceFile?.[0];
       if (silveredFile) {
         attachments.push({
@@ -69,33 +69,23 @@ export default async function handler(
         ? `Invoice #${invoiceData.invoiceNumber} - ${invoiceData.billingName}`
         : `SilverEd Course Invoice - ${invoiceData.silveredCourse}`;
 
-    const emailText =
-      invoiceType === "interviewers"
-        ? `New invoice generated:
+    const emailText = `Invoice #${invoiceData.invoiceNumber}
 
-Invoice #: ${invoiceData.invoiceNumber}
-From: ${invoiceData.invoiceName}
-To: ${invoiceData.billingName}
-Total: $${invoiceData.items.reduce((sum: number, item: any) => sum + (item.isBonified ? 0 : item.price), 0).toFixed(2)}
+BILLING INFORMATION:
+${invoiceData.billingName}
+${invoiceData.billingAddress}
 
-Items:
-${invoiceData.items.map((item: any) => `- ${item.name}: $${item.price.toFixed(2)}${item.isBonified ? " (Bonified)" : ""}`).join("\n")}
-`
-        : `New SilverEd course invoice:
+BANK INFORMATION:
+Bank: ${invoiceData.bankName}${invoiceData.bankAddress ? `\nBank Address: ${invoiceData.bankAddress}` : ""}
+Account Number: ${invoiceData.accountNumber}
+Routing Number: ${invoiceData.routingNumber}
 
-Course: ${invoiceData.silveredCourse}
-From: ${invoiceData.invoiceName}
-To: ${invoiceData.billingName}
-${invoiceData.silveredDescription ? `\nDescription: ${invoiceData.silveredDescription}` : ""}
+${invoiceType === "silvered" ? `\n\nCourse: ${invoiceData.silveredCourse}${invoiceData.silveredDescription ? `\nDescription: ${invoiceData.silveredDescription}` : ""}` : ""}
 `;
 
     const { error } = await resend.emails.send({
       from: "Invoice Generator <invoices@silver.dev>",
-      to: [
-        "jen.calvineo@gmail.com",
-        "gabriel@silver.dev",
-        "nicolas@silver.dev",
-      ],
+      to: ["jen.calvineo@gmail.com"],
       subject: emailSubject,
       text: emailText,
       attachments: attachments.length > 0 ? attachments : undefined,
