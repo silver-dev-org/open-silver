@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -153,8 +155,6 @@ export default function Component() {
   );
   const [bonifyReason, setBonifyReason] = useState("");
   const [parsedInterviews, setParsedInterviews] = useState<InvoiceItem[]>([]);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -188,36 +188,8 @@ export default function Component() {
 
   const invoiceType = watch("invoiceType");
 
-  useEffect(() => {
-    const savedData = localStorage.getItem("invoiceData");
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData);
-        form.reset(data);
-      } catch (error) {
-        console.error("Error loading saved data:", error);
-      }
-    }
-  }, [form]);
-
-  useEffect(() => {
-    function generateInvoiceNumber() {
-      const currentCounter = Number.parseInt(
-        localStorage.getItem("invoiceCounter") || "750000",
-      );
-      const newCounter = currentCounter + 1;
-      localStorage.setItem("invoiceCounter", newCounter.toString());
-      return newCounter.toString().padStart(6, "0");
-    }
-
-    setInvoiceNumber(generateInvoiceNumber());
-  }, []);
-
-  async function handleSubmit(data: FormData) {
-    setSubmitError(null);
-    setSubmitSuccess(false);
-
-    try {
+  const submitInvoiceMutation = useMutation({
+    mutationFn: async (data: FormData) => {
       const formData = new FormData();
 
       formData.append("invoiceType", data.invoiceType);
@@ -253,6 +225,13 @@ export default function Component() {
         throw new Error("Failed to submit invoice");
       }
 
+      return response.json();
+    },
+    onSuccess: (_, data) => {
+      toast.success("Invoice submitted successfully!", {
+        description: "The invoice has been sent via email.",
+      });
+
       if (data.invoiceType === "interviewers") {
         const dataToSave = {
           invoiceType: data.invoiceType,
@@ -265,7 +244,6 @@ export default function Component() {
           billingName: data.billingName,
           billingAddress: data.billingAddress,
           items: [],
-          dueDate: data.dueDate,
           itemName: "",
           itemPrice: "",
           bulkText: "",
@@ -273,15 +251,46 @@ export default function Component() {
         };
         localStorage.setItem("invoiceData", JSON.stringify(dataToSave));
       }
-
-      setSubmitSuccess(true);
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 5000);
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error submitting invoice:", error);
-      setSubmitError("Failed to submit invoice. Please try again.");
+      toast.error("Failed to submit invoice", {
+        description: "Please try again.",
+      });
+    },
+  });
+
+  useEffect(() => {
+    const savedData = localStorage.getItem("invoiceData");
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        delete data.dueDate;
+        form.reset(
+          { ...data, dueDate: getDefaultDueDate() },
+          { keepDefaultValues: false },
+        );
+      } catch (error) {
+        console.error("Error loading saved data:", error);
+      }
     }
+  }, [form]);
+
+  useEffect(() => {
+    function generateInvoiceNumber() {
+      const currentCounter = Number.parseInt(
+        localStorage.getItem("invoiceCounter") || "750000",
+      );
+      const newCounter = currentCounter + 1;
+      localStorage.setItem("invoiceCounter", newCounter.toString());
+      return newCounter.toString().padStart(6, "0");
+    }
+
+    setInvoiceNumber(generateInvoiceNumber());
+  }, []);
+
+  function handleSubmit(data: FormData) {
+    submitInvoiceMutation.mutate(data);
   }
 
   function addItem() {
@@ -500,27 +509,15 @@ export default function Component() {
 
           <ValidationErrors errors={formState.errors} />
 
-          {submitSuccess && (
-            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg print:hidden">
-              <p className="font-semibold">Invoice submitted successfully!</p>
-              <p className="text-sm">The invoice has been sent via email.</p>
-            </div>
-          )}
-
-          {submitError && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg print:hidden">
-              <p className="font-semibold">Error submitting invoice</p>
-              <p className="text-sm">{submitError}</p>
-            </div>
-          )}
-
           <div className="flex justify-end print:hidden">
             <Button
               size="lg"
-              disabled={formState.isSubmitting || !formState.isValid}
+              disabled={submitInvoiceMutation.isPending || !formState.isValid}
               type="submit"
             >
-              {formState.isSubmitting ? "Submitting..." : "Submit Invoice"}
+              {submitInvoiceMutation.isPending
+                ? "Submitting..."
+                : "Submit Invoice"}
             </Button>
           </div>
         </form>

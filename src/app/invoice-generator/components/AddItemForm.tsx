@@ -10,6 +10,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 
 interface AddItemFormProps {
@@ -35,6 +36,7 @@ export function AddItemForm({ control, addItemAction }: AddItemFormProps) {
                   <FormControl>
                     <Input {...field} placeholder="Enter item name" />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -54,6 +56,7 @@ export function AddItemForm({ control, addItemAction }: AddItemFormProps) {
                       placeholder="0.00"
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
