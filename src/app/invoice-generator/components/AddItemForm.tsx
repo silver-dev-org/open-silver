@@ -61,7 +61,7 @@ export function AddItemForm({ control, addItemAction }: AddItemFormProps) {
               )}
             />
           </div>
-          <Button onClick={addItemAction} className="shrink-0">
+          <Button type="button" onClick={addItemAction} className="shrink-0">
             <Plus className="w-4 h-4 mr-2" />
             Add Item
           </Button>
