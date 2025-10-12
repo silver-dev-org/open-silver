@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { spaceSizes } from "./spacer";
+import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -38,7 +39,7 @@ export default function Header() {
 
   if (pathname?.startsWith("/resume-checker")) {
     links[1].push({
-      href: "https://typst.app/app?template=silver-dev-cv",
+      href: TYPST_TEMPLATE_URL,
       label: "Resume Template",
       external: true,
       button: true,
