@@ -19,6 +19,7 @@ import {
   useState,
 } from "react";
 import { useDropzone } from "react-dropzone";
+import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
 
 function usePasteEvent(pasteListener: (event: ClipboardEvent) => void) {
   useEffect(() => {
@@ -116,7 +117,7 @@ export default function Home() {
         <Description center>
           Build your resume with{" "}
           <Link
-            href="https://typst.app/app?template=silver-dev-cv"
+            href={TYPST_TEMPLATE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="link"
