@@ -1,0 +1,545 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
+
+import { InvoiceHeader } from "./components/InvoiceHeader";
+import { BillingInformation } from "./components/BillingInformation";
+import { BankInformation } from "./components/BankInformation";
+import { AddItemForm } from "./components/AddItemForm";
+import { BulkImportInterviews } from "./components/BulkImportInterviews";
+import { InvoiceItemsList } from "./components/InvoiceItemsList";
+import { InvoiceSummary } from "./components/InvoiceSummary";
+import { ValidationErrors } from "./components/ValidationErrors";
+import { SilverEdForm } from "./components/SilverEdForm";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+const invoiceItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Item name is required"),
+  price: z.number().min(0, "Price must be positive"),
+  isBonified: z.boolean(),
+  bonifiedReason: z.string().optional(),
+});
+
+const formSchema = z
+  .object({
+    invoiceType: z.enum(["interviewers", "silvered"]),
+    invoiceName: z.string().min(1, "Name is required"),
+    invoiceSubtitle: z.string().min(1, "Service is required"),
+    bankName: z.string().min(1, "Bank name is required"),
+    bankAddress: z.string().optional(),
+    accountNumber: z.string().min(1, "Account number is required"),
+    routingNumber: z.string().min(1, "Routing number is required"),
+    billingName: z.string().min(1, "Name or Company Name is required"),
+    billingAddress: z.string().min(1, "Billing address is required"),
+    items: z.array(invoiceItemSchema).optional(),
+    dueDate: z.date(),
+    itemName: z.string().optional(),
+    itemPrice: z.string().optional(),
+    bulkText: z.string().optional(),
+    bulkPrice: z.string().optional(),
+    silveredCourse: z.string().optional(),
+    silveredInvoiceFile: z.instanceof(File).optional().or(z.undefined()),
+    silveredAmount: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.invoiceType === "silvered") {
+      if (!data.silveredCourse || data.silveredCourse.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Course is required for SilverEd invoices",
+          path: ["silveredCourse"],
+        });
+      }
+      if (!data.silveredInvoiceFile) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Course invoice PDF is required",
+          path: ["silveredInvoiceFile"],
+        });
+      }
+      if (!data.silveredAmount || data.silveredAmount.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Amount paid is required for SilverEd invoices",
+          path: ["silveredAmount"],
+        });
+      }
+    }
+  });
+
+type FormData = z.infer<typeof formSchema>;
+type InvoiceItem = z.infer<typeof invoiceItemSchema>;
+
+function getDefaultDueDate() {
+  const today = new Date();
+  const futureDate = new Date(today);
+  futureDate.setDate(today.getDate() + 30);
+  return futureDate;
+}
+
+function parseTime(timeStr: string) {
+  const [time, period] = timeStr.split(/([ap]m)/);
+  const [hours, minutes] = time.split(":").map(Number);
+  const adjustedHours =
+    period === "pm" && hours !== 12
+      ? hours + 12
+      : period === "am" && hours === 12
+        ? 0
+        : hours;
+  return adjustedHours * 60 + minutes;
+}
+
+function calculateDuration(startTime: string, endTime: string) {
+  const startMinutes = parseTime(startTime);
+  const endMinutes = parseTime(endTime);
+  return endMinutes - startMinutes;
+}
+
+function parseInterviewText(text: string) {
+  const lines = text
+    .trim()
+    .split("\n")
+    .filter((line) => line.trim() !== "");
+  const interviews = [];
+
+  for (let i = 0; i < lines.length; i += 4) {
+    if (i + 3 < lines.length) {
+      const dateTimeLine = lines[i].trim();
+      const typeLine = lines[i + 1].trim();
+      const interviewerLine = lines[i + 2].trim();
+      const companyLine = lines[i + 3].trim();
+
+      const timeMatch = dateTimeLine.match(
+        /(\d{1,2}:\d{2}[ap]m)\s*-\s*(\d{1,2}:\d{2}[ap]m)/,
+      );
+      let duration = 45;
+
+      if (timeMatch) {
+        const startTime = timeMatch[1];
+        const endTime = timeMatch[2];
+        duration = calculateDuration(startTime, endTime);
+      }
+
+      const dateMatch = dateTimeLine.match(/^([^,]+,\s*[^,]+,\s*\d{4})/);
+      const date = dateMatch ? dateMatch[1] : "Unknown Date";
+
+      const interview = {
+        id: `${Date.now()}-${i}`,
+        name: `${typeLine} - ${interviewerLine} (${companyLine}) - ${date}`,
+        price: duration * 2,
+        isBonified: false,
+      };
+
+      interviews.push(interview);
+    }
+  }
+
+  return interviews;
+}
+
+export default function Component() {
+  const [invoiceNumber, setInvoiceNumber] = useState("750000");
+  const [bonifyDialogOpen, setBonifyDialogOpen] = useState(false);
+  const [currentBonifyIndex, setCurrentBonifyIndex] = useState<number | null>(
+    null,
+  );
+  const [bonifyReason, setBonifyReason] = useState("");
+  const [parsedInterviews, setParsedInterviews] = useState<InvoiceItem[]>([]);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    reValidateMode: "onChange",
+    defaultValues: {
+      invoiceType: "interviewers",
+      invoiceName: "",
+      invoiceSubtitle: "",
+      bankName: "",
+      bankAddress: "",
+      accountNumber: "",
+      routingNumber: "",
+      billingName: "",
+      billingAddress: "",
+      items: [],
+      dueDate: getDefaultDueDate(),
+      itemName: "",
+      itemPrice: "",
+      bulkText: "",
+      bulkPrice: "",
+      silveredCourse: "",
+      silveredAmount: "",
+    },
+  });
+
+  const { control, watch, setValue, formState } = form;
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  const invoiceType = watch("invoiceType");
+
+  const submitInvoiceMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const formData = new FormData();
+
+      formData.append("invoiceType", data.invoiceType);
+      formData.append(
+        "invoiceData",
+        JSON.stringify({
+          invoiceNumber,
+          invoiceName: data.invoiceName,
+          invoiceSubtitle: data.invoiceSubtitle,
+          billingName: data.billingName,
+          billingAddress: data.billingAddress,
+          bankName: data.bankName,
+          bankAddress: data.bankAddress,
+          accountNumber: data.accountNumber,
+          routingNumber: data.routingNumber,
+          items: data.items || [],
+          dueDate: data.dueDate,
+          silveredCourse: data.silveredCourse,
+          silveredAmount: data.silveredAmount,
+        }),
+      );
+
+      if (data.invoiceType === "silvered" && data.silveredInvoiceFile) {
+        formData.append("silveredInvoiceFile", data.silveredInvoiceFile);
+      }
+
+      const response = await fetch("/api/submit-invoice", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit invoice");
+      }
+
+      return response.json();
+    },
+    onSuccess: (_, data) => {
+      toast.success("Invoice submitted successfully!", {
+        description: "The invoice has been sent via email.",
+      });
+
+      if (data.invoiceType === "interviewers") {
+        const dataToSave = {
+          invoiceType: data.invoiceType,
+          invoiceName: data.invoiceName,
+          invoiceSubtitle: data.invoiceSubtitle,
+          bankName: data.bankName,
+          bankAddress: data.bankAddress,
+          accountNumber: data.accountNumber,
+          routingNumber: data.routingNumber,
+          billingName: data.billingName,
+          billingAddress: data.billingAddress,
+          items: [],
+          itemName: "",
+          itemPrice: "",
+          bulkText: "",
+          bulkPrice: "",
+        };
+        localStorage.setItem("invoiceData", JSON.stringify(dataToSave));
+      }
+    },
+    onError: (error) => {
+      console.error("Error submitting invoice:", error);
+      toast.error("Failed to submit invoice", {
+        description: "Please try again.",
+      });
+    },
+  });
+
+  useEffect(() => {
+    const savedData = localStorage.getItem("invoiceData");
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        delete data.dueDate;
+        delete data.items;
+        delete data.silveredCourse;
+        delete data.silveredInvoiceFile;
+        delete data.silveredAmount;
+        form.reset(
+          { ...data, dueDate: getDefaultDueDate(), items: [] },
+          { keepDefaultValues: false },
+        );
+      } catch (error) {
+        console.error("Error loading saved data:", error);
+      }
+    }
+  }, [form]);
+
+  useEffect(() => {
+    function generateInvoiceNumber() {
+      const currentCounter = Number.parseInt(
+        localStorage.getItem("invoiceCounter") || "750000",
+      );
+      const newCounter = currentCounter + 1;
+      localStorage.setItem("invoiceCounter", newCounter.toString());
+      return newCounter.toString().padStart(6, "0");
+    }
+
+    setInvoiceNumber(generateInvoiceNumber());
+  }, []);
+
+  function handleSubmit(data: FormData) {
+    submitInvoiceMutation.mutate(data);
+  }
+
+  function addItem() {
+    const itemName = form.getValues("itemName") || "";
+    const itemPrice = form.getValues("itemPrice") || "";
+
+    if (itemName.trim() && itemPrice.trim()) {
+      append({
+        id: Date.now().toString(),
+        name: itemName.trim(),
+        price: Number.parseFloat(itemPrice),
+        isBonified: false,
+      });
+      setValue("itemName", "");
+      setValue("itemPrice", "");
+    }
+  }
+
+  function removeItem(index: number) {
+    remove(index);
+  }
+
+  function openBonifyDialog(index: number) {
+    const item = fields[index];
+    if (item) {
+      setCurrentBonifyIndex(index);
+      setBonifyReason(item.bonifiedReason || "");
+      setBonifyDialogOpen(true);
+    }
+  }
+
+  function handleBonifySubmit() {
+    if (currentBonifyIndex !== null) {
+      const item = fields[currentBonifyIndex];
+      update(currentBonifyIndex, {
+        ...item,
+        isBonified: true,
+        bonifiedReason: bonifyReason.trim() || "No reason provided",
+      });
+    }
+    setBonifyDialogOpen(false);
+    setCurrentBonifyIndex(null);
+    setBonifyReason("");
+  }
+
+  function toggleBonified(index: number) {
+    const item = fields[index];
+    if (!item) return;
+
+    if (item.isBonified) {
+      update(index, {
+        ...item,
+        isBonified: false,
+        bonifiedReason: undefined,
+      });
+    } else {
+      openBonifyDialog(index);
+    }
+  }
+
+  function parseInterviews() {
+    const bulkText = form.getValues("bulkText") || "";
+    if (bulkText.trim()) {
+      const parsed = parseInterviewText(bulkText);
+      setParsedInterviews(parsed);
+    }
+  }
+
+  function addParsedInterviews() {
+    if (parsedInterviews.length > 0) {
+      const bulkPrice = form.getValues("bulkPrice");
+      const price = bulkPrice ? Number.parseFloat(bulkPrice) : 0;
+      const itemsWithBulkPrice = parsedInterviews.map((item, idx) => ({
+        ...item,
+        price: price,
+        id: `${Date.now()}-${idx}`,
+      }));
+      append(itemsWithBulkPrice);
+      setParsedInterviews([]);
+      setValue("bulkText", "");
+      setValue("bulkPrice", "");
+    }
+  }
+
+  function clearParsedInterviews() {
+    setParsedInterviews([]);
+    setValue("bulkText", "");
+    setValue("bulkPrice", "");
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 0.5in;
+          }
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+        }
+      `}</style>
+
+      <Dialog open={bonifyDialogOpen} onOpenChange={setBonifyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mark Item as Bonified (Free)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bonify-reason">Reason for bonification</Label>
+              <Textarea
+                id="bonify-reason"
+                value={bonifyReason}
+                onChange={(e) => setBonifyReason(e.target.value)}
+                placeholder="Enter reason for making this item free (e.g., 'Promotional offer', 'Client loyalty discount', 'Technical issues during session')"
+                className="min-h-[100px]"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setBonifyDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleBonifySubmit}>
+                Mark as Free
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="flex flex-col gap-4"
+        >
+          <InvoiceHeader control={control} invoiceNumber={invoiceNumber} />
+
+          <BillingInformation control={control} />
+
+          <BankInformation control={control} />
+
+          <div className="print:hidden">
+            <RadioGroup
+              value={invoiceType}
+              onValueChange={(value) => {
+                setValue("invoiceType", value as "interviewers" | "silvered");
+                setValue("items", []);
+                setValue("silveredCourse", undefined);
+                setValue("silveredInvoiceFile", undefined);
+                setValue("silveredAmount", undefined);
+              }}
+              className="grid grid-cols-2 gap-4"
+            >
+              <Label
+                htmlFor="interviewers"
+                className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  invoiceType === "interviewers"
+                    ? "border-primary bg-primary/10 font-semibold"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <RadioGroupItem
+                  value="interviewers"
+                  id="interviewers"
+                  className="sr-only"
+                />
+                <span className="text-lg">Interviewers</span>
+              </Label>
+              <Label
+                htmlFor="silvered"
+                className={`flex items-center justify-center p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                  invoiceType === "silvered"
+                    ? "border-primary bg-primary/10 font-semibold"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                <RadioGroupItem
+                  value="silvered"
+                  id="silvered"
+                  className="sr-only"
+                />
+                <span className="text-lg">SilverEd</span>
+              </Label>
+            </RadioGroup>
+          </div>
+
+          {invoiceType === "interviewers" ? (
+            <>
+              <AddItemForm control={control} addItemAction={addItem} />
+
+              <BulkImportInterviews
+                control={control}
+                parseInterviewsAction={parseInterviews}
+                addParsedInterviewsAction={addParsedInterviews}
+                clearParsedInterviewsAction={clearParsedInterviews}
+                parsedInterviews={parsedInterviews}
+              />
+            </>
+          ) : (
+            <SilverEdForm control={control} />
+          )}
+
+          <BillingInformation control={control} printOnly />
+
+          {invoiceType === "interviewers" ? (
+            <InvoiceItemsList
+              fields={fields}
+              removeItemAction={removeItem}
+              toggleBonifiedAction={toggleBonified}
+              openBonifyDialogAction={openBonifyDialog}
+            />
+          ) : null}
+
+          <InvoiceSummary control={control} />
+
+          <BankInformation control={control} printOnly />
+
+          <ValidationErrors errors={formState.errors} />
+
+          <div className="flex justify-end print:hidden">
+            <Button
+              size="lg"
+              disabled={submitInvoiceMutation.isPending || !formState.isValid}
+              type="submit"
+            >
+              {submitInvoiceMutation.isPending
+                ? "Submitting..."
+                : "Submit Invoice"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
