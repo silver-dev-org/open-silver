@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export default function Description({
   children,
   center,
@@ -9,9 +11,11 @@ export default function Description({
 }) {
   return (
     <p
-      className={`text-xl max-w-prose text-balance ${
-        center && "text-center mx-auto"
-      } ${className}`}
+      className={cn(
+        "text-xl max-w-prose text-balance",
+        center && "text-center mx-auto",
+        className,
+      )}
     >
       {children}
     </p>
