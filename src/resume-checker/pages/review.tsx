@@ -1,5 +1,10 @@
 import Spacer from "@/components/spacer";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import FeedbackForm from "@/resume-checker/components/feedback-form";
 import Flags from "@/resume-checker/components/flags";
 import PDF from "@/resume-checker/components/pdf";
@@ -45,7 +50,7 @@ export default function Review() {
       if (!res.ok) {
         const err = await res.json();
         throw new Error(
-          "error" in err ? err.error : "Hubo un error inesperado"
+          "error" in err ? err.error : "Hubo un error inesperado",
         );
       }
 
@@ -80,6 +85,9 @@ export default function Review() {
   };
 
   const isVictorVigon = isExample(formState.url || urlFromQuery || "");
+
+  const gradeIsAorS =
+    mutation.data?.grade === "S" || mutation.data?.grade === "A";
 
   return (
     <>
@@ -144,15 +152,29 @@ export default function Review() {
                 >
                   Probar otra vez
                 </Link>
-                <Link
-                  href="https://app.silver.dev/prepping"
-                  className={buttonVariants({
-                    variant: "secondary",
-                    className: "flex-grow",
-                  })}
-                >
-                  Subir en Silver
-                </Link>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex-grow">
+                      <Button
+                        className="w-full"
+                        disabled={!gradeIsAorS}
+                        variant={"secondary"}
+                        onClick={() =>
+                          router.push(
+                            "https://app.silver.dev/prepping/deliverables",
+                          )
+                        }
+                      >
+                        Subir en app.silver.dev
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {gradeIsAorS
+                      ? "Subí tu Resume a nuestra plataforma!"
+                      : "Todavía hay mejoras importantes para agregar a tu resume!"}
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <Button variant="ghost" onClick={() => setFeedbackFormOpen(true)}>
                 Dijo cualquiera? Avisanos
