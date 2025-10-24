@@ -126,6 +126,10 @@ export default function Home() {
           </Link>
           . Upload it here and get instant feedback.
         </Description>
+        <Description className="text-muted-foreground mt-2" center>
+          This is not uploaded to Silver.dev directly, feel free to iterate as
+          much as you need!
+        </Description>
         <Spacer size="lg" />
         <Grid className="grid-cols-1 md:grid-cols-4">
           <form
