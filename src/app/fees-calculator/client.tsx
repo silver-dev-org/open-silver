@@ -72,7 +72,7 @@ export default function FeesCalculatorClient() {
     [
       "p",
       "Payroll",
-      "We handle payments and contracts. You pay once per monthly cycle for all hired staff.",
+      `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
     ],
   ];
 
