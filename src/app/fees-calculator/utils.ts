@@ -10,6 +10,7 @@ export interface ContractProps {
   d: boolean; // Deferred payment
   g: boolean; // Pay as you go
   t: boolean; // Strong guarantee
+  fp: boolean; // Fast processing
   [key: string]: any;
 }
 
@@ -25,7 +26,8 @@ export function calculateContractCost(
   includePayroll: boolean = true,
   includeDiscounts: boolean = true,
 ) {
-  let value = data.n * (data.f / 100) * data.s;
+  const fee = data.fp ? 20 : data.f;
+  let value = data.n * (fee / 100) * data.s;
   if (data.p && includePayroll) {
     value += payrollCost * 12;
   }

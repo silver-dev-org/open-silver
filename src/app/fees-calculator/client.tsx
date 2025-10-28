@@ -49,6 +49,7 @@ export default function FeesCalculatorClient() {
   const [cost, setCost] = useState<number>();
   const [shareLink, setShareLink] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState(0);
+  const [effectiveFeePercentage, setEffectiveFeePercentage] = useState(25);
   const [contractProps, setContractProps] = useState<ContractProps>({
     n: getParam("n", 1),
     f: getParam("f", 25),
@@ -59,6 +60,7 @@ export default function FeesCalculatorClient() {
     d: getParam("d", false),
     g: getParam("g", false),
     t: getParam("t", true),
+    fp: getParam("fp", false),
   });
 
   function getParam(key: string, defaultValue: any) {
@@ -73,6 +75,11 @@ export default function FeesCalculatorClient() {
       "p",
       "Payroll",
       `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
+    ],
+    [
+      "fp",
+      "Fast processing",
+      `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
     ],
   ];
 
@@ -101,6 +108,10 @@ export default function FeesCalculatorClient() {
     setChartData(chartData);
     setDiscountPercentage(getDiscountPercentage(props));
     setCost(calculateContractCost(props));
+
+    // Calculate effective fee percentage based on fast processing
+    let baseFee = props.fp ? 20 : props.f;
+    setEffectiveFeePercentage(baseFee * (1 - getDiscountPercentage(props)));
   }
 
   function setContractProp(key: string, value: any) {
@@ -195,7 +206,7 @@ Expected average salary: ${new Intl.NumberFormat("en-US", {
                   currency: "USD",
                   maximumFractionDigits: 0,
                 }).format(contractProps.s)}
-Placement fee: ${contractProps.f * (1 - discountPercentage)}%
+Placement fee: ${effectiveFeePercentage}%
 Expected contract cost: ${new Intl.NumberFormat("en-US", {
                   style: "currency",
                   currency: "USD",
@@ -226,10 +237,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             <Card className="w-1/2 text-center">
               <CardHeader className="h-full">
                 <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
-                  <NumberFlow
-                    suffix="%"
-                    value={contractProps.f * (1 - discountPercentage)}
-                  />
+                  <NumberFlow suffix="%" value={effectiveFeePercentage} />
                 </CardTitle>
                 <CardDescription className="flex items-center gap-1 justify-center">
                   Placement fee
