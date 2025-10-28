@@ -1,4 +1,4 @@
-export const payrollCost = 300;
+export const payrollCost = 500;
 
 export interface ContractProps {
   n: number; // Number of hires
@@ -22,7 +22,7 @@ export function getDiscountPercentage({ ...data }: ContractProps) {
 export function calculateContractCost(
   data: ContractProps,
   includePayroll: boolean = true,
-  includeDiscounts: boolean = true
+  includeDiscounts: boolean = true,
 ) {
   let value = data.n * (data.f / 100) * data.s;
   if (data.p && includePayroll) {

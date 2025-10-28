@@ -51,7 +51,7 @@ export default function FeesCalculatorClient() {
   const [discountPercentage, setDiscountPercentage] = useState(0);
   const [contractProps, setContractProps] = useState<ContractProps>({
     n: getParam("n", 1),
-    f: getParam("f", 20),
+    f: getParam("f", 25),
     s: getParam("s", 75000),
     h: getParam("h", false),
     x: getParam("x", false),
@@ -69,18 +69,10 @@ export default function FeesCalculatorClient() {
   }
 
   const booleanProps = [
-    ["x", "Exclusivity", "Each role is handled by only one agency."],
     [
       "p",
       "Payroll",
-      "We handle payments and contracts. You pay once per cycle for all hired staff.",
-    ],
-    ["d", "Deferred payment", "Pay 6 months after the hire was made."],
-    ["g", "Pay as you go", "Pay the fee in monthly installments."],
-    [
-      "t",
-      "Strong guarantee",
-      "Fee will be due after the guarantee period is over.",
+      "We handle payments and contracts. You pay once per monthly cycle for all hired staff.",
     ],
   ];
 
@@ -101,9 +93,9 @@ export default function FeesCalculatorClient() {
       const payroll = props.p ? payrollCost : 0;
       chartData.push({
         month: month.toLocaleString("default", { month: "long" }),
-        fee: fee,
-        payroll: payroll,
-        yAxis: yAxis,
+        fee,
+        payroll,
+        yAxis,
       });
     }
     setChartData(chartData);
@@ -210,7 +202,7 @@ Expected contract cost: ${new Intl.NumberFormat("en-US", {
                   maximumFractionDigits: 0,
                 }).format(cost || 0)}
 ${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
-Link: ${window.location.origin}/${window.location.pathname}?${queryString}`
+Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               );
               const shareLink = `mailto:gabriel@silver.dev?subject=${emailSubject}&body=${emailBody}`;
               setShareLink(shareLink);
@@ -319,7 +311,7 @@ function CardRadioGroup({
           key={value}
           className={cn(
             "flex-grow flex items-center justify-center gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all",
-            currentValue === value ? "border-foreground" : "border-border"
+            currentValue === value ? "border-foreground" : "border-border",
           )}
           onClick={() => onValueChange(value)}
         >
