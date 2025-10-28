@@ -233,22 +233,6 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
                 </CardTitle>
                 <CardDescription className="flex items-center gap-1 justify-center">
                   Placement fee
-                  {contractProps.n >= 3 &&
-                    !contractProps.x &&
-                    !contractProps.d && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-4 h-4" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              Volume counted for hires done in the same quarter.
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
                 </CardDescription>
               </CardHeader>
             </Card>
