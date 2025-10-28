@@ -61,6 +61,7 @@ export default function FeesCalculatorClient() {
     g: getParam("g", false),
     t: getParam("t", true),
     fp: getParam("fp", false),
+    c: true,
   });
 
   function getParam(key: string, defaultValue: any) {
@@ -71,16 +72,22 @@ export default function FeesCalculatorClient() {
   }
 
   const booleanProps = [
-    [
-      "p",
-      "Payroll",
-      `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
-    ],
-    [
-      "fp",
-      "Fast processing",
-      `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
-    ],
+    {
+      key: "c",
+      label: "Contingency",
+      description: `You pay only 3 months after a successful hire.`,
+      alwaysChecked: true,
+    },
+    {
+      key: "p",
+      label: "Payroll",
+      description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
+    },
+    {
+      key: "fp",
+      label: "Fast processing",
+      description: `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
+    },
   ];
 
   useEffect(() => processContractProps(contractProps), [contractProps]);
@@ -160,23 +167,27 @@ export default function FeesCalculatorClient() {
             />
           </div>
           <div className="flex flex-col gap-2">
-            {booleanProps.map(([key, label, description]) => {
+            {booleanProps.map(({ key, label, description, alwaysChecked }) => {
+              const isDisabled = alwaysChecked === true;
               return (
                 <Label key={key} htmlFor={key}>
                   <Card
-                    className={`transition-colors hover:bg-foreground/10 cursor-pointer ${
+                    className={cn(
+                      "transition-colors",
+                      !isDisabled && "hover:bg-foreground/10 cursor-pointer",
                       contractProps[key as keyof ContractProps] &&
-                      "border-foreground"
-                    }`}
+                        "border-foreground",
+                    )}
                   >
                     <CardHeader className="p-4">
                       <CardTitle className="flex gap-1.5">
                         <Checkbox
                           id={key}
                           onCheckedChange={(checked) =>
-                            setContractProp(key, checked)
+                            !isDisabled && setContractProp(key, checked)
                           }
                           checked={contractProps[key as keyof ContractProps]}
+                          disabled={isDisabled}
                           className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
                         />
                         {label}
@@ -196,8 +207,8 @@ export default function FeesCalculatorClient() {
                 .map(([key, value]) => `${key}=${value}`)
                 .join("&");
               const options: string[] = booleanProps
-                .filter(([key]) => contractProps[key] === true)
-                .map(([key, label]) => label);
+                .filter(({ key }) => contractProps[key] === true)
+                .map(({ label }) => label);
               const emailSubject = encodeURIComponent("Contract Details");
               const emailBody = encodeURIComponent(
                 `Number of placements: ${contractProps.n}
