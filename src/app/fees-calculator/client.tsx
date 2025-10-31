@@ -1,16 +1,5 @@
 "use client";
 
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/fees-calculator/components/ui/chart";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/fees-calculator/components/ui/radio-group";
-import NumberFlow from "@number-flow/react";
-
 import Description from "@/components/description";
 import Heading from "@/components/heading";
 import Section from "@/components/section";
@@ -22,8 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/fees-calculator/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/fees-calculator/components/ui/chart";
 import { Checkbox } from "@/fees-calculator/components/ui/checkbox";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "@/fees-calculator/components/ui/radio-group";
 import { cn } from "@/lib/utils";
+import NumberFlow from "@number-flow/react";
 import { Label } from "@radix-ui/react-label";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -32,69 +31,67 @@ import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
   calculateContractCost,
   ContractProps,
+  defaultContractProps,
   getFinalFee,
+  headcountOptions,
   payrollCost,
+  salaryOptions,
 } from "./utils";
+
+const booleanFields = [
+  {
+    key: "c",
+    label: "Contingency",
+    description: `You pay only 3 months after a successful hire.`,
+    alwaysChecked: true,
+  },
+  {
+    key: "p",
+    label: "Payroll",
+    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
+  },
+  {
+    key: "fp",
+    label: "Fast processing",
+    description: `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
+  },
+];
+
+const paymentAfterMonths = 3;
 
 export default function FeesCalculatorClient() {
   const searchParams = useSearchParams();
   const [chartData, setChartData] = useState<any[]>([]);
   const [cost, setCost] = useState<number>();
   const [shareLink, setShareLink] = useState("");
-  const [effectiveFeePercentage, setEffectiveFeePercentage] = useState(25);
+  const [fee, setFee] = useState(defaultContractProps.f);
   const [contractProps, setContractProps] = useState<ContractProps>({
-    n: getParam("n", 1),
-    f: getParam("f", 25),
-    s: getParam("s", 75000),
-    h: getParam("h", false),
-    x: getParam("x", false),
-    p: getParam("p", false),
-    d: getParam("d", false),
-    g: getParam("g", false),
-    t: getParam("t", true),
-    fp: getParam("fp", false),
+    n: getParamOrDefault("n", defaultContractProps.n),
+    f: getParamOrDefault("f", defaultContractProps.f),
+    s: getParamOrDefault("s", defaultContractProps.s),
+    p: getParamOrDefault("p", defaultContractProps.p),
+    fp: getParamOrDefault("fp", defaultContractProps.fp),
     c: true, // Contingency
   });
 
-  function getParam(key: string, defaultValue: any) {
+  function getParamOrDefault(key: string, defaultValue: any) {
     const param = searchParams?.get(key);
     if (param === null) return defaultValue;
     if (param === "true") return true;
     return Number(param);
   }
 
-  const booleanProps = [
-    {
-      key: "c",
-      label: "Contingency",
-      description: `You pay only 3 months after a successful hire.`,
-      alwaysChecked: true,
-    },
-    {
-      key: "p",
-      label: "Payroll",
-      description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
-    },
-    {
-      key: "fp",
-      label: "Fast processing",
-      description: `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
-    },
-  ];
-
   useEffect(() => processContractProps(contractProps), [contractProps]);
 
   function processContractProps(data: ContractProps) {
-    const startingMonth = data.d ? 6 : 3;
     const chartData = [];
     const yAxis = 1000 + calculateContractCost(data, false);
     for (let monthNum = 1; monthNum <= 12; monthNum++) {
       const month = new Date();
       month.setMonth(month.getMonth() + monthNum);
       const fee =
-        monthNum == startingMonth ||
-        (data.g && monthNum >= startingMonth && monthNum < startingMonth + 3)
-          ? Math.round(calculateContractCost(data, false) / (data.g ? 3 : 1))
+        monthNum === paymentAfterMonths
+          ? Math.round(calculateContractCost(data, false))
           : 0;
       const payroll = data.p ? payrollCost : 0;
       chartData.push({
@@ -106,7 +103,44 @@ export default function FeesCalculatorClient() {
     }
     setChartData(chartData);
     setCost(calculateContractCost(data));
-    setEffectiveFeePercentage(getFinalFee(data));
+    setFee(getFinalFee(data));
+  }
+
+  function share() {
+    const queryString = Object.entries(contractProps)
+      .filter(([key, value]) => value)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("&");
+
+    const options: string[] = booleanFields
+      .filter(({ key }) => contractProps[key] === true)
+      .map(({ label }) => label);
+
+    const expectedAverageSalary = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(contractProps.s);
+
+    const expectedContractCost = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(cost || 0);
+
+    const emailSubject = encodeURIComponent("Contract Details");
+    const emailBody = encodeURIComponent(
+      `Number of placements: ${contractProps.n}
+Expected average salary: ${expectedAverageSalary}
+Placement fee: ${fee}%
+Expected contract cost: ${expectedContractCost}
+${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
+Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
+    );
+
+    const shareLink = `mailto:gabriel@silver.dev?subject=${emailSubject}&body=${emailBody}`;
+
+    setShareLink(shareLink);
   }
 
   function setContractProp(key: string, value: any) {
@@ -134,11 +168,7 @@ export default function FeesCalculatorClient() {
               name="n"
               onValueChange={(value) => setContractProp("n", value)}
               currentValue={contractProps.n.toString()}
-              options={[
-                { value: "1", label: "1" },
-                { value: "2", label: "2" },
-                { value: "3", label: "3+" },
-              ]}
+              options={headcountOptions}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -147,15 +177,11 @@ export default function FeesCalculatorClient() {
               name="s"
               onValueChange={(value) => setContractProp("s", value)}
               currentValue={contractProps.s.toString()}
-              options={[
-                { value: "50000", label: "$50k" },
-                { value: "75000", label: "$75k" },
-                { value: "100000", label: "$100k+" },
-              ]}
+              options={salaryOptions}
             />
           </div>
           <div className="flex flex-col gap-2">
-            {booleanProps.map(({ key, label, description, alwaysChecked }) => {
+            {booleanFields.map(({ key, label, description, alwaysChecked }) => {
               const isDisabled = alwaysChecked === true;
               return (
                 <Label key={key} htmlFor={key}>
@@ -187,37 +213,7 @@ export default function FeesCalculatorClient() {
               );
             })}
           </div>
-          <Button
-            asChild
-            onClick={() => {
-              const queryString = Object.entries(contractProps)
-                .filter(([key, value]) => value)
-                .map(([key, value]) => `${key}=${value}`)
-                .join("&");
-              const options: string[] = booleanProps
-                .filter(({ key }) => contractProps[key] === true)
-                .map(({ label }) => label);
-              const emailSubject = encodeURIComponent("Contract Details");
-              const emailBody = encodeURIComponent(
-                `Number of placements: ${contractProps.n}
-Expected average salary: ${new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                  maximumFractionDigits: 0,
-                }).format(contractProps.s)}
-Placement fee: ${effectiveFeePercentage}%
-Expected contract cost: ${new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                  maximumFractionDigits: 0,
-                }).format(cost || 0)}
-${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
-Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
-              );
-              const shareLink = `mailto:gabriel@silver.dev?subject=${emailSubject}&body=${emailBody}`;
-              setShareLink(shareLink);
-            }}
-          >
+          <Button asChild onClick={share}>
             <Link target="_blank" href={shareLink}>
               Share with Gabriel
             </Link>
@@ -236,7 +232,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             <Card className="w-1/2 text-center">
               <CardHeader className="h-full">
                 <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
-                  <NumberFlow suffix="%" value={effectiveFeePercentage} />
+                  <NumberFlow suffix="%" value={fee} />
                 </CardTitle>
                 <CardDescription className="flex items-center gap-1 justify-center">
                   Placement fee
@@ -245,14 +241,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             </Card>
           </div>
           <ChartContainer
-            config={{
-              fee: {
-                label: "Fee",
-              },
-              payroll: {
-                label: "Payroll",
-              },
-            }}
+            config={{ fee: { label: "Fee" }, payroll: { label: "Payroll" } }}
             className="w-full min-h-80"
           >
             <BarChart accessibilityLayer data={chartData}>
