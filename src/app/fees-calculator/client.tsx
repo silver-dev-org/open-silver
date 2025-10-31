@@ -48,7 +48,7 @@ const booleanFields = [
   {
     key: "p",
     label: "Payroll",
-    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. ${payrollCost}$ per person per month.`,
+    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${payrollCost} per person per month.`,
   },
   {
     key: "fp",
