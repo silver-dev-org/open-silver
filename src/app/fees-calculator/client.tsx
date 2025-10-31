@@ -17,12 +17,6 @@ import Section from "@/components/section";
 import Spacer from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   Card,
   CardDescription,
   CardHeader,
@@ -31,7 +25,6 @@ import {
 import { Checkbox } from "@/fees-calculator/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Label } from "@radix-ui/react-label";
-import { Info } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -39,7 +32,7 @@ import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
   calculateContractCost,
   ContractProps,
-  getDiscountPercentage,
+  getFinalFee,
   payrollCost,
 } from "./utils";
 
@@ -48,7 +41,6 @@ export default function FeesCalculatorClient() {
   const [chartData, setChartData] = useState<any[]>([]);
   const [cost, setCost] = useState<number>();
   const [shareLink, setShareLink] = useState("");
-  const [discountPercentage, setDiscountPercentage] = useState(0);
   const [effectiveFeePercentage, setEffectiveFeePercentage] = useState(25);
   const [contractProps, setContractProps] = useState<ContractProps>({
     n: getParam("n", 1),
@@ -61,7 +53,7 @@ export default function FeesCalculatorClient() {
     g: getParam("g", false),
     t: getParam("t", true),
     fp: getParam("fp", false),
-    c: true,
+    c: true, // Contingency
   });
 
   function getParam(key: string, defaultValue: any) {
@@ -92,19 +84,19 @@ export default function FeesCalculatorClient() {
 
   useEffect(() => processContractProps(contractProps), [contractProps]);
 
-  function processContractProps(props: ContractProps) {
-    const startingMonth = props.d ? 6 : 3;
+  function processContractProps(data: ContractProps) {
+    const startingMonth = data.d ? 6 : 3;
     const chartData = [];
-    const yAxis = 1000 + calculateContractCost(props, false, false);
+    const yAxis = 1000 + calculateContractCost(data, false);
     for (let monthNum = 1; monthNum <= 12; monthNum++) {
       const month = new Date();
       month.setMonth(month.getMonth() + monthNum);
       const fee =
         monthNum == startingMonth ||
-        (props.g && monthNum >= startingMonth && monthNum < startingMonth + 3)
-          ? Math.round(calculateContractCost(props, false) / (props.g ? 3 : 1))
+        (data.g && monthNum >= startingMonth && monthNum < startingMonth + 3)
+          ? Math.round(calculateContractCost(data, false) / (data.g ? 3 : 1))
           : 0;
-      const payroll = props.p ? payrollCost : 0;
+      const payroll = data.p ? payrollCost : 0;
       chartData.push({
         month: month.toLocaleString("default", { month: "long" }),
         fee,
@@ -113,12 +105,8 @@ export default function FeesCalculatorClient() {
       });
     }
     setChartData(chartData);
-    setDiscountPercentage(getDiscountPercentage(props));
-    setCost(calculateContractCost(props));
-
-    // Calculate effective fee percentage based on fast processing
-    let baseFee = props.fp ? 20 : props.f;
-    setEffectiveFeePercentage(baseFee * (1 - getDiscountPercentage(props)));
+    setCost(calculateContractCost(data));
+    setEffectiveFeePercentage(getFinalFee(data));
   }
 
   function setContractProp(key: string, value: any) {
