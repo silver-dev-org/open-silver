@@ -1,5 +1,7 @@
 export const payrollCost = 500;
+export const feeWithFastProcessing = 20;
 
+// Using single letters to keep the URL shorter
 export interface ContractProps {
   n: number; // Number of hires
   f: number; // Fee
@@ -14,29 +16,21 @@ export interface ContractProps {
   [key: string]: any;
 }
 
-export function getDiscountPercentage({ ...data }: ContractProps) {
-  if (data.d) return 0;
-  // Disabling volume discounts today discounts
-  // if (data.n >= 3 || data.x) return 0.25;
-  return 0;
+export function getFinalFee({ fp: fastProcessing, f: fee }: ContractProps) {
+  return fastProcessing ? feeWithFastProcessing : fee;
 }
 
 export function calculateContractCost(
   data: ContractProps,
   includePayroll: boolean = true,
-  includeDiscounts: boolean = true,
 ) {
-  const fee = data.fp ? 20 : data.f;
-  let value = data.n * (fee / 100) * data.s;
-  if (data.p && includePayroll) {
+  const { n: numberOfHires, s: salary, p: payroll } = data;
+
+  let value = numberOfHires * (getFinalFee(data) / 100) * salary;
+
+  if (payroll && includePayroll) {
     value += payrollCost * 12;
   }
-  if (includeDiscounts) {
-    let discount = 0;
-    if (data.n >= 3) discount = 0.15;
-    if (data.x) discount = 0.25;
-    if (data.d) discount = 0;
-    value -= value * discount;
-  }
+
   return value;
 }
