@@ -41,7 +41,8 @@ const tools: {
     list: [
       {
         title: "Resume Checker",
-        description: "Upload your CV and get instant feedback to improve your job application.",
+        description:
+          "Upload your CV and get instant feedback to improve your job application.",
         href: "/resume-checker",
       },
       {
@@ -57,15 +58,20 @@ const tools: {
         href: "/take-home-checker",
       },
       {
-        title: "GitHub Repo",
+        title: "WPM Game",
+        description: "Test your speed and practice typing code.",
+        href: "https://wpm.silver.dev",
+      },
+      {
+        title: "Practice Repo",
         description:
           "A repository with dozens of challenges for interview practice.",
         href: "http://silver.dev/repo",
       },
       {
-        title: "WPM Game",
-        description: "Test your speed and practice typing code.",
-        href: "https://wpm.silver.dev",
+        title: "Open Silver Repo",
+        description: "Source code of this website and its apps.",
+        href: "https://github.com/silver-dev-org/open-silver",
       },
     ],
   },
