@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
-import { ClassValue } from "clsx";
 import type React from "react";
 import { useState } from "react";
 
