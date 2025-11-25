@@ -73,6 +73,11 @@ const tools: {
         description: "Source code of this website and its apps.",
         href: "https://github.com/silver-dev-org/open-silver",
       },
+      {
+        title: "Roast My Setup",
+        description: "Recíbi feedback de tu setup.",
+        href: "/roast-my-setup",
+      },
     ],
   },
   {
