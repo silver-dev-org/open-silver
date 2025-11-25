@@ -1,5 +1,6 @@
 "use client";
 
+import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,8 +11,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 import type React from "react";
-import { useState } from "react";
+import { HTMLAttributes, useState } from "react";
 
 const MIN_SALARY = 50000;
 const MAX_SALARY = 150000;
@@ -27,6 +29,7 @@ type Breakdown = {
   scenario: Scenario;
   title: string;
   description?: string;
+  base: number;
   items: BreakdownItem[];
   total: number;
 };
@@ -34,7 +37,6 @@ type Breakdown = {
 type BreakdownItem = {
   label: string;
   value: number;
-  isInitial?: boolean;
 };
 
 export function HiringCostsCalculator() {
@@ -78,9 +80,9 @@ export function HiringCostsCalculator() {
     {
       scenario: "eor-employer",
       title: "Employer pays",
+      base: salary,
       total: eorTotalEmployerCost,
       items: [
-        { label: "Gross Salary", value: salary, isInitial: true },
         {
           label: "Taxes & Benefits",
           value: eorEmployerTaxes,
@@ -94,9 +96,9 @@ export function HiringCostsCalculator() {
     {
       scenario: "eor-worker",
       title: "Employee gets",
+      base: salary,
       total: eorEmployeeTakeHome,
       items: [
-        { label: "Gross Salary", value: salary, isInitial: true },
         {
           label: "Social Security (17%)",
           value: -employeeSocialSecurity,
@@ -107,9 +109,9 @@ export function HiringCostsCalculator() {
     {
       scenario: "aor-employer",
       title: "Employer pays",
+      base: salary,
       total: aorTotalCompanyCost,
       items: [
-        { label: "Contractor Rate", value: salary, isInitial: true },
         {
           label: "AOR Platform Fee",
           value: aorPlatformFee,
@@ -119,9 +121,9 @@ export function HiringCostsCalculator() {
     {
       scenario: "aor-worker",
       title: "Contractor gets",
+      base: salary,
       total: aorContractorTakeHome,
       items: [
-        { label: "Gross Income", value: salary, isInitial: true },
         {
           label: "Contractor Taxes (18%)",
           value: -aorContractorTaxes,
@@ -132,7 +134,7 @@ export function HiringCostsCalculator() {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-24 relative">
+      <div className={cn("grid grid-cols-2 relative", spaceSizes.lg.gap)}>
         <HiringModelSection
           heading="Employer of Record (EOR)"
           salary={salary}
@@ -149,8 +151,8 @@ export function HiringCostsCalculator() {
           onViewBreakdown={setActiveModal}
         />
       </div>
-
-      <Card className="mt-12 border-2">
+      <Spacer />
+      <Card>
         <CardContent className="pt-6">
           <div className="text-center">
             <p className="text-xl font-semibold">
@@ -168,7 +170,7 @@ export function HiringCostsCalculator() {
         <CardContent>
           <div className="text-center">
             <p className="text-xl font-semibold">
-              Employee takes{" "}
+              Worker takes{" "}
               <span className="text-green-600">
                 $
                 {Math.abs(employeeTakeHomeDifference).toLocaleString("en-US", {
@@ -263,7 +265,7 @@ function HiringModelSection({
   onViewBreakdown: (scenario: Scenario) => void;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className={cn("flex flex-col", spaceSizes.sm.gap)}>
       <Card>
         <CardHeader>
           <CardTitle>{heading}</CardTitle>
@@ -278,7 +280,7 @@ function HiringModelSection({
           />
         </CardContent>
       </Card>
-      <div className="flex flex-row gap-6 size-full">
+      <div className={cn("flex flex-row size-full", spaceSizes.sm.gap)}>
         {breakdowns.map((breakdown) => (
           <BreakdownCard
             key={breakdown.scenario}
@@ -319,15 +321,7 @@ function BreakdownCard({
 
         <div className="space-y-3 border-t pt-4 flex-1">
           {breakdown.items.map((item, idx) => (
-            <div key={idx} className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{item.label}</span>
-              <span className={item.isInitial ? "" : "text-red-500"}>
-                {!item.isInitial && (item.value < 0 ? "−" : "+")}$
-                {Math.abs(item.value).toLocaleString("en-US", {
-                  maximumFractionDigits: 0,
-                })}
-              </span>
-            </div>
+            <BreakdownItem key={idx} {...item} />
           ))}
         </div>
         <Button
@@ -364,26 +358,17 @@ function BreakdownModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          <BreakdownItem label="Gross Salary" value={breakdown.base} />
           {breakdown.items.map((item, idx) => (
-            <div key={idx} className="flex justify-between text-sm">
-              <span>{item.label}</span>
-              <span className={item.isInitial ? "" : "text-red-500"}>
-                {!item.isInitial && (item.value < 0 ? "−" : "+")}$
-                {Math.abs(item.value).toLocaleString("en-US", {
-                  maximumFractionDigits: 0,
-                })}
-              </span>
-            </div>
+            <BreakdownItem key={idx} {...item} />
           ))}
-        </div>
-        <div className="flex justify-between font-bold text-base border-t pt-4">
-          <span>Total</span>
-          <span>
-            $
-            {Math.abs(breakdown.total).toLocaleString("en-US", {
-              maximumFractionDigits: 0,
-            })}
-          </span>
+          <BreakdownItem
+            label={
+              scenario.endsWith("worker") ? "Net Salary" : "Total Employer Cost"
+            }
+            value={breakdown.total}
+            className="text-base font-semibold border-t border-foreground pt-4"
+          />
         </div>
       </DialogContent>
     </Dialog>
@@ -400,8 +385,8 @@ function getBreakdown(scenario: Scenario, salary: number): Breakdown {
       return {
         scenario: scenario,
         title: "EOR Employer Cost Breakdown",
+        base: salary,
         items: [
-          { label: "Base Salary", value: salary, isInitial: true },
           {
             label: "Pension Fund Contribution (12%)",
             value: salary * 0.12,
@@ -437,8 +422,8 @@ function getBreakdown(scenario: Scenario, salary: number): Breakdown {
       return {
         scenario: scenario,
         title: "EOR Employee Take-Home Breakdown",
+        base: salary,
         items: [
-          { label: "Gross Salary", value: salary, isInitial: true },
           {
             label: "Pension Fund Deduction (11%)",
             value: -(salary * 0.11),
@@ -467,12 +452,8 @@ function getBreakdown(scenario: Scenario, salary: number): Breakdown {
       return {
         scenario: scenario,
         title: "AOR Employer Cost Breakdown",
+        base: salary,
         items: [
-          {
-            label: "Contractor Rate (Annual)",
-            value: salary,
-            isInitial: true,
-          },
           {
             label: "AOR Platform Fee (Silver.dev)",
             value: aorPlatformFee,
@@ -490,8 +471,8 @@ function getBreakdown(scenario: Scenario, salary: number): Breakdown {
       return {
         scenario: scenario,
         title: "AOR Contractor Take-Home Breakdown",
+        base: salary,
         items: [
-          { label: "Gross Income", value: salary, isInitial: true },
           {
             label: "Monotributo Taxes (~18%)",
             value: -aorContractorTaxes,
@@ -502,4 +483,26 @@ function getBreakdown(scenario: Scenario, salary: number): Breakdown {
           "Contractors in Argentina typically use the Monotributo simplified tax regime when their annual income is under 95 million ARS (~$74.5k USD). This combines income tax, VAT, and social security into a single monthly payment. For higher earners, progressive income tax rates from 5-35% apply.",
       };
   }
+}
+
+function BreakdownItem({
+  label,
+  value,
+  className,
+  ...props
+}: BreakdownItem & HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={cn("flex justify-between text-sm", className)} {...props}>
+      <span className="text-muted-foreground">{label}</span>
+      <span>
+        {value.toLocaleString("en-US", {
+          maximumFractionDigits: 0,
+          currency: "USD",
+          currencyDisplay: "symbol",
+          style: "currency",
+          currencySign: "accounting",
+        })}
+      </span>
+    </div>
+  );
 }
