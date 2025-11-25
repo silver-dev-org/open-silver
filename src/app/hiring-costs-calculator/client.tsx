@@ -15,6 +15,7 @@ import { useState } from "react";
 
 const MIN_SALARY = 50000;
 const MAX_SALARY = 150000;
+const DEFAULT_SALARY = 100000;
 
 type Item = {
   label: string;
@@ -38,7 +39,7 @@ type Scenario = {
 };
 
 export function HiringCostsCalculator() {
-  const [salary, setSalary] = useState(100000);
+  const [salary, setSalary] = useState(DEFAULT_SALARY);
   const [activeModal, setActiveModal] = useState<Scenario["id"] | null>(null);
 
   // EOR Calculations
