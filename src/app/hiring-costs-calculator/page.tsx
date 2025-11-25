@@ -3,7 +3,6 @@ import Section from "@/components/section";
 import Spacer from "@/components/spacer";
 import { Metadata } from "next";
 import { HiringCostsCalculator } from "./client";
-import Description from "@/components/description";
 
 export const metadata: Metadata = {
   title: "Argentina Hiring Costs Calculator",
