@@ -322,7 +322,7 @@ function BreakdownCard({
             <div key={idx} className="flex justify-between text-sm">
               <span className="text-muted-foreground">{item.label}</span>
               <span className={item.isInitial ? "" : "text-red-500"}>
-                {item.value < 0 ? "−" : ""}$
+                {!item.isInitial && (item.value < 0 ? "−" : "+")}$
                 {Math.abs(item.value).toLocaleString("en-US", {
                   maximumFractionDigits: 0,
                 })}
@@ -368,7 +368,7 @@ function BreakdownModal({
             <div key={idx} className="flex justify-between text-sm">
               <span>{item.label}</span>
               <span className={item.isInitial ? "" : "text-red-500"}>
-                {item.value < 0 ? "−" : ""}$
+                {!item.isInitial && (item.value < 0 ? "−" : "+")}$
                 {Math.abs(item.value).toLocaleString("en-US", {
                   maximumFractionDigits: 0,
                 })}
