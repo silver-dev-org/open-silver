@@ -17,30 +17,29 @@ const MIN_SALARY = 50000;
 const MAX_SALARY = 150000;
 const DEFAULT_SALARY = 100000;
 
-type Item = {
+type HiringModel = "aor" | "eor";
+
+type Persona = "worker" | "employer";
+
+type Scenario = `${HiringModel}-${Persona}`;
+
+type Breakdown = {
+  scenario: Scenario;
+  title: string;
+  description?: string;
+  items: BreakdownItem[];
+  total: number;
+};
+
+type BreakdownItem = {
   label: string;
   value: number;
   isInitial?: boolean;
-  isResult?: boolean;
-};
-
-type Breakdown = {
-  title: string;
-  description: string;
-  items: Item[];
-};
-
-type Scenario = {
-  id: "eor-employer" | "eor-employee" | "aor-employer" | "aor-contractor";
-  title: string;
-  subtitle: string;
-  total: number;
-  items: Item[];
 };
 
 export function HiringCostsCalculator() {
   const [salary, setSalary] = useState(DEFAULT_SALARY);
-  const [activeModal, setActiveModal] = useState<Scenario["id"] | null>(null);
+  const [activeModal, setActiveModal] = useState<Scenario | null>(null);
 
   // EOR Calculations
   const eorStandardFee = 6000;
@@ -75,11 +74,10 @@ export function HiringCostsCalculator() {
   const employeeTakeHomeDifference =
     eorEmployeeTakeHome - aorContractorTakeHome;
 
-  const scenarios: Scenario[] = [
+  const breakdowns: Breakdown[] = [
     {
-      id: "eor-employer",
+      scenario: "eor-employer",
       title: "Employer pays",
-      subtitle: "Company Cost",
       total: eorTotalEmployerCost,
       items: [
         { label: "Gross Salary", value: salary, isInitial: true },
@@ -94,9 +92,8 @@ export function HiringCostsCalculator() {
       ],
     },
     {
-      id: "eor-employee",
+      scenario: "eor-worker",
       title: "Employee gets",
-      subtitle: "Annual Take-Home",
       total: eorEmployeeTakeHome,
       items: [
         { label: "Gross Salary", value: salary, isInitial: true },
@@ -108,9 +105,8 @@ export function HiringCostsCalculator() {
       ],
     },
     {
-      id: "aor-employer",
+      scenario: "aor-employer",
       title: "Employer pays",
-      subtitle: "Company Cost",
       total: aorTotalCompanyCost,
       items: [
         { label: "Contractor Rate", value: salary, isInitial: true },
@@ -121,9 +117,8 @@ export function HiringCostsCalculator() {
       ],
     },
     {
-      id: "aor-contractor",
+      scenario: "aor-worker",
       title: "Contractor gets",
-      subtitle: "Annual Take-Home",
       total: aorContractorTakeHome,
       items: [
         { label: "Gross Income", value: salary, isInitial: true },
@@ -138,19 +133,19 @@ export function HiringCostsCalculator() {
   return (
     <>
       <div className="grid grid-cols-2 gap-24 relative">
-        <ScenarioSection
+        <HiringModelSection
           heading="Employer of Record (EOR)"
           salary={salary}
           setSalary={setSalary}
-          scenarios={scenarios.filter((s) => s.id.startsWith("eor"))}
+          breakdowns={breakdowns.filter((b) => b.scenario.startsWith("eor"))}
           onViewBreakdown={setActiveModal}
         />
         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground transform -translate-x-1/2" />
-        <ScenarioSection
+        <HiringModelSection
           heading="Agency of Record (AOR)"
           salary={salary}
           setSalary={setSalary}
-          scenarios={scenarios.filter((s) => s.id.startsWith("aor"))}
+          breakdowns={breakdowns.filter((s) => s.scenario.startsWith("aor"))}
           onViewBreakdown={setActiveModal}
         />
       </div>
@@ -187,69 +182,27 @@ export function HiringCostsCalculator() {
       </Card>
 
       <BreakdownModal
+        scenario={activeModal}
+        salary={salary}
         isOpen={activeModal !== null}
         onClose={() => setActiveModal(null)}
-        scenarioId={activeModal}
-        salary={salary}
       />
     </>
   );
 }
 
-function ScenarioSection({
-  heading,
-  salary,
-  setSalary,
-  scenarios,
-  onViewBreakdown,
-}: {
-  heading: string;
-  salary: number;
-  setSalary: (value: number) => void;
-  scenarios: Scenario[];
-  onViewBreakdown: (scenarioId: Scenario["id"]) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{heading}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SalarySlider
-            value={salary}
-            onChange={setSalary}
-            min={MIN_SALARY}
-            max={MAX_SALARY}
-            step={1000}
-          />
-        </CardContent>
-      </Card>
-      <div className="flex flex-row gap-6 size-full">
-        {scenarios.map((scenario) => (
-          <ScenarioCard
-            key={scenario.id}
-            scenario={scenario}
-            onViewBreakdown={() => onViewBreakdown(scenario.id)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function SalarySlider({
   value,
-  onChange,
   min,
   max,
   step,
+  onChange,
 }: {
   value: number;
-  onChange: (value: number) => void;
   min: number;
   max: number;
   step: number;
+  onChange: (value: number) => void;
 }) {
   function handleSliderChange(newValue: number[]) {
     onChange(newValue[0]);
@@ -296,24 +249,68 @@ function SalarySlider({
   );
 }
 
-function ScenarioCard({
-  scenario,
+function HiringModelSection({
+  heading,
+  salary,
+  setSalary,
+  breakdowns,
   onViewBreakdown,
 }: {
-  scenario: Scenario;
-  onViewBreakdown: () => void;
+  heading: string;
+  salary: number;
+  setSalary: (value: number) => void;
+  breakdowns: Breakdown[];
+  onViewBreakdown: (scenario: Scenario) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>{heading}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SalarySlider
+            value={salary}
+            onChange={setSalary}
+            min={MIN_SALARY}
+            max={MAX_SALARY}
+            step={1000}
+          />
+        </CardContent>
+      </Card>
+      <div className="flex flex-row gap-6 size-full">
+        {breakdowns.map((breakdown) => (
+          <BreakdownCard
+            key={breakdown.scenario}
+            breakdown={breakdown}
+            onView={() => onViewBreakdown(breakdown.scenario)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BreakdownCard({
+  breakdown,
+  onView,
+}: {
+  breakdown: Breakdown;
+  onView: () => void;
 }) {
   return (
     <Card className="flex flex-col size-full">
       <CardHeader className="pb-4">
-        <CardTitle className="text-2xl text-center">{scenario.title}</CardTitle>
+        <CardTitle className="text-2xl text-center">
+          {breakdown.title}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 flex-1 flex flex-col">
         <div>
           <div className="flex items-baseline gap-2 justify-center">
             <div className="text-3xl font-bold text-primary">
               $
-              {scenario.total.toLocaleString("en-US", {
+              {breakdown.total.toLocaleString("en-US", {
                 maximumFractionDigits: 0,
               })}
             </div>
@@ -321,14 +318,10 @@ function ScenarioCard({
         </div>
 
         <div className="space-y-3 border-t pt-4 flex-1">
-          {scenario.items.map((item, idx) => (
+          {breakdown.items.map((item, idx) => (
             <div key={idx} className="flex justify-between text-sm">
               <span className="text-muted-foreground">{item.label}</span>
-              <span
-                className={
-                  item.isInitial || item.isResult ? "" : "text-red-500"
-                }
-              >
+              <span className={item.isInitial ? "" : "text-red-500"}>
                 {item.value < 0 ? "−" : ""}$
                 {Math.abs(item.value).toLocaleString("en-US", {
                   maximumFractionDigits: 0,
@@ -339,7 +332,7 @@ function ScenarioCard({
         </div>
         <Button
           variant="outline"
-          onClick={onViewBreakdown}
+          onClick={onView}
           className="w-full bg-transparent mt-auto"
         >
           View Breakdown
@@ -350,17 +343,18 @@ function ScenarioCard({
 }
 
 function BreakdownModal({
+  scenario,
+  salary,
   isOpen,
   onClose,
-  scenarioId,
-  salary,
 }: {
+  scenario: Scenario | null;
+  salary: number;
   isOpen: boolean;
   onClose: () => void;
-  scenarioId: Scenario["id"] | null;
-  salary: number;
 }) {
-  const breakdown = getBreakdown(scenarioId, salary);
+  if (!scenario) return null;
+  const breakdown = getBreakdown(scenario, salary);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -371,16 +365,9 @@ function BreakdownModal({
 
         <div className="space-y-4">
           {breakdown.items.map((item, idx) => (
-            <div
-              key={idx}
-              className={`flex justify-between ${item.isResult ? "font-bold text-base border-t pt-4" : "text-sm"}`}
-            >
+            <div key={idx} className="flex justify-between text-sm">
               <span>{item.label}</span>
-              <span
-                className={
-                  item.isInitial || item.isResult ? "" : "text-red-500"
-                }
-              >
+              <span className={item.isInitial ? "" : "text-red-500"}>
                 {item.value < 0 ? "−" : ""}$
                 {Math.abs(item.value).toLocaleString("en-US", {
                   maximumFractionDigits: 0,
@@ -389,22 +376,29 @@ function BreakdownModal({
             </div>
           ))}
         </div>
+        <div className="flex justify-between font-bold text-base border-t pt-4">
+          <span>Total</span>
+          <span>
+            $
+            {Math.abs(breakdown.total).toLocaleString("en-US", {
+              maximumFractionDigits: 0,
+            })}
+          </span>
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function getBreakdown(
-  scenarioId: Scenario["id"] | null,
-  salary: number,
-): Breakdown {
-  switch (scenarioId) {
+function getBreakdown(scenario: Scenario, salary: number): Breakdown {
+  switch (scenario) {
     case "eor-employer":
       const eorStandardFee = 6000;
       const eorEmployerTaxRate = 0.26;
       const eorEmployerTaxes = salary * eorEmployerTaxRate;
       const eorTotalCost = salary + eorEmployerTaxes + eorStandardFee;
       return {
+        scenario: scenario,
         title: "EOR Employer Cost Breakdown",
         items: [
           { label: "Base Salary", value: salary, isInitial: true },
@@ -428,19 +422,20 @@ function getBreakdown(
             label: "EOR Standard Fee",
             value: eorStandardFee,
           },
-          { label: "Total Annual Cost", value: eorTotalCost, isResult: true },
         ],
+        total: eorTotalCost,
         description:
           "The EOR employer cost includes all mandatory employer contributions and benefits required by Argentine law, plus the EOR provider fee. These contributions are calculated as a percentage of the employee salary and cover retirement, healthcare, and workplace safety.",
       };
 
-    case "eor-employee":
+    case "eor-worker":
       const employeeSocialSecurity = salary * 0.17;
       const remainingAfterSS = salary - employeeSocialSecurity;
       const effectiveIncomeTaxRate = 0.12;
       const incomeLevy = remainingAfterSS * effectiveIncomeTaxRate;
       const eorTakeHome = remainingAfterSS - incomeLevy;
       return {
+        scenario: scenario,
         title: "EOR Employee Take-Home Breakdown",
         items: [
           { label: "Gross Salary", value: salary, isInitial: true },
@@ -460,8 +455,8 @@ function getBreakdown(
             label: "Income Tax (~12%)",
             value: -incomeLevy,
           },
-          { label: "Annual Take-Home", value: eorTakeHome, isResult: true },
         ],
+        total: eorTakeHome,
         description:
           "Employee deductions include mandatory social security contributions (17% total) which provide pension and healthcare benefits. Progressive income tax applies based on the income level. These deductions are standard in Argentina and provide important social protections.",
       };
@@ -470,6 +465,7 @@ function getBreakdown(
       const aorPlatformFee = 300 * 12;
       const aorTotalCost = salary + aorPlatformFee;
       return {
+        scenario: scenario,
         title: "AOR Employer Cost Breakdown",
         items: [
           {
@@ -481,17 +477,18 @@ function getBreakdown(
             label: "AOR Platform Fee (Silver.dev)",
             value: aorPlatformFee,
           },
-          { label: "Total Annual Cost", value: aorTotalCost, isResult: true },
         ],
+        total: aorTotalCost,
         description:
           "When using an Agent of Record (AOR), the company pays a fixed contractor rate with a minimal platform fee. The contractor is responsible for their own taxes and compliance. This model provides more flexibility but shifts responsibility to the contractor.",
       };
 
-    case "aor-contractor":
+    case "aor-worker":
       const aorContractorTaxRate = 0.18;
       const aorContractorTaxes = salary * aorContractorTaxRate;
       const aorTakeHome = salary - aorContractorTaxes;
       return {
+        scenario: scenario,
         title: "AOR Contractor Take-Home Breakdown",
         items: [
           { label: "Gross Income", value: salary, isInitial: true },
@@ -499,20 +496,10 @@ function getBreakdown(
             label: "Monotributo Taxes (~18%)",
             value: -aorContractorTaxes,
           },
-          {
-            label: "Annual Take-Home",
-            value: aorTakeHome,
-            isResult: true,
-          },
         ],
+        total: aorTakeHome,
         description:
           "Contractors in Argentina typically use the Monotributo simplified tax regime when their annual income is under 95 million ARS (~$74.5k USD). This combines income tax, VAT, and social security into a single monthly payment. For higher earners, progressive income tax rates from 5-35% apply.",
-      };
-    default:
-      return {
-        title: "No Scenario Selected",
-        description: "Please select a scenario to view the breakdown.",
-        items: [],
       };
   }
 }
