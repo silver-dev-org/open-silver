@@ -1,6 +1,6 @@
 "use client";
 
-import Spacer, { spaceSizes } from "@/components/spacer";
+import { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,10 +14,6 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import type React from "react";
 import { HTMLAttributes, useState } from "react";
-
-const MIN_SALARY = 50000;
-const MAX_SALARY = 150000;
-const DEFAULT_SALARY = 100000;
 
 type SalaryModel = "aor" | "eor";
 
@@ -39,99 +35,197 @@ type BreakdownItem = {
   value: number;
 };
 
+const MIN_SALARY = 50000;
+const MAX_SALARY = 150000;
+const DEFAULT_SALARY = 100000;
+const FEES = {
+  eor: {
+    // sources: [
+    //   "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
+    //   "https://www.cronista.com/impresa-general/contribuciones-y-aportes-sijp-y-obras-sociales/",
+    // ],
+    employer: {
+      pension: 16,
+      socialServices: 2, // PAMI
+      health: 6,
+      employmentFund: 1.5,
+      lifeInsurance: 0.3,
+      accidentInsurance: 1.8, // ART
+      familyAllowance: 4.44,
+    },
+    worker: {
+      pension: 11,
+      health: 3,
+      socialServices: 3, // PAMI
+      incomeTax: {
+        // Estimates in USD averaging married & single deductions
+        // Based on Nov 2025 data
+        50000: 13.5,
+        55000: 15,
+        60000: 16,
+        65000: 17.5,
+        70000: 19,
+        75000: 20,
+        80000: 21.5,
+        85000: 23,
+        90000: 24,
+        95000: 24.5,
+        100000: 26,
+        105000: 27,
+        110000: 27.5,
+        115000: 28.5,
+        120000: 29,
+        125000: 29.5,
+        130000: 29.5,
+        135000: 30,
+        140000: 31,
+        145000: 31.5,
+        150000: 31.5,
+      },
+    },
+  },
+  aor: {
+    employer: {
+      aorMonthlyFee: 300,
+    },
+    worker: {
+      taxes: 15, // Monotributo estimado
+    },
+  },
+} satisfies Record<SalaryModel, Record<Persona, Record<string, any>>>;
+
+function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
+  const roundedSalary = Math.round(salary / 5000) * 5000;
+  const clampedSalary = Math.max(
+    MIN_SALARY,
+    Math.min(MAX_SALARY, roundedSalary),
+  );
+  const incomeTaxRate =
+    roundedSalary < MIN_SALARY
+      ? 0
+      : roundedSalary > MAX_SALARY
+        ? 35
+        : FEES.eor.worker.incomeTax[
+            clampedSalary as keyof typeof FEES.eor.worker.incomeTax
+          ];
+  const thirteenthSalary = salary / 12;
+  const totalGross = salary + thirteenthSalary;
+  const eorEmployerFees = Object.values(FEES.eor.employer).reduce(
+    (acc, val) => acc + val,
+    0,
+  );
+  const eorEmployeeFees =
+    Object.values(FEES.eor.worker)
+      .filter((v) => typeof v === "number")
+      .reduce((acc, val) => acc + val, 0) + incomeTaxRate;
+  return {
+    "eor-employer": {
+      scenario: "eor-employer",
+      title: "Employer pays",
+      description: "EOR total employer cost including all contributions",
+      base: salary,
+      items: [
+        {
+          label: "Gross 13th Salary",
+          value: thirteenthSalary,
+        },
+        {
+          label: `Pension (+${FEES.eor.employer.pension}%)`,
+          value: totalGross * (FEES.eor.employer.pension / 100),
+        },
+        {
+          label: `Social Services (+${FEES.eor.employer.socialServices}%)`,
+          value: totalGross * (FEES.eor.employer.socialServices / 100),
+        },
+        {
+          label: `Health (+${FEES.eor.employer.health}%)`,
+          value: totalGross * (FEES.eor.employer.health / 100),
+        },
+        {
+          label: `Employment Fund (+${FEES.eor.employer.employmentFund}%)`,
+          value: totalGross * (FEES.eor.employer.employmentFund / 100),
+        },
+        {
+          label: `Life Insurance (+${FEES.eor.employer.lifeInsurance}%)`,
+          value: totalGross * (FEES.eor.employer.lifeInsurance / 100),
+        },
+        {
+          label: `Accident Insurance (+${FEES.eor.employer.accidentInsurance}%)`,
+          value: totalGross * (FEES.eor.employer.accidentInsurance / 100),
+        },
+        {
+          label: `Family Allowance (+${FEES.eor.employer.familyAllowance}%)`,
+          value: totalGross * (FEES.eor.employer.familyAllowance / 100),
+        },
+      ],
+      total: totalGross * (1 + eorEmployerFees / 100),
+    },
+    "eor-worker": {
+      scenario: "eor-worker",
+      title: "Employee gets",
+      description: "EOR worker net salary after all deductions",
+      base: salary,
+      items: [
+        {
+          label: "Gross 13th Salary",
+          value: thirteenthSalary,
+        },
+        {
+          label: `Pension (-${FEES.eor.worker.pension}%)`,
+          value: -(totalGross * (FEES.eor.worker.pension / 100)),
+        },
+        {
+          label: `Health (-${FEES.eor.worker.health}%)`,
+          value: -(totalGross * (FEES.eor.worker.health / 100)),
+        },
+        {
+          label: `Social Services (-${FEES.eor.worker.socialServices}%)`,
+          value: -(totalGross * (FEES.eor.worker.socialServices / 100)),
+        },
+        {
+          label: `Income Tax (-${incomeTaxRate}%)`,
+          value: -(totalGross * (incomeTaxRate / 100)),
+        },
+      ],
+      total: totalGross * (1 - eorEmployeeFees / 100),
+    },
+    "aor-employer": {
+      scenario: "aor-employer",
+      title: "Employer pays",
+      description: "AOR total employer cost including monthly fee",
+      base: salary,
+      items: [
+        {
+          label: "AOR Fee (+$300/mo)",
+          value: FEES.aor.employer.aorMonthlyFee * 12,
+        },
+      ],
+      total: salary + FEES.aor.employer.aorMonthlyFee * 12,
+    },
+    "aor-worker": {
+      scenario: "aor-worker",
+      title: "Contractor gets",
+      description: "AOR worker net income after taxes",
+      base: salary,
+      items: [
+        {
+          label: `Simplified taxes regime (-${FEES.aor.worker.taxes}%)`,
+          value: salary * -(FEES.aor.worker.taxes / 100),
+        },
+      ],
+      total: salary * (1 - FEES.aor.worker.taxes / 100),
+    },
+  };
+}
+
+function getBreakdown(scenario: Scenario, salary: number) {
+  return getBreakdowns(salary)[scenario];
+}
+
 export function SalaryCalculator() {
   const [salary, setSalary] = useState(DEFAULT_SALARY);
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
-
-  // EOR Calculations
-  const eorStandardFee = 6000;
-  const eorEmployerTaxRate = 0.26; // 12% + 6% + 6% + 2%
-  const eorEmployerTaxes = salary * eorEmployerTaxRate;
-  const eorTotalEmployerCost = salary + eorEmployerTaxes + eorStandardFee;
-
-  // Employee deductions (17% total social security + income tax)
-  const employeeSocialSecurity = salary * 0.17;
-  const remainingAfterSS = salary - employeeSocialSecurity;
-
-  // Progressive income tax for Argentina (simplified for this salary range)
-  // Assuming ~12% effective rate for this income range after deductions and exemptions
-  const incomeUnderTax = remainingAfterSS;
-  const incomeMultiplier = salary / 75000; // normalize to base income
-  const effectiveIncomeTaxRate = Math.max(
-    0.05,
-    Math.min(0.15, 0.12 * incomeMultiplier),
-  );
-  const incomeLevy = incomeUnderTax * effectiveIncomeTaxRate;
-  const eorEmployeeTakeHome = remainingAfterSS - incomeLevy;
-
-  // AOR Calculations (Contractor)
-  const aorPlatformFee = 300 * 12;
-  const aorContractorTaxRate = 0.15; // Monotributo simplified estimate for this income range
-  const aorContractorTaxes = salary * aorContractorTaxRate;
-  const aorTotalCompanyCost = salary + aorPlatformFee;
-  const aorContractorTakeHome = salary - aorContractorTaxes;
-
-  // Differences EOR vs AOR
-  const employerCostDifference = eorTotalEmployerCost - aorTotalCompanyCost;
-  const employeeTakeHomeDifference =
-    eorEmployeeTakeHome - aorContractorTakeHome;
-
-  const breakdowns: Breakdown[] = [
-    {
-      scenario: "eor-employer",
-      title: "Employer pays",
-      base: salary,
-      total: eorTotalEmployerCost,
-      items: [
-        {
-          label: "Taxes & Benefits",
-          value: eorEmployerTaxes,
-        },
-        {
-          label: "EOR Standard Fee",
-          value: eorStandardFee,
-        },
-      ],
-    },
-    {
-      scenario: "eor-worker",
-      title: "Employee gets",
-      base: salary,
-      total: eorEmployeeTakeHome,
-      items: [
-        {
-          label: "Social Security (17%)",
-          value: -employeeSocialSecurity,
-        },
-        { label: "Income Tax", value: -incomeLevy },
-      ],
-    },
-    {
-      scenario: "aor-employer",
-      title: "Employer pays",
-      base: salary,
-      total: aorTotalCompanyCost,
-      items: [
-        {
-          label: "AOR Platform Fee",
-          value: aorPlatformFee,
-        },
-      ],
-    },
-    {
-      scenario: "aor-worker",
-      title: "Contractor gets",
-      base: salary,
-      total: aorContractorTakeHome,
-      items: [
-        {
-          label: "Contractor Taxes (18%)",
-          value: -aorContractorTaxes,
-        },
-      ],
-    },
-  ];
-
+  const breakdowns = getBreakdowns(salary);
   return (
     <>
       <div className={cn("grid grid-cols-2 relative", spaceSizes.lg.gap)}>
@@ -139,7 +233,7 @@ export function SalaryCalculator() {
           heading="Employer of Record (EOR)"
           salary={salary}
           setSalary={setSalary}
-          breakdowns={breakdowns.filter((b) => b.scenario.startsWith("eor"))}
+          breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
           onViewBreakdown={setActiveModal}
         />
         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground transform -translate-x-1/2" />
@@ -147,7 +241,7 @@ export function SalaryCalculator() {
           heading="Agency of Record (AOR)"
           salary={salary}
           setSalary={setSalary}
-          breakdowns={breakdowns.filter((s) => s.scenario.startsWith("aor"))}
+          breakdowns={[breakdowns["aor-employer"], breakdowns["aor-worker"]]}
           onViewBreakdown={setActiveModal}
         />
       </div>
@@ -286,12 +380,6 @@ function BreakdownCard({
             </div>
           </div>
         </div>
-
-        <div className="space-y-3 border-t pt-4 flex-1">
-          {breakdown.items.map((item, idx) => (
-            <BreakdownItem key={idx} {...item} />
-          ))}
-        </div>
         <Button
           variant="outline"
           onClick={onView}
@@ -343,116 +431,6 @@ function BreakdownModal({
   );
 }
 
-function getBreakdown(scenario: Scenario, salary: number): Breakdown {
-  switch (scenario) {
-    case "eor-employer":
-      const eorStandardFee = 6000;
-      const eorEmployerTaxRate = 0.26;
-      const eorEmployerTaxes = salary * eorEmployerTaxRate;
-      const eorTotalCost = salary + eorEmployerTaxes + eorStandardFee;
-      return {
-        scenario: scenario,
-        title: "EOR Employer Cost Breakdown",
-        base: salary,
-        items: [
-          {
-            label: "Pension Fund Contribution (12%)",
-            value: salary * 0.12,
-          },
-          {
-            label: "Social Security (6%)",
-            value: salary * 0.06,
-          },
-          {
-            label: "Health Insurance (6%)",
-            value: salary * 0.06,
-          },
-          {
-            label: "Work Risk Insurance (2%)",
-            value: salary * 0.02,
-          },
-          {
-            label: "EOR Standard Fee",
-            value: eorStandardFee,
-          },
-        ],
-        total: eorTotalCost,
-        description:
-          "The EOR employer cost includes all mandatory employer contributions and benefits required by Argentine law, plus the EOR provider fee. These contributions are calculated as a percentage of the employee salary and cover retirement, healthcare, and workplace safety.",
-      };
-
-    case "eor-worker":
-      const employeeSocialSecurity = salary * 0.17;
-      const remainingAfterSS = salary - employeeSocialSecurity;
-      const effectiveIncomeTaxRate = 0.12;
-      const incomeLevy = remainingAfterSS * effectiveIncomeTaxRate;
-      const eorTakeHome = remainingAfterSS - incomeLevy;
-      return {
-        scenario: scenario,
-        title: "EOR Employee Take-Home Breakdown",
-        base: salary,
-        items: [
-          {
-            label: "Pension Fund Deduction (11%)",
-            value: -(salary * 0.11),
-          },
-          {
-            label: "Healthcare Deduction (3%)",
-            value: -(salary * 0.03),
-          },
-          {
-            label: "Social Services Deduction (3%)",
-            value: -(salary * 0.03),
-          },
-          {
-            label: "Income Tax (~12%)",
-            value: -incomeLevy,
-          },
-        ],
-        total: eorTakeHome,
-        description:
-          "Employee deductions include mandatory social security contributions (17% total) which provide pension and healthcare benefits. Progressive income tax applies based on the income level. These deductions are standard in Argentina and provide important social protections.",
-      };
-
-    case "aor-employer":
-      const aorPlatformFee = 300 * 12;
-      const aorTotalCost = salary + aorPlatformFee;
-      return {
-        scenario: scenario,
-        title: "AOR Employer Cost Breakdown",
-        base: salary,
-        items: [
-          {
-            label: "AOR Platform Fee (Silver.dev)",
-            value: aorPlatformFee,
-          },
-        ],
-        total: aorTotalCost,
-        description:
-          "When using an Agent of Record (AOR), the company pays a fixed contractor rate with a minimal platform fee. The contractor is responsible for their own taxes and compliance. This model provides more flexibility but shifts responsibility to the contractor.",
-      };
-
-    case "aor-worker":
-      const aorContractorTaxRate = 0.18;
-      const aorContractorTaxes = salary * aorContractorTaxRate;
-      const aorTakeHome = salary - aorContractorTaxes;
-      return {
-        scenario: scenario,
-        title: "AOR Contractor Take-Home Breakdown",
-        base: salary,
-        items: [
-          {
-            label: "Monotributo Taxes (~18%)",
-            value: -aorContractorTaxes,
-          },
-        ],
-        total: aorTakeHome,
-        description:
-          "Contractors in Argentina typically use the Monotributo simplified tax regime when their annual income is under 95 million ARS (~$74.5k USD). This combines income tax, VAT, and social security into a single monthly payment. For higher earners, progressive income tax rates from 5-35% apply.",
-      };
-  }
-}
-
 function BreakdownItem({
   label,
   value,
@@ -461,7 +439,7 @@ function BreakdownItem({
 }: BreakdownItem & HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn("flex justify-between text-sm", className)} {...props}>
-      <span className="text-muted-foreground">{label}</span>
+      <span>{label}</span>
       <span>
         {value.toLocaleString("en-US", {
           maximumFractionDigits: 0,
