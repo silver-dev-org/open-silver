@@ -151,38 +151,6 @@ export function SalaryCalculator() {
           onViewBreakdown={setActiveModal}
         />
       </div>
-      <Spacer />
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center">
-            <p className="text-xl font-semibold">
-              Employer saves{" "}
-              <span className="text-green-600">
-                $
-                {Math.abs(employerCostDifference).toLocaleString("en-US", {
-                  maximumFractionDigits: 0,
-                })}
-              </span>{" "}
-              with AOR compared to EOR
-            </p>
-          </div>
-        </CardContent>
-        <CardContent>
-          <div className="text-center">
-            <p className="text-xl font-semibold">
-              Worker takes{" "}
-              <span className="text-green-600">
-                $
-                {Math.abs(employeeTakeHomeDifference).toLocaleString("en-US", {
-                  maximumFractionDigits: 0,
-                })}
-              </span>{" "}
-              more with AOR compared to EOR
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       <BreakdownModal
         scenario={activeModal}
         salary={salary}
