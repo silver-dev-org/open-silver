@@ -19,11 +19,11 @@ const MIN_SALARY = 50000;
 const MAX_SALARY = 150000;
 const DEFAULT_SALARY = 100000;
 
-type HiringModel = "aor" | "eor";
+type SalaryModel = "aor" | "eor";
 
 type Persona = "worker" | "employer";
 
-type Scenario = `${HiringModel}-${Persona}`;
+type Scenario = `${SalaryModel}-${Persona}`;
 
 type Breakdown = {
   scenario: Scenario;
@@ -39,7 +39,7 @@ type BreakdownItem = {
   value: number;
 };
 
-export function HiringCostsCalculator() {
+export function SalaryCalculator() {
   const [salary, setSalary] = useState(DEFAULT_SALARY);
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
 
@@ -135,7 +135,7 @@ export function HiringCostsCalculator() {
   return (
     <>
       <div className={cn("grid grid-cols-2 relative", spaceSizes.lg.gap)}>
-        <HiringModelSection
+        <SalaryModelSection
           heading="Employer of Record (EOR)"
           salary={salary}
           setSalary={setSalary}
@@ -143,7 +143,7 @@ export function HiringCostsCalculator() {
           onViewBreakdown={setActiveModal}
         />
         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground transform -translate-x-1/2" />
-        <HiringModelSection
+        <SalaryModelSection
           heading="Agency of Record (AOR)"
           salary={salary}
           setSalary={setSalary}
@@ -251,7 +251,7 @@ function SalarySlider({
   );
 }
 
-function HiringModelSection({
+function SalaryModelSection({
   heading,
   salary,
   setSalary,
