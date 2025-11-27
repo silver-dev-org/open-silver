@@ -54,7 +54,6 @@ const FEES = {
     employer: {
       sources: [
         "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
-        "https://www.boletinoficial.gob.ar/detalleAviso/primera/330620/20250901",
         "https://www.srt.gob.ar/estadisticas/cf_boletin_art.php",
       ],
       pension: 16,
@@ -68,6 +67,7 @@ const FEES = {
       sources: [
         "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
         "https://www.boletinoficial.gob.ar/detalleAviso/primera/330620/20250901",
+        "https://servicioscf.afip.gob.ar/publico/abc/ABCpaso2.aspx?cat=743",
       ],
       pension: 11,
       health: 3,
