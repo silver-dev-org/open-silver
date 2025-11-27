@@ -93,6 +93,12 @@ const FEES = {
 } satisfies Record<SalaryModel, Record<Persona, Record<string, any>>>;
 
 function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
+  function getFees(obj: Record<string, any>) {
+    return Object.values(obj)
+      .filter((val) => typeof val === "number")
+      .reduce((acc, val) => acc + val, 0);
+  }
+
   const roundedSalary = Math.round(salary / 5000) * 5000;
   const clampedSalary = Math.max(
     MIN_SALARY,
@@ -108,14 +114,9 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           ];
   const thirteenthSalary = salary / 12;
   const totalGross = salary + thirteenthSalary;
-  const eorEmployerFees = Object.values(FEES.eor.employer).reduce(
-    (acc, val) => acc + val,
-    0,
-  );
-  const eorEmployeeFees =
-    Object.values(FEES.eor.worker)
-      .filter((v) => typeof v === "number")
-      .reduce((acc, val) => acc + val, 0) + incomeTaxRate;
+  const eorEmployerFees = getFees(FEES.eor.employer);
+  const eorEmployeeFees = getFees(FEES.eor.worker) + incomeTaxRate;
+
   return {
     "eor-employer": {
       scenario: "eor-employer",
