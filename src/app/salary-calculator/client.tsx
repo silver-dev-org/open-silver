@@ -40,11 +40,21 @@ type BreakdownItem = {
 const MIN_SALARY = 50000;
 const MAX_SALARY = 150000;
 const DEFAULT_SALARY = 100000;
+const CURRENCY_FORMAT: Intl.NumberFormatOptions = {
+  maximumFractionDigits: 0,
+  currency: "USD",
+  currencyDisplay: "symbol",
+  style: "currency",
+  currencySign: "accounting",
+};
+const ARS_USD = 1415;
+const MAX_TAXABLE_GROSS = (3505701.35 / ARS_USD) * 13;
 const FEES = {
   eor: {
     employer: {
       sources: [
         "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
+        "https://www.boletinoficial.gob.ar/detalleAviso/primera/330620/20250901",
         "https://www.srt.gob.ar/estadisticas/cf_boletin_art.php",
       ],
       pension: 16,
@@ -57,6 +67,7 @@ const FEES = {
     worker: {
       sources: [
         "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
+        "https://www.boletinoficial.gob.ar/detalleAviso/primera/330620/20250901",
       ],
       pension: 11,
       health: 3,
@@ -122,14 +133,46 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           ];
   const thirteenthSalary = salary / 12;
   const totalGross = salary + thirteenthSalary;
-  const eorEmployerFees = getFees(FEES.eor.employer);
-  const eorEmployeeFees = getFees(FEES.eor.worker) + incomeTaxRate;
+  const taxableGross = Math.min(MAX_TAXABLE_GROSS, totalGross);
+
+  const pensionEmployer = taxableGross * (FEES.eor.employer.pension / 100);
+  const socialServicesEmployer =
+    taxableGross * (FEES.eor.employer.socialServices / 100);
+  const employmentFund =
+    taxableGross * (FEES.eor.employer.employmentFund / 100);
+  const health = totalGross * (FEES.eor.employer.health / 100);
+  const lifeInsurance = totalGross * (FEES.eor.employer.lifeInsurance / 100);
+  const accidentInsurance =
+    totalGross * (FEES.eor.employer.accidentInsurance / 100);
+
+  const totalEmployerCost =
+    totalGross +
+    pensionEmployer +
+    socialServicesEmployer +
+    health +
+    employmentFund +
+    lifeInsurance +
+    accidentInsurance;
+
+  const pensionWorker = taxableGross * (FEES.eor.worker.pension / 100);
+  const socialServicesWorker =
+    taxableGross * (FEES.eor.worker.socialServices / 100);
+
+  const healthWorker = totalGross * (FEES.eor.worker.health / 100);
+  const incomeTax = totalGross * (incomeTaxRate / 100);
+
+  const totalWorkerNet =
+    totalGross -
+    pensionWorker -
+    healthWorker -
+    socialServicesWorker -
+    incomeTax;
 
   return {
     "eor-employer": {
       scenario: "eor-employer",
       title: "Employer pays",
-      description: "EOR total employer cost including all contributions",
+      description: "EOR total employer cost including all contributions.",
       sources: FEES.eor.employer.sources,
       base: salary,
       items: [
@@ -138,31 +181,31 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: thirteenthSalary,
         },
         {
-          label: `Pension (+${FEES.eor.employer.pension}%)`,
-          value: totalGross * (FEES.eor.employer.pension / 100),
+          label: `Pension (+${FEES.eor.employer.pension}%*)`,
+          value: pensionEmployer,
         },
         {
-          label: `Social Services (+${FEES.eor.employer.socialServices}%)`,
-          value: totalGross * (FEES.eor.employer.socialServices / 100),
+          label: `Social Services (+${FEES.eor.employer.socialServices}%*)`,
+          value: socialServicesEmployer,
         },
         {
           label: `Health (+${FEES.eor.employer.health}%)`,
-          value: totalGross * (FEES.eor.employer.health / 100),
+          value: health,
         },
         {
-          label: `Employment Fund (+${FEES.eor.employer.employmentFund}%)`,
-          value: totalGross * (FEES.eor.employer.employmentFund / 100),
+          label: `Employment Fund (+${FEES.eor.employer.employmentFund}%*)`,
+          value: employmentFund,
         },
         {
           label: `Life Insurance (+${FEES.eor.employer.lifeInsurance}%)`,
-          value: totalGross * (FEES.eor.employer.lifeInsurance / 100),
+          value: lifeInsurance,
         },
         {
           label: `Accident Insurance (+${FEES.eor.employer.accidentInsurance}%)`,
-          value: totalGross * (FEES.eor.employer.accidentInsurance / 100),
+          value: accidentInsurance,
         },
       ],
-      total: totalGross * (1 + eorEmployerFees / 100),
+      total: totalEmployerCost,
     },
     "eor-worker": {
       scenario: "eor-worker",
@@ -176,23 +219,23 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: thirteenthSalary,
         },
         {
-          label: `Pension (-${FEES.eor.worker.pension}%)`,
-          value: -(totalGross * (FEES.eor.worker.pension / 100)),
+          label: `Pension (-${FEES.eor.worker.pension}%*)`,
+          value: -pensionWorker,
         },
         {
           label: `Health (-${FEES.eor.worker.health}%)`,
-          value: -(totalGross * (FEES.eor.worker.health / 100)),
+          value: -healthWorker,
         },
         {
-          label: `Social Services (-${FEES.eor.worker.socialServices}%)`,
-          value: -(totalGross * (FEES.eor.worker.socialServices / 100)),
+          label: `Social Services (-${FEES.eor.worker.socialServices}%*)`,
+          value: -socialServicesWorker,
         },
         {
           label: `Income Tax (-${incomeTaxRate}%)`,
-          value: -(totalGross * (incomeTaxRate / 100)),
+          value: -incomeTax,
         },
       ],
-      total: totalGross * (1 - eorEmployeeFees / 100),
+      total: totalWorkerNet,
     },
     "aor-employer": {
       scenario: "aor-employer",
@@ -442,6 +485,16 @@ function BreakdownModal({
           <DialogTitle>{breakdown.title}</DialogTitle>
           <DialogDescription>
             {breakdown.description}
+            {scenario.startsWith("eor") && (
+              <>
+                <br />
+                (*) Capped at max. taxable gross of{" "}
+                {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
+                  "en-US",
+                  CURRENCY_FORMAT,
+                )}
+              </>
+            )}
             <br />
             Sources:{" "}
             {breakdown.sources.map((source, i) => (
@@ -482,15 +535,7 @@ function BreakdownItem({
   return (
     <div className={cn("flex justify-between text-sm", className)} {...props}>
       <span>{label}</span>
-      <span>
-        {value.toLocaleString("en-US", {
-          maximumFractionDigits: 0,
-          currency: "USD",
-          currencyDisplay: "symbol",
-          style: "currency",
-          currencySign: "accounting",
-        })}
-      </span>
+      <span>{value.toLocaleString("en-US", CURRENCY_FORMAT)}</span>
     </div>
   );
 }
