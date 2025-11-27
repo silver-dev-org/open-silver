@@ -90,6 +90,12 @@ const tools: {
         href: "/fees-calculator",
       },
       {
+        title: "Salary Calculator",
+        description:
+          "Understand salary costs in Argentina, comparing EOR vs AOR.",
+        href: "/salary-calculator",
+      },
+      {
         title: "Model Agreement",
         description: "See our standard agreement.",
         href: "https://silver.dev/contract",
