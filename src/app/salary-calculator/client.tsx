@@ -42,7 +42,6 @@ const FEES = {
   eor: {
     // sources: [
     //   "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
-    //   "https://www.cronista.com/impresa-general/contribuciones-y-aportes-sijp-y-obras-sociales/",
     // ],
     employer: {
       pension: 16,
@@ -51,7 +50,6 @@ const FEES = {
       employmentFund: 1.5,
       lifeInsurance: 0.3,
       accidentInsurance: 1.8, // ART
-      familyAllowance: 4.44,
     },
     worker: {
       pension: 11,
@@ -152,10 +150,6 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
         {
           label: `Accident Insurance (+${FEES.eor.employer.accidentInsurance}%)`,
           value: totalGross * (FEES.eor.employer.accidentInsurance / 100),
-        },
-        {
-          label: `Family Allowance (+${FEES.eor.employer.familyAllowance}%)`,
-          value: totalGross * (FEES.eor.employer.familyAllowance / 100),
         },
       ],
       total: totalGross * (1 + eorEmployerFees / 100),
