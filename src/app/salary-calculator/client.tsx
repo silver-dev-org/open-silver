@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import type React from "react";
 import { HTMLAttributes, useState } from "react";
 
@@ -23,6 +24,7 @@ type Scenario = `${SalaryModel}-${Persona}`;
 
 type Breakdown = {
   scenario: Scenario;
+  sources: string[];
   title: string;
   description?: string;
   base: number;
@@ -40,18 +42,22 @@ const MAX_SALARY = 150000;
 const DEFAULT_SALARY = 100000;
 const FEES = {
   eor: {
-    // sources: [
-    //   "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
-    // ],
     employer: {
+      sources: [
+        "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
+        "https://www.srt.gob.ar/estadisticas/cf_boletin_art.php",
+      ],
       pension: 16,
       socialServices: 2, // PAMI
       health: 6,
       employmentFund: 1.5,
       lifeInsurance: 0.3,
-      accidentInsurance: 1.8, // ART
+      accidentInsurance: 2, // Estimación ART
     },
     worker: {
+      sources: [
+        "https://www.argentina.gob.ar/trabajo/buscastrabajo/conocetusderechos/salario",
+      ],
       pension: 11,
       health: 3,
       socialServices: 3, // PAMI
@@ -84,9 +90,11 @@ const FEES = {
   },
   aor: {
     employer: {
+      sources: ["https://silver.dev/aor#pricing"],
       aorMonthlyFee: 300,
     },
     worker: {
+      sources: ["https://www.afip.gob.ar/monotributo/categorias.asp"],
       taxes: 15, // Monotributo estimado
     },
   },
@@ -122,6 +130,7 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
       scenario: "eor-employer",
       title: "Employer pays",
       description: "EOR total employer cost including all contributions",
+      sources: FEES.eor.employer.sources,
       base: salary,
       items: [
         {
@@ -158,6 +167,7 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
     "eor-worker": {
       scenario: "eor-worker",
       title: "Employee gets",
+      sources: FEES.eor.worker.sources,
       description: "EOR worker net salary after all deductions",
       base: salary,
       items: [
@@ -188,10 +198,11 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
       scenario: "aor-employer",
       title: "Employer pays",
       description: "AOR total employer cost including monthly fee",
+      sources: FEES.aor.employer.sources,
       base: salary,
       items: [
         {
-          label: "AOR Fee (+$300/mo)",
+          label: "Silver.dev AOR Fee (+$300/mo)",
           value: FEES.aor.employer.aorMonthlyFee * 12,
         },
       ],
@@ -201,6 +212,7 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
       scenario: "aor-worker",
       title: "Contractor gets",
       description: "AOR worker net income after taxes",
+      sources: FEES.aor.worker.sources,
       base: salary,
       items: [
         {
@@ -405,7 +417,19 @@ function BreakdownModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{breakdown.title}</DialogTitle>
-          <DialogDescription>{breakdown.description}</DialogDescription>
+          <DialogDescription>
+            {breakdown.description}
+            <br />
+            Sources:{" "}
+            {breakdown.sources.map((source, i) => (
+              <>
+                <Link key={i} className="link" href={source}>
+                  {new URL(source).host.replace("www.", "")}
+                </Link>
+                {i < breakdown.sources.length - 1 && ", "}
+              </>
+            ))}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
