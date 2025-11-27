@@ -112,12 +112,6 @@ const FEES = {
 } satisfies Record<SalaryModel, Record<Persona, Record<string, any>>>;
 
 function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
-  function getFees(obj: Record<string, any>) {
-    return Object.values(obj)
-      .filter((val) => typeof val === "number")
-      .reduce((acc, val) => acc + val, 0);
-  }
-
   const roundedSalary = Math.round(salary / 5000) * 5000;
   const clampedSalary = Math.max(
     MIN_SALARY,
@@ -133,13 +127,12 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           ];
   const thirteenthSalary = salary / 12;
   const totalGross = salary + thirteenthSalary;
-  const taxableGross = Math.min(MAX_TAXABLE_GROSS, totalGross);
+  const taxableGrossEmployee = Math.min(MAX_TAXABLE_GROSS, totalGross);
 
-  const pensionEmployer = taxableGross * (FEES.eor.employer.pension / 100);
+  const pensionEmployer = totalGross * (FEES.eor.employer.pension / 100);
   const socialServicesEmployer =
-    taxableGross * (FEES.eor.employer.socialServices / 100);
-  const employmentFund =
-    taxableGross * (FEES.eor.employer.employmentFund / 100);
+    totalGross * (FEES.eor.employer.socialServices / 100);
+  const employmentFund = totalGross * (FEES.eor.employer.employmentFund / 100);
   const health = totalGross * (FEES.eor.employer.health / 100);
   const lifeInsurance = totalGross * (FEES.eor.employer.lifeInsurance / 100);
   const accidentInsurance =
@@ -154,11 +147,10 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
     lifeInsurance +
     accidentInsurance;
 
-  const pensionWorker = taxableGross * (FEES.eor.worker.pension / 100);
+  const pensionWorker = taxableGrossEmployee * (FEES.eor.worker.pension / 100);
   const socialServicesWorker =
-    taxableGross * (FEES.eor.worker.socialServices / 100);
-
-  const healthWorker = totalGross * (FEES.eor.worker.health / 100);
+    taxableGrossEmployee * (FEES.eor.worker.socialServices / 100);
+  const healthWorker = taxableGrossEmployee * (FEES.eor.worker.health / 100);
   const incomeTax = totalGross * (incomeTaxRate / 100);
 
   const totalWorkerNet =
@@ -181,11 +173,11 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: thirteenthSalary,
         },
         {
-          label: `Pension (+${FEES.eor.employer.pension}%*)`,
+          label: `Pension (+${FEES.eor.employer.pension}%)`,
           value: pensionEmployer,
         },
         {
-          label: `Social Services (+${FEES.eor.employer.socialServices}%*)`,
+          label: `Social Services (+${FEES.eor.employer.socialServices}%)`,
           value: socialServicesEmployer,
         },
         {
@@ -193,7 +185,7 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: health,
         },
         {
-          label: `Employment Fund (+${FEES.eor.employer.employmentFund}%*)`,
+          label: `Employment Fund (+${FEES.eor.employer.employmentFund}%)`,
           value: employmentFund,
         },
         {
@@ -223,7 +215,7 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: -pensionWorker,
         },
         {
-          label: `Health (-${FEES.eor.worker.health}%)`,
+          label: `Health (-${FEES.eor.worker.health}%*)`,
           value: -healthWorker,
         },
         {
@@ -485,7 +477,7 @@ function BreakdownModal({
           <DialogTitle>{breakdown.title}</DialogTitle>
           <DialogDescription>
             {breakdown.description}
-            {scenario.startsWith("eor") && (
+            {scenario === "eor-worker" && (
               <>
                 <br />
                 (*) Capped at max. taxable gross of{" "}
