@@ -499,7 +499,7 @@ function BreakdownModal({
             Sources:{" "}
             {breakdown.sources.map((source, i) => (
               <Fragment key={i}>
-                <Link className="link" href={source}>
+                <Link className="link" target="_blank" href={source}>
                   {new URL(source).host.replace("www.", "")}
                 </Link>
                 {i < breakdown.sources.length - 1 && ", "}
