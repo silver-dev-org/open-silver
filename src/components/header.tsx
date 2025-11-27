@@ -30,7 +30,7 @@ export default function Header() {
         external: true,
       },
       {
-        href: "https://jobs.ashbyhq.com/Silver?utm_source=Pedw1mQEZd",
+        href: "https://silver.dev/jobs",
         label: "Jobs",
         external: true,
       },
