@@ -1,6 +1,6 @@
 "use client";
 
-import { spaceSizes } from "@/components/spacer";
+import Spacer, { spaceSizes } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -235,6 +235,20 @@ export function SalaryCalculator() {
   const breakdowns = getBreakdowns(salary);
   return (
     <>
+      <div className="hidden md:block max-w-md mx-auto">
+        <Card>
+          <CardHeader>
+            <SalarySlider
+              value={salary}
+              onChange={setSalary}
+              min={MIN_SALARY}
+              max={MAX_SALARY}
+              step={1000}
+            />
+          </CardHeader>
+        </Card>
+      </div>
+      <Spacer size="lg" />
       <div
         className={cn(
           "grid grid-cols-1 md:grid-cols-2 relative",
@@ -248,7 +262,6 @@ export function SalaryCalculator() {
           breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
           onViewBreakdown={setActiveModal}
         />
-        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground transform -translate-x-1/2" />
         <SalaryModelSection
           heading="Agency of Record (AOR)"
           salary={salary}
@@ -340,7 +353,7 @@ function SalaryModelSection({
 }) {
   return (
     <div className={cn("flex flex-col", spaceSizes.sm.gap)}>
-      <Card>
+      <Card className="md:hidden">
         <CardHeader>
           <CardTitle>{heading}</CardTitle>
         </CardHeader>
@@ -354,6 +367,9 @@ function SalaryModelSection({
           />
         </CardContent>
       </Card>
+      <div className="hidden md:block">
+        <h3 className="text-2xl font-semibold text-center">{heading}</h3>
+      </div>
       <div
         className={cn("flex flex-col md:flex-row size-full", spaceSizes.sm.gap)}
       >
