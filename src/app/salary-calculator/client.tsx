@@ -235,7 +235,12 @@ export function SalaryCalculator() {
   const breakdowns = getBreakdowns(salary);
   return (
     <>
-      <div className={cn("grid grid-cols-2 relative", spaceSizes.lg.gap)}>
+      <div
+        className={cn(
+          "grid grid-cols-1 md:grid-cols-2 relative",
+          spaceSizes.lg.gap,
+        )}
+      >
         <SalaryModelSection
           heading="Employer of Record (EOR)"
           salary={salary}
@@ -243,7 +248,7 @@ export function SalaryCalculator() {
           breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
           onViewBreakdown={setActiveModal}
         />
-        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground transform -translate-x-1/2" />
+        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-foreground transform -translate-x-1/2" />
         <SalaryModelSection
           heading="Agency of Record (AOR)"
           salary={salary}
@@ -349,7 +354,9 @@ function SalaryModelSection({
           />
         </CardContent>
       </Card>
-      <div className={cn("flex flex-row size-full", spaceSizes.sm.gap)}>
+      <div
+        className={cn("flex flex-col md:flex-row size-full", spaceSizes.sm.gap)}
+      >
         {breakdowns.map((breakdown) => (
           <BreakdownCard
             key={breakdown.scenario}
