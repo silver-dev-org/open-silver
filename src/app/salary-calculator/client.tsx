@@ -263,7 +263,7 @@ export function SalaryCalculator() {
           onViewBreakdown={setActiveModal}
         />
         <SalaryModelSection
-          heading="Agency of Record (AOR)"
+          heading="Contractor"
           salary={salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["aor-employer"], breakdowns["aor-worker"]]}
