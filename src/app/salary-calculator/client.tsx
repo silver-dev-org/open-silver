@@ -14,7 +14,7 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import type React from "react";
-import { HTMLAttributes, useState } from "react";
+import { Fragment, HTMLAttributes, useState } from "react";
 
 type SalaryModel = "aor" | "eor";
 
@@ -429,12 +429,12 @@ function BreakdownModal({
             <br />
             Sources:{" "}
             {breakdown.sources.map((source, i) => (
-              <>
-                <Link key={i} className="link" href={source}>
+              <Fragment key={i}>
+                <Link className="link" href={source}>
                   {new URL(source).host.replace("www.", "")}
                 </Link>
                 {i < breakdown.sources.length - 1 && ", "}
-              </>
+              </Fragment>
             ))}
           </DialogDescription>
         </DialogHeader>
