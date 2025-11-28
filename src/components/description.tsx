@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export default function Description({
+export function Description({
   children,
   center,
   className,

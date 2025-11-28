@@ -1,4 +1,4 @@
-export default function Skeleton() {
+export function Skeleton() {
   return (
     <div className="flex gap-2 flex-col animate-pulse">
       <div className="h-6 rounded-lg bg-gray-700/60 dark:bg-gray-700/60 w-36" />

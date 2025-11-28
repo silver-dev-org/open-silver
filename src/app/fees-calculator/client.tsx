@@ -1,29 +1,26 @@
 "use client";
 
-import Description from "@/components/description";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer from "@/components/spacer";
+import { Description } from "@/components/description";
+import { Heading } from "@/components/heading";
+import { Section } from "@/components/section";
+import { Spacer } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/fees-calculator/components/ui/card";
+} from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/fees-calculator/components/ui/chart";
-import { Checkbox } from "@/fees-calculator/components/ui/checkbox";
-import {
-  RadioGroup,
-  RadioGroupItem,
-} from "@/fees-calculator/components/ui/radio-group";
+} from "@/components/ui/chart";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { Label } from "@radix-ui/react-label";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -59,7 +56,7 @@ const booleanFields = [
 
 const paymentAfterMonths = 3;
 
-export default function FeesCalculatorClient() {
+export function FeesCalculator() {
   const searchParams = useSearchParams();
   const [chartData, setChartData] = useState<any[]>([]);
   const [cost, setCost] = useState<number>();
@@ -187,14 +184,14 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
                 <Label key={key} htmlFor={key}>
                   <Card
                     className={cn(
-                      "transition-colors",
+                      "rounded-md border-border bg-transparent transition-colors",
                       !isDisabled && "hover:bg-foreground/10 cursor-pointer",
                       contractProps[key as keyof ContractProps] &&
                         "border-foreground",
                     )}
                   >
                     <CardHeader className="p-4">
-                      <CardTitle className="flex gap-1.5">
+                      <CardTitle className="flex gap-1.5 text-base font-semibold">
                         <Checkbox
                           id={key}
                           onCheckedChange={(checked) =>
@@ -206,7 +203,9 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
                         />
                         {label}
                       </CardTitle>
-                      <CardDescription>{description}</CardDescription>
+                      <CardDescription className="text-sm">
+                        {description}
+                      </CardDescription>
                     </CardHeader>
                   </Card>
                 </Label>
@@ -221,20 +220,22 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
         </div>
         <div className="flex flex-col flex-grow">
           <div className="flex gap-1.5 mb-12">
-            <Card className="w-1/2 text-center">
+            <Card className="w-1/2 text-center rounded-md border-foreground bg-card">
               <CardHeader className="h-full">
                 <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
                   <NumberFlow prefix="$" value={cost || 0} />
                 </CardTitle>
-                <CardDescription>Expected contract cost</CardDescription>
+                <CardDescription className="text-muted-foreground">
+                  Expected contract cost
+                </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="w-1/2 text-center">
+            <Card className="w-1/2 text-center rounded-md border-foreground bg-card">
               <CardHeader className="h-full">
                 <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
                   <NumberFlow suffix="%" value={fee} />
                 </CardTitle>
-                <CardDescription className="flex items-center gap-1 justify-center">
+                <CardDescription className="text-muted-foreground flex items-center gap-1 justify-center">
                   Placement fee
                 </CardDescription>
               </CardHeader>
@@ -290,7 +291,7 @@ function CardRadioGroup({
         <div
           key={value}
           className={cn(
-            "flex-grow flex items-center justify-center gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all",
+            "flex-grow flex items-center justify-center gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all shadow",
             currentValue === value ? "border-foreground" : "border-border",
           )}
           onClick={() => onValueChange(value)}
@@ -300,7 +301,10 @@ function CardRadioGroup({
             value={value}
             id={`${name}-${value}`}
           />
-          <Label htmlFor={`${name}-${value}`} className="cursor-pointer">
+          <Label
+            htmlFor={`${name}-${value}`}
+            className="cursor-pointer text-sm font-medium"
+          >
             {label}
           </Label>
         </div>

@@ -6,10 +6,10 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { spaceSizes } from "./spacer";
+import { spacing } from "./spacer";
 import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
 
-export default function Header() {
+export function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const prefix = pathname?.startsWith("/hire") ? "" : "/";
@@ -55,11 +55,11 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 z-50 w-screen bg-background border-b border-foreground/25 backdrop-blur-sm uppercase ${spaceSizes.sm.px}`}
+      className={`fixed top-0 z-50 w-screen bg-background border-b border-foreground/25 backdrop-blur-sm uppercase ${spacing.sm.px}`}
     >
       <div className="container flex flex-col xl:flex-row justify-between items-center mx-auto">
         <div
-          className={`flex items-center justify-between w-full xl:w-auto ${spaceSizes.lg.h}`}
+          className={`flex items-center justify-between w-full xl:w-auto ${spacing.lg.h}`}
         >
           <h1>
             <span className="sr-only">Silver.dev</span>
@@ -79,7 +79,7 @@ export default function Header() {
         {links.map((group, index) => (
           <div
             key={index}
-            className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${spaceSizes.sm.py} ${
+            className={`justify-center w-full xl:w-auto transition-all duration-300 ease-in-out ${spacing.sm.py} ${
               open
                 ? `flex flex-col max-h-screen`
                 : "hidden xl:flex xl:flex-row max-h-0 xl:max-h-screen"

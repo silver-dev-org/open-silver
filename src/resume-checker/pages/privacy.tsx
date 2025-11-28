@@ -1,7 +1,7 @@
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer from "@/components/spacer";
-export default function Privacy() {
+import { Heading } from "@/components/heading";
+import { Section } from "@/components/section";
+import { Spacer } from "@/components/spacer";
+export function Privacy() {
   return (
     <Section>
       <Heading>Política de Privacidad</Heading>

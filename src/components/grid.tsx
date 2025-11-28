@@ -1,6 +1,6 @@
-import { spaceSizes } from "./spacer";
+import { spacing } from "./spacer";
 
-export default function Grid({
+export function Grid({
   children,
   className,
 }: {
@@ -9,7 +9,7 @@ export default function Grid({
 }) {
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 mx-auto ${spaceSizes.sm.gap} ${className}`}
+      className={`grid grid-cols-1 sm:grid-cols-2 mx-auto ${spacing.sm.gap} ${className}`}
     >
       {children}
     </div>

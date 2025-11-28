@@ -1,15 +1,15 @@
-import Spacer from "@/components/spacer";
+import { Spacer } from "@/components/spacer";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import FeedbackForm from "@/resume-checker/components/feedback-form";
-import Flags from "@/resume-checker/components/flags";
-import PDF from "@/resume-checker/components/pdf";
-import Score from "@/resume-checker/components/score";
-import Skeleton from "@/resume-checker/components/skeleton";
+import { FeedbackForm } from "@/resume-checker/components/feedback-form";
+import { Flags } from "@/resume-checker/components/flags";
+import { PDF } from "@/resume-checker/components/pdf";
+import { Score } from "@/resume-checker/components/score";
+import { Skeleton } from "@/resume-checker/components/skeleton";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import type { FormState } from "@/resume-checker/types";
 import { sendGAEvent } from "@next/third-parties/google";
@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function Review() {
+export function Review() {
   const router = useRouter();
   const [formState] = useFormState();
   const searchParams = useSearchParams();

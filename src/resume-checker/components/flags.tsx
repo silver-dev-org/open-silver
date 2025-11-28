@@ -32,7 +32,7 @@ function Flag({ color }: { color: string }) {
   );
 }
 
-export default function Flags({
+export function Flags({
   flags,
   color,
   label,

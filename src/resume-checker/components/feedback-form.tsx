@@ -4,7 +4,7 @@ import { FormState } from "@/resume-checker/types";
 import { useMutation } from "@tanstack/react-query";
 import { Dispatch, FormEvent, SetStateAction, useState } from "react";
 
-export default function FeedbackForm({
+export function FeedbackForm({
   data,
   isFeedbackFormOpen,
   setFeedbackFormOpen,
@@ -21,7 +21,7 @@ export default function FeedbackForm({
     mutationFn: async ({ formData }) => {
       if (!hasConsented)
         throw new Error(
-          "Necesitamos tu consentimiento para poder enviar el feedback."
+          "Necesitamos tu consentimiento para poder enviar el feedback.",
         );
       const res = await fetch("/api/feedback", {
         method: "POST",

@@ -1,1 +1,1 @@
-export { default } from "@/resume-checker/pages/privacy";
+export { Privacy as default } from "@/resume-checker/pages/privacy";

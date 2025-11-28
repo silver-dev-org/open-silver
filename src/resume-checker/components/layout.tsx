@@ -2,7 +2,7 @@ import { Lato } from "next/font/google";
 import { type ReactNode } from "react";
 const lato = Lato({ subsets: ["latin"], weight: "400" });
 
-export default function Layout({ children }: { children: ReactNode }) {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <div
       className={

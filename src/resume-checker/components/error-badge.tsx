@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function ErrorBadge({ error }: { error: Error | null }) {
+export function ErrorBadge({ error }: { error: Error | null }) {
   const [d, set] = useState(false);
 
   function dismiss() {

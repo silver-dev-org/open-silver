@@ -1,6 +1,6 @@
-import { spaceSizes } from "./spacer";
+import { spacing } from "./spacer";
 
-export default function Section({
+export function Section({
   children,
   id,
   className,
@@ -10,10 +10,10 @@ export default function Section({
   className?: string;
 }) {
   return (
-    <div className={`${spaceSizes.sm.px} xl:px-0`}>
+    <div className={`${spacing.sm.px} xl:px-0`}>
       <section
         id={id}
-        className={`container mx-auto ${spaceSizes.lg.scrollMt} ${className}`}
+        className={`container mx-auto ${spacing.lg.scrollMt} ${className}`}
       >
         {children}
       </section>

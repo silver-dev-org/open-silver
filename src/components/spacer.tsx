@@ -1,4 +1,4 @@
-export const spaceSizes: {
+export const spacing: {
   [key: string]: {
     gap: string;
     h: string;
@@ -35,12 +35,12 @@ export const spaceSizes: {
   },
 };
 
-export default function Spacer({
+export function Spacer({
   size = "sm",
   loose,
 }: {
-  size?: keyof typeof spaceSizes;
+  size?: keyof typeof spacing;
   loose?: boolean;
 }) {
-  return <div className={loose ? spaceSizes[size].mt : spaceSizes[size].h} />;
+  return <div className={loose ? spacing[size].mt : spacing[size].h} />;
 }

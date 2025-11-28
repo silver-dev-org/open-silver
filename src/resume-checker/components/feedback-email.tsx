@@ -1,6 +1,6 @@
 import { FormState } from "@/resume-checker/types";
 
-export default function FeedbackEmail({
+export function FeedbackEmail({
   yellow_flags,
   red_flags,
   grade,

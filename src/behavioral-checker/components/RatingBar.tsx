@@ -32,4 +32,4 @@ const RatingBar: React.FC<RatingBarProps> = ({ active }) => {
   );
 };
 
-export default RatingBar;
+export { RatingBar };

@@ -5,7 +5,7 @@ export const headingSizes: {
   sm: "text-3xl xl:text-6xl",
 };
 
-export default function Heading({
+export function Heading({
   children,
   center,
   size = "sm",

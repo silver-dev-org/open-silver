@@ -7,10 +7,10 @@ import {
   roleOptions,
   valueOptions,
 } from "@/behavioral-checker/data/selects";
-import Description from "@/components/description";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer, { spaceSizes } from "@/components/spacer";
+import { Description } from "@/components/description";
+import { Heading } from "@/components/heading";
+import { Section } from "@/components/section";
+import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -288,7 +288,7 @@ const Step1: React.FC<{
           </CardDescription>
         </CardHeader>
         <CardContent
-          className={`flex flex-col lg:flex-row ${spaceSizes.sm.gap} ${spaceSizes.sm.mt}`}
+          className={`flex flex-col lg:flex-row ${spacing.sm.gap} ${spacing.sm.mt}`}
         >
           <div className="flex-grow">
             <h2 className="text-xl font-bold mb-3">Your answer</h2>
@@ -616,4 +616,4 @@ const Step1: React.FC<{
   );
 };
 
-export default Step1;
+export { Step1 };

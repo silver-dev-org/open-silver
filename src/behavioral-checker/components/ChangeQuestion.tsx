@@ -98,4 +98,4 @@ const ChangeQuestion: FC<ChangeQuestionProps> = ({ selected, onSelect }) => {
   );
 };
 
-export default ChangeQuestion;
+export { ChangeQuestion };
