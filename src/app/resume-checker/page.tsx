@@ -1,4 +1,4 @@
-import Home from "@/resume-checker/pages/index";
+import { Home } from "@/resume-checker/pages/index";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

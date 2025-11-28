@@ -1,5 +1,5 @@
 import { AssistanceResponse } from "@/behavioral-checker/client-assistance/core/domain/Action";
-import Spacer, { spaceSizes } from "@/components/spacer";
+import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { ChangeEvent, FC, useEffect, useState } from "react";
 import { FaFlag } from "react-icons/fa";
-import RatingBar from "./RatingBar";
+import { RatingBar } from "./RatingBar";
 
 const Step2: FC<{
   result: AssistanceResponse;
@@ -99,7 +99,7 @@ const Step2: FC<{
     <>
       <Spacer size="lg" />
       <div
-        className={`w-full flex flex-col lg:flex-row items-center lg:items-start justify-center ${spaceSizes.sm.gap}`}
+        className={`w-full flex flex-col lg:flex-row items-center lg:items-start justify-center ${spacing.sm.gap}`}
       >
         <Card className="w-full lg:w-1/2 max-w-prose">
           <CardHeader>
@@ -108,7 +108,7 @@ const Step2: FC<{
           <CardContent>&ldquo;{response}&rdquo;</CardContent>
         </Card>
         <div
-          className={`w-full lg:w-1/2 max-w-prose flex flex-col justify-center lg:pt-0 ${spaceSizes.sm.gap}`}
+          className={`w-full lg:w-1/2 max-w-prose flex flex-col justify-center lg:pt-0 ${spacing.sm.gap}`}
         >
           <RatingBar active={result} />
           {greenFlags.length > 0 && (
@@ -145,7 +145,7 @@ const Step2: FC<{
               </CardContent>
             </Card>
           )}
-          <div className={`w-full justify-center flex ${spaceSizes.sm.gap}`}>
+          <div className={`w-full justify-center flex ${spacing.sm.gap}`}>
             <Button className="flex-1/2" variant="outline" onClick={onTryAgain}>
               Try again
             </Button>
@@ -284,4 +284,4 @@ const Step2: FC<{
   );
 };
 
-export default Step2;
+export { Step2 };

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import FeesCalculatorClient from "./client";
+import { FeesCalculator } from "./client";
 
 export const metadata: Metadata = {
   title: "Fees Calculator",
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function FeesCalculatorPage() {
-  return <FeesCalculatorClient />;
+  return <FeesCalculator />;
 }

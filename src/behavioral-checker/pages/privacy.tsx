@@ -1,6 +1,6 @@
 import { NAME } from "@/behavioral-checker/constants";
 
-export default function Privacy() {
+export function Privacy() {
   return (
     <div className="container max-w-screen-md">
       <h1 className="text-xl lg:text-3xl font-bold mb-4">Privacy Policy</h1>

@@ -4,14 +4,14 @@ import {
   AssistanceResponse,
   Result,
 } from "@/behavioral-checker/client-assistance/core/domain/Action";
-import Notification from "@/behavioral-checker/components/Notification";
-import Step1 from "@/behavioral-checker/components/Step1";
-import Step2 from "@/behavioral-checker/components/Step2";
+import { Notification } from "@/behavioral-checker/components/Notification";
+import { Step1 } from "@/behavioral-checker/components/Step1";
+import { Step2 } from "@/behavioral-checker/components/Step2";
 import { Question, questions } from "@/behavioral-checker/data/questions";
 import { PreppingData } from "@/lib/utils";
 import { useState } from "react";
 
-export default function Home() {
+export function Home() {
   const [result, setResult] = useState<AssistanceResponse>();
   const [error, setError] = useState<string>("");
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -23,7 +23,7 @@ export default function Home() {
   const handleSubmit = async (
     id: Question["id"],
     question: string,
-    audioBlob: Blob | null
+    audioBlob: Blob | null,
   ) => {
     if (!audioBlob) return;
 
@@ -81,7 +81,7 @@ export default function Home() {
 
       if (response.status === 204) {
         setError(
-          `No example available for this question with the result '${result}'. Be the first to create one!`
+          `No example available for this question with the result '${result}'. Be the first to create one!`,
         );
         setResult(undefined);
         return;

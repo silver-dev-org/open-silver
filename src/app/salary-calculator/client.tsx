@@ -1,6 +1,6 @@
 "use client";
 
-import Spacer, { spaceSizes } from "@/components/spacer";
+import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -287,7 +287,7 @@ export function SalaryCalculator() {
       <div
         className={cn(
           "grid grid-cols-1 md:grid-cols-2 relative",
-          spaceSizes.lg.gap,
+          spacing.lg.gap,
         )}
       >
         <SalaryModelSection
@@ -387,7 +387,7 @@ function SalaryModelSection({
   onViewBreakdown: (scenario: Scenario) => void;
 }) {
   return (
-    <div className={cn("flex flex-col", spaceSizes.sm.gap)}>
+    <div className={cn("flex flex-col", spacing.sm.gap)}>
       <Card className="md:hidden">
         <CardHeader>
           <CardTitle>{heading}</CardTitle>
@@ -406,7 +406,7 @@ function SalaryModelSection({
         <h3 className="text-2xl font-semibold text-center">{heading}</h3>
       </div>
       <div
-        className={cn("flex flex-col md:flex-row size-full", spaceSizes.sm.gap)}
+        className={cn("flex flex-col md:flex-row size-full", spacing.sm.gap)}
       >
         {breakdowns.map((breakdown) => (
           <BreakdownCard

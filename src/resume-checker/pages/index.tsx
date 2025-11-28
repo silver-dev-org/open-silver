@@ -1,12 +1,12 @@
 "use client";
 
-import Description from "@/components/description";
-import Grid from "@/components/grid";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer, { spaceSizes } from "@/components/spacer";
+import { Description } from "@/components/description";
+import { Grid } from "@/components/grid";
+import { Heading } from "@/components/heading";
+import { Section } from "@/components/section";
+import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
-import ErrorBadge from "@/resume-checker/components/error-badge";
+import { ErrorBadge } from "@/resume-checker/components/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import { useMutationState } from "@tanstack/react-query";
 import Link from "next/link";
@@ -31,7 +31,7 @@ function usePasteEvent(pasteListener: (event: ClipboardEvent) => void) {
   }, [pasteListener]);
 }
 
-export default function Home() {
+export function Home() {
   const router = useRouter();
   const [error, setError] = useState<Error | null>(null);
   const [, setFormState] = useFormState();
@@ -155,7 +155,7 @@ export default function Home() {
           <div>
             <p className="text-center md:text-left">Or use an example:</p>
             <Spacer />
-            <div className={`flex flex-col ${spaceSizes.sm.gap}`}>
+            <div className={`flex flex-col ${spacing.sm.gap}`}>
               {[
                 { letter: "s", name: "Victor Vigon" },
                 { letter: "a", name: "Gabriel Benmergui" },
@@ -171,7 +171,7 @@ export default function Home() {
                     className={`${letter} absolute transition-colors inset-0 rounded-lg`}
                   ></div>
                   <div
-                    className={`m-1 pointer-events-none flex flex-col gap-2 text-center items-center justify-center rounded-lg ${spaceSizes.sm.p} relative bg-[var(--background)]`}
+                    className={`m-1 pointer-events-none flex flex-col gap-2 text-center items-center justify-center rounded-lg ${spacing.sm.p} relative bg-[var(--background)]`}
                   >
                     <span className="font-semibold tracking-wider">{name}</span>
                     <span>Grade: {letter.toUpperCase()}</span>

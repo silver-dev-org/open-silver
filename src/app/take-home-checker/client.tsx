@@ -1,6 +1,6 @@
 "use client";
 
-import Spacer from "@/components/spacer";
+import { Spacer } from "@/components/spacer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +109,7 @@ export default function TakeHomeCheckerClient({
         const sizeInMb = zipRepo.size / 1000000;
         if (sizeInMb > 4.5) {
           throw new Error(
-            `File must be less than 4.5MB (it's ${sizeInMb.toFixed(2)}MB). Please remove heavy files like images and videos from your take-home and try uploading it again.`
+            `File must be less than 4.5MB (it's ${sizeInMb.toFixed(2)}MB). Please remove heavy files like images and videos from your take-home and try uploading it again.`,
           );
         }
         formData.append("file", zipRepo);
@@ -142,7 +142,7 @@ export default function TakeHomeCheckerClient({
       const repo = repos?.find((repo) => repo.id.toString() === value);
       setGithubRepo(repo);
     },
-    [repos]
+    [repos],
   );
 
   const handleFileChange = useCallback(
@@ -151,7 +151,7 @@ export default function TakeHomeCheckerClient({
       const file = event.target.files[0];
       setZipRepo(file);
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -407,7 +407,7 @@ function SuccessState(data: TakeHomeCheckerData) {
               <strong
                 className={cn(
                   "text-lg px-3 py-1.5 rounded-full",
-                  scoreColors[data.analysis.score]
+                  scoreColors[data.analysis.score],
                 )}
               >
                 {data.analysis.score}

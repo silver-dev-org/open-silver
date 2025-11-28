@@ -1,8 +1,8 @@
-import Description from "@/components/description";
-import Grid from "@/components/grid";
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer, { spaceSizes } from "@/components/spacer";
+import { Description } from "@/components/description";
+import { Grid } from "@/components/grid";
+import { Heading } from "@/components/heading";
+import { Section } from "@/components/section";
+import { Spacer, spacing } from "@/components/spacer";
 import {
   Card,
   CardDescription,
@@ -115,7 +115,7 @@ export default function Home() {
         Open Source Software made by Silver.dev and its contributors.
       </Description>
       <Spacer size="lg" />
-      <div className={`flex flex-col ${spaceSizes.lg.gap}`}>
+      <div className={`flex flex-col ${spacing.lg.gap}`}>
         {tools.map(({ slug, section, list }, index) => (
           <Section key={index} id={slug}>
             <Heading>{section}</Heading>

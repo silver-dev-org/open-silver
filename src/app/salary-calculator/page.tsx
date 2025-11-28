@@ -1,7 +1,7 @@
-import Heading from "@/components/heading";
-import Section from "@/components/section";
-import Spacer from "@/components/spacer";
-import Description from "@/components/description";
+import { Heading } from "@/components/heading";
+import { Section } from "@/components/section";
+import { Spacer } from "@/components/spacer";
+import { Description } from "@/components/description";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 import { Metadata } from "next";
 import Link from "next/link";
 import { SalaryCalculator } from "./client";
-import Divider from "@/components/divider";
+import { Divider } from "@/components/divider";
 
 export const metadata: Metadata = {
   title: "Argentina Salary Calculator",

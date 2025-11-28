@@ -1,6 +1,6 @@
 "use client";
 
-import Layout from "@/resume-checker/components/layout";
+import { Layout } from "@/resume-checker/components/layout";
 import { FormProvider } from "@/resume-checker/hooks/form-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 

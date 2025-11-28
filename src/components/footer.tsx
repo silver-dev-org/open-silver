@@ -1,6 +1,6 @@
 import { buttonVariants } from "@/components/ui/button";
 import Link from "next/link";
-import { spaceSizes } from "./spacer";
+import { spacing } from "./spacer";
 
 const links: {
   group: string;
@@ -36,10 +36,10 @@ const links: {
   },
 ];
 
-export default function Footer() {
+export function Footer() {
   return (
     <footer
-      className={`flex flex-col ${spaceSizes.lg.gap} border-t border-foreground/25 text-nowrap ${spaceSizes.sm.px} ${spaceSizes.lg.py}`}
+      className={`flex flex-col ${spacing.lg.gap} border-t border-foreground/25 text-nowrap ${spacing.sm.px} ${spacing.lg.py}`}
     >
       <section className="container mx-auto">
         <h1 className="sr-only">Useful links</h1>

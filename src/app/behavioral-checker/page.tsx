@@ -1,4 +1,4 @@
-import Home from "@/behavioral-checker/pages/index";
+import { Home } from "@/behavioral-checker/pages/index";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

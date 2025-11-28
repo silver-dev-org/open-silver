@@ -17,7 +17,7 @@ function getUrlFromFormUrl(url?: string) {
   return url.replace("public", "");
 }
 
-export default function PDF() {
+export function PDF() {
   const [formState] = useFormState();
   const [showFallback, setShowFallback] = useState(false);
   console.log(formState);

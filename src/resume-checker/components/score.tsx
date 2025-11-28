@@ -27,7 +27,7 @@ function loadingStyles(l: string) {
   return "animate-pulse";
 }
 
-export default function Score({ letter }: { letter?: string }) {
+export function Score({ letter }: { letter?: string }) {
   const [idx, setIdx] = useState(letterKeys.length - 1);
 
   useEffect(() => {

@@ -1,6 +1,6 @@
-import Footer from "@/components/footer";
-import Header from "@/components/header";
-import Spacer from "@/components/spacer";
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
+import { Spacer } from "@/components/spacer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";

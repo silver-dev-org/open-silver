@@ -50,4 +50,4 @@ const ConsentDialog: React.FC<ConsentDialogProps> = ({
   );
 };
 
-export default ConsentDialog;
+export { ConsentDialog };

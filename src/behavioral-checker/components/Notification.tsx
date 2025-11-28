@@ -45,7 +45,7 @@ const Notification: React.FC<NotificationProps> = ({
   return (
     <div
       className={`fixed top-32 left-1/2 transform -translate-x-1/2 px-4 py-2 text-white rounded shadow-lg ${getColor(
-        type
+        type,
       )} transition-opacity duration-500 ease-in-out`}
       style={{ opacity: visible ? 1 : 0 }}
     >
@@ -66,4 +66,4 @@ const Notification: React.FC<NotificationProps> = ({
   );
 };
 
-export default Notification;
+export { Notification };
