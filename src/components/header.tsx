@@ -21,7 +21,7 @@ export function Header() {
   }[][] = [
     [
       { href: prefix + "#for-talent", label: "For Talent" },
-      { href: prefix + "#for-employers", label: "For Employers" },
+      { href: prefix + "#for-companies", label: "For Companies" },
     ],
     [
       {

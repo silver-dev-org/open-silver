@@ -76,10 +76,10 @@ const tools: {
     ],
   },
   {
-    slug: "for-employers",
+    slug: "for-companies",
     section: (
       <span>
-        For <span className="text-primary">Employers</span>
+        For <span className="text-primary">Companies</span>
       </span>
     ),
     list: [
@@ -99,6 +99,12 @@ const tools: {
         title: "Model Agreement",
         description: "See our standard agreement.",
         href: "https://silver.dev/contract",
+      },
+      {
+        title: "Invoice Generator",
+        description:
+          "Generate invoices for SilverEd or as a Silver.dev Interviewer.",
+        href: "/invoice-generator",
       },
     ],
   },
