@@ -1,4 +1,4 @@
-import FeedbackEmail from "@/resume-checker/components/feedback-email";
+import { FeedbackEmail } from "@/resume-checker/components/feedback-email";
 import formidable from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs";
@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_KEY);
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   try {
     if (req.method !== "POST") {
