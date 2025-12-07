@@ -37,7 +37,7 @@ export default async function handler(
     } else {
       const { url } = req.query;
       if (!url || typeof url !== "string") {
-        throw new Error("Tenés que proveer un archivo PDF o un URL.");
+        throw new Error("MissingURL");
       }
 
       const exampleResponse = exampleResponses.get(url);
@@ -62,9 +62,7 @@ export default async function handler(
     });
 
     if (!completion) {
-      throw new Error(
-        "No se pudo completar el proceso de evaluación de currículum.",
-      );
+      throw new Error("GradingError");
     }
 
     const sanitized = sanitizeCompletion(completion);
@@ -74,7 +72,7 @@ export default async function handler(
     if (!(e instanceof Error)) {
       console.error(e);
       res.status(500).send({
-        error: "Ocurrió un error inesperado.",
+        error: "UnknownError",
       });
       return;
     }
@@ -85,7 +83,7 @@ export default async function handler(
     ) {
       console.warn(e);
       res.status(400).send({
-        error: "El archivo PDF proporcionado no es válido.",
+        error: "InvalidPDFException",
       });
       return;
     }
