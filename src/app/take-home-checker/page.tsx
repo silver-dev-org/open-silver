@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import TakeHomeCheckerClient from "./client";
-import { cookieName } from "./constants";
+import { cookieName } from "@/takehome-checker/constants";
 
 export const metadata: Metadata = {
   title: "Take-home Checker",

@@ -65,8 +65,12 @@ import {
   loadingMessages,
   prompt,
   scoreColors,
-} from "./constants";
-import { FeedbackFlags, GithubRepo, TakeHomeCheckerData } from "./types";
+} from "../../takehome-checker/constants";
+import {
+  FeedbackFlags,
+  GithubRepo,
+  TakeHomeCheckerData,
+} from "../../takehome-checker/types";
 
 export default function TakeHomeCheckerClient({
   installationId,
