@@ -22,7 +22,7 @@ export async function analyzeTakeHome(
       { role: "user", content },
     ],
     maxOutputTokens: 10000,
-    temperature: 0.2,
+    temperature: 0,
   });
 
   return extractJsonFromString(text) as TakeHomeAnalysis;
