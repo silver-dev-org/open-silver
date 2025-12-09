@@ -1,22 +1,16 @@
-import {
-  processableFileExtensions,
-  prompt,
-} from "@/takehome-checker/constants";
+import { processableFileExtensions } from "@/takehome-checker/constants";
+import { analyzeTakeHome } from "@/takehome-checker";
 import { TakeHome, TakeHomeCheckerData } from "@/takehome-checker/types";
-import { takeHomeToXML } from "@/takehome-checker/utils";
 import {
   getFileContent,
   getOctokit,
   getReadmeContent,
   getRepoFilePaths,
 } from "@/lib/github";
-import { extractJsonFromString } from "@/lib/utils";
 import AdmZip from "adm-zip";
 import formidable from "formidable";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
-import { openai } from "@ai-sdk/openai";
-import { generateText } from "ai";
 
 export const config = {
   api: {
@@ -70,21 +64,10 @@ export default async function handler(
     }
     if (!takeHome.code) throw new Error("Repo is empty.");
 
-    const content = takeHomeToXML(takeHome);
-    const { text: analysis } = await generateText({
-      model: openai("gpt-4o-mini"),
-      messages: [
-        { role: "system", content: prompt },
-        { role: "user", content },
-      ],
-      maxOutputTokens: 10000,
-      temperature: 0.2,
-    });
-
-    if (!analysis) throw new Error("LLM did not return response.");
+    const analysis = await analyzeTakeHome(takeHome);
 
     const data = {
-      analysis: extractJsonFromString(analysis),
+      analysis,
       takeHome,
     } as TakeHomeCheckerData;
 
