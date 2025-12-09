@@ -308,9 +308,14 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               {...field}
             />
           ))}
-          <Button asChild onClick={share}>
+          {/*<Button asChild onClick={share}>
             <Link target="_blank" href={shareLink}>
               Share with Gabriel
+            </Link>
+          </Button>*/}
+          <Button asChild>
+            <Link target="_blank" href="https://silver.dev/companies">
+              Book with Gabriel
             </Link>
           </Button>
         </div>
