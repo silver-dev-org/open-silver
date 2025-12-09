@@ -48,7 +48,7 @@ export default async function handler(
       const zip = new AdmZip(files.file?.at(0)?.filepath);
       const entries = zip.getEntries();
       const docs = entries
-        .find(({ name }) => name === "README.md")
+        .find(({ name }) => /readme\.(md|txt)/i.test(name))
         ?.getData()
         .toString("utf-8");
       const code = entries
