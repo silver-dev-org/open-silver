@@ -34,7 +34,7 @@
     "@types/formidable": "^3.4.5",
     "@types/pdf-parse": "^1.1.5",
     "adm-zip": "^0.5.16",
-    "ai": "^5.0.60",
+    "ai": "^5.0.108",
     "autoprefixer": "^10.4.21",
     "axios": "^1.12.2",
     "chart.js": "^4.5.0",

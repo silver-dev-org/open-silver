@@ -15,7 +15,8 @@ import AdmZip from "adm-zip";
 import formidable from "formidable";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Octokit } from "octokit";
-import OpenAI from "openai";
+import { openai } from "@ai-sdk/openai";
+import { generateText } from "ai";
 
 export const config = {
   api: {
@@ -69,18 +70,16 @@ export default async function handler(
     }
     if (!takeHome.code) throw new Error("Repo is empty.");
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const content = takeHomeToXML(takeHome);
-    const response = await openai.chat.completions.create({
+    const { text: analysis } = await generateText({
+      model: openai("gpt-4o-mini"),
       messages: [
-        { role: "developer", content: prompt },
+        { role: "system", content: prompt },
         { role: "user", content },
       ],
-      model: "gpt-4o-mini",
-      max_tokens: 10000,
+      maxOutputTokens: 10000,
       temperature: 0.2,
     });
-    const analysis = response.choices[0].message.content;
 
     if (!analysis) throw new Error("LLM did not return response.");
 
