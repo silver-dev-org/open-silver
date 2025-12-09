@@ -33,7 +33,7 @@ interface ContractProps {
   p: boolean; // Payroll
   fp: boolean; // Fast processing
   m: boolean; // Monthly payment
-  [key: string]: any; // avoid errors
+  sm: "c" | "s"; // Service model: contingency or staffing
 }
 
 const BASE_FEE = 25;
@@ -41,6 +41,7 @@ const FAST_PROCESSING_FEE = 20;
 const PAYROLL_COST = 500;
 const CONTINGENCY_MONTHS_DURATION = 3;
 const MONTHS_PER_YEAR = 12;
+const MONTHLY_PAYMENT_MARKUP = 10;
 const HEADCOUNT_OPTIONS = [
   { value: "1", label: "1" },
   { value: "2", label: "2" },
@@ -51,34 +52,48 @@ const SALARY_OPTIONS = [
   { value: "75000", label: "$75k" },
   { value: "100000", label: "$100k+" },
 ];
+const SERVICE_MODEL_OPTIONS = [
+  { value: "c", label: "Contingency" },
+  { value: "s", label: "Staffing" },
+];
 const DEFAULT_CONTRACT_PROPS: ContractProps = {
   n: parseInt(HEADCOUNT_OPTIONS[0].value),
   s: parseInt(SALARY_OPTIONS[0].value),
+  sm: SERVICE_MODEL_OPTIONS[0].value as ContractProps["sm"],
   p: false,
   fp: false,
   m: false,
-  c: true, // Contingency
 };
-const MONTHLY_PAYMENT_MARKUP = 10;
-const BOOLEAN_FIELDS = [
+const RADIO_FIELDS: CardRadioGroupProps[] = [
   {
-    key: "c",
-    label: "Contingency",
-    description: `You pay only ${CONTINGENCY_MONTHS_DURATION} months after a successful hire.`,
-    alwaysChecked: true,
+    name: "n",
+    legend: "Expected headcount",
+    options: HEADCOUNT_OPTIONS,
   },
   {
-    key: "p",
+    name: "s",
+    legend: "Salary",
+    options: SALARY_OPTIONS,
+  },
+  {
+    name: "sm",
+    legend: "Service model",
+    options: SERVICE_MODEL_OPTIONS,
+  },
+];
+const CHECKBOX_FIELDS: CardCheckboxProps[] = [
+  {
+    name: "p",
     label: "Payroll",
     description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${PAYROLL_COST} per person per month.`,
   },
   {
-    key: "fp",
+    name: "fp",
     label: "Fast processing",
     description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
   },
   {
-    key: "m",
+    name: "m",
     label: `Pay over ${MONTHS_PER_YEAR} months`,
     description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. ${MONTHLY_PAYMENT_MARKUP}% markup applies.`,
   },
@@ -174,8 +189,8 @@ export function FeesCalculator() {
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
 
-    const options: string[] = BOOLEAN_FIELDS.filter(
-      ({ key }) => contractProps[key] === true,
+    const options: string[] = CHECKBOX_FIELDS.filter(
+      ({ name }) => contractProps[name] === true,
     ).map(({ label }) => label);
 
     const expectedAverageSalary = new Intl.NumberFormat("en-US", {
@@ -190,10 +205,15 @@ export function FeesCalculator() {
       maximumFractionDigits: 0,
     }).format(cost || 0);
 
+    const serviceModel = new Map(
+      SERVICE_MODEL_OPTIONS.map(({ value, label }) => [value, label]),
+    ).get(contractProps.sm);
+
     const emailSubject = encodeURIComponent("Contract Details");
     const emailBody = encodeURIComponent(
       `Number of placements: ${contractProps.n}
 Expected average salary: ${expectedAverageSalary}
+Service model: ${serviceModel}
 Placement fee: ${fee}%
 Expected contract cost: ${expectedContractCost}
 ${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
@@ -224,61 +244,26 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
       <Spacer size="lg" />
       <div className="flex flex-col lg:flex-row gap-12 flex-grow p-4 sm:container sm:mx-auto">
         <div className="flex flex-col gap-4 lg:max-w-xs">
-          <div className="flex flex-col gap-2">
-            <p>Expected Headcount:</p>
+          {RADIO_FIELDS.map((field, i) => (
             <CardRadioGroup
-              name="n"
-              onValueChange={(value) => setContractProp("n", value)}
-              currentValue={contractProps.n.toString()}
-              options={HEADCOUNT_OPTIONS}
+              key={i}
+              onValueChange={(value) => {
+                setContractProp(field.name, value);
+              }}
+              currentValue={contractProps[field.name].toString()}
+              {...field}
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <p>Expected Average Salary:</p>
-            <CardRadioGroup
-              name="s"
-              onValueChange={(value) => setContractProp("s", value)}
-              currentValue={contractProps.s.toString()}
-              options={SALARY_OPTIONS}
+          ))}
+          {CHECKBOX_FIELDS.map((field, i) => (
+            <CardCheckbox
+              key={i}
+              onCheckedChange={(checked) => {
+                setContractProp(field.name, checked);
+              }}
+              checked={Boolean(contractProps[field.name])}
+              {...field}
             />
-          </div>
-          <div className="flex flex-col gap-2">
-            {BOOLEAN_FIELDS.map(
-              ({ key, label, description, alwaysChecked }) => {
-                const isDisabled = alwaysChecked === true;
-                return (
-                  <Label key={key} htmlFor={key}>
-                    <Card
-                      className={cn(
-                        "rounded-md border-border bg-transparent transition-colors",
-                        !isDisabled && "hover:bg-foreground/10 cursor-pointer",
-                        contractProps[key as keyof ContractProps] &&
-                          "border-foreground",
-                      )}
-                    >
-                      <CardHeader className="p-4">
-                        <CardTitle className="flex gap-1.5 text-base font-semibold items-center">
-                          <Checkbox
-                            id={key}
-                            onCheckedChange={(checked) =>
-                              !isDisabled && setContractProp(key, checked)
-                            }
-                            checked={contractProps[key as keyof ContractProps]}
-                            disabled={isDisabled}
-                            className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
-                          />
-                          <span>{label}</span>
-                        </CardTitle>
-                        <CardDescription className="text-sm">
-                          {description}
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </Label>
-                );
-              },
-            )}
-          </div>
+          ))}
           <Button asChild onClick={share}>
             <Link target="_blank" href={shareLink}>
               Share with Gabriel
@@ -341,41 +326,93 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
   );
 }
 
+interface CardRadioGroupProps {
+  name: keyof ContractProps;
+  legend: string;
+  options: {
+    value: string;
+    label: string;
+  }[];
+  onValueChange?: (value: string) => void;
+  currentValue?: string;
+}
+
 function CardRadioGroup({
-  options,
   name,
+  legend,
+  options,
   onValueChange,
   currentValue,
-}: {
-  options: { value: string; label: string }[];
-  name: string;
-  onValueChange: (value: string) => void;
-  currentValue?: string;
-}) {
+}: CardRadioGroupProps) {
   return (
-    <RadioGroup value={currentValue || ""} className="flex gap-2">
-      {options.map(({ value, label }) => (
-        <div
-          key={value}
-          className={cn(
-            "flex-grow flex items-center justify-center gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all shadow",
-            currentValue === value ? "border-foreground" : "border-border",
-          )}
-          onClick={() => onValueChange(value)}
-        >
-          <RadioGroupItem
-            className="hidden"
-            value={value}
-            id={`${name}-${value}`}
-          />
-          <Label
-            htmlFor={`${name}-${value}`}
-            className="cursor-pointer text-sm font-medium"
+    <fieldset className="flex flex-col gap-0.5">
+      <div>
+        <legend>{legend}:</legend>
+      </div>
+      <RadioGroup value={currentValue || ""} className="flex gap-2">
+        {options.map(({ value, label }) => (
+          <div
+            key={value}
+            className={cn(
+              "flex-grow flex items-center justify-center w-full gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all shadow",
+              currentValue === value ? "border-foreground" : "border-border",
+            )}
+            onClick={() => onValueChange?.(value)}
           >
-            {label}
-          </Label>
-        </div>
-      ))}
-    </RadioGroup>
+            <RadioGroupItem
+              className="hidden"
+              value={value}
+              id={`${name}-${value}`}
+            />
+            <Label
+              htmlFor={`${name}-${value}`}
+              className="cursor-pointer text-sm font-medium"
+            >
+              {label}
+            </Label>
+          </div>
+        ))}
+      </RadioGroup>
+    </fieldset>
+  );
+}
+
+interface CardCheckboxProps {
+  name: keyof ContractProps;
+  label: string;
+  description?: string;
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+function CardCheckbox({
+  name,
+  label,
+  description,
+  checked,
+  onCheckedChange,
+}: CardCheckboxProps) {
+  return (
+    <Label htmlFor={name}>
+      <Card
+        className={cn(
+          "rounded-md border-border bg-transparent transition-colors hover:bg-accent",
+          checked ? "border-foreground" : "",
+        )}
+      >
+        <CardHeader className="p-4">
+          <CardTitle className="flex gap-1.5 text-base font-semibold items-center">
+            <Checkbox
+              id={name}
+              onCheckedChange={onCheckedChange}
+              checked={checked}
+              className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
+            />
+            <span>{label}</span>
+          </CardTitle>
+          <CardDescription className="text-sm">{description}</CardDescription>
+        </CardHeader>
+      </Card>
+    </Label>
   );
 }
