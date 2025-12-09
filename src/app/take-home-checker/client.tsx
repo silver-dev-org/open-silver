@@ -109,7 +109,7 @@ export default function TakeHomeCheckerClient({
         const sizeInMb = zipRepo.size / 1000000;
         if (sizeInMb > 4.5) {
           throw new Error(
-            `File must be less than 4.5MB (it's ${sizeInMb.toFixed(2)}MB). Please remove heavy files like images and videos from your take-home and try uploading it again.`,
+            `File must be less than 4.5MB (it's ${sizeInMb.toFixed(2)}MB). Please remove cache like 'node_modules' from your take-home, or compress media files if they're required. Then, try uploading it again.`,
           );
         }
         formData.append("file", zipRepo);
