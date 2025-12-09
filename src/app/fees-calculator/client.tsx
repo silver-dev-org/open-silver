@@ -52,6 +52,12 @@ const booleanFields = [
     label: "Fast processing",
     description: `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
   },
+  {
+    key: "m",
+    label: "Pay over 12 months",
+    description:
+      "Spread payments over 12 months for smoother cash flow. 10% markup applies.",
+  },
 ];
 
 const paymentAfterMonths = 3;
@@ -68,6 +74,7 @@ export function FeesCalculator() {
     s: getParamOrDefault("s", defaultContractProps.s),
     p: getParamOrDefault("p", defaultContractProps.p),
     fp: getParamOrDefault("fp", defaultContractProps.fp),
+    m: getParamOrDefault("m", defaultContractProps.m),
     c: true, // Contingency
   });
 
@@ -81,15 +88,28 @@ export function FeesCalculator() {
   useEffect(() => processContractProps(contractProps), [contractProps]);
 
   function processContractProps(data: ContractProps) {
+    const { m: payMonthly } = data;
     const chartData = [];
-    const yAxis = payrollCost + calculateContractCost(data, false);
-    for (let monthNum = 1; monthNum <= 12; monthNum++) {
+    const totalCost = Math.round(calculateContractCost(data, false));
+    const monthlyCost = totalCost / 12;
+    const yAxis = payrollCost + totalCost;
+
+    for (let monthNum = 1; monthNum <= 14; monthNum++) {
       const month = new Date();
       month.setMonth(month.getMonth() + monthNum);
-      const fee =
-        monthNum === paymentAfterMonths
-          ? Math.round(calculateContractCost(data, false))
-          : 0;
+
+      let fee = 0;
+
+      if (
+        payMonthly &&
+        monthNum >= paymentAfterMonths &&
+        monthNum < paymentAfterMonths + 12
+      ) {
+        fee = monthlyCost;
+      } else if (monthNum === paymentAfterMonths) {
+        fee = totalCost;
+      }
+
       const payroll = data.p ? payrollCost : 0;
       chartData.push({
         month: month.toLocaleString("default", { month: "long" }),
