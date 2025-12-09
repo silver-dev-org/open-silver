@@ -88,14 +88,14 @@ const CHECKBOX_FIELDS: CardCheckboxProps[] = [
     description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${PAYROLL_COST} per person per month.`,
   },
   {
-    name: "fp",
-    label: "Fast processing",
-    description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
-  },
-  {
     name: "m",
     label: `Pay over ${MONTHS_PER_YEAR} months`,
     description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. ${MONTHLY_PAYMENT_MARKUP}% markup applies.`,
+  },
+  {
+    name: "fp",
+    label: "Fast processing",
+    description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
   },
 ];
 
@@ -116,10 +116,14 @@ function calculateHiringCost(data: ContractProps) {
   return Math.round(numberOfHires * fee * salary);
 }
 
-function getFee({ fp: fastProcessing, m: payMonthly }: ContractProps) {
+function getFee({
+  fp: fastProcessing,
+  m: payMonthly,
+  sm: serviceModel,
+}: ContractProps) {
   let fee = fastProcessing ? FAST_PROCESSING_FEE : BASE_FEE;
 
-  if (payMonthly) {
+  if (serviceModel === "c" && payMonthly) {
     fee *= 1 + MONTHLY_PAYMENT_MARKUP / 100;
   }
 
@@ -142,39 +146,52 @@ export function FeesCalculator() {
   );
 
   function getParamOrDefault(key: string, defaultValue: any) {
-    const param = searchParams?.get(key);
-    if (param === null) return defaultValue;
-    if (param === "true") return true;
-    return Number(param);
+    const value = searchParams?.get(key);
+    if (value === null) return defaultValue;
+    if (isNaN(Number(value))) return value;
+    if (value === "true") return true;
+    return Number(value);
   }
 
   useEffect(() => processContractProps(contractProps), [contractProps]);
 
   function processContractProps(data: ContractProps) {
-    const { m: payMonthly, p: includePayroll } = data;
+    const { m: payMonthly, p: includePayroll, sm: serviceModel } = data;
+
     const chartData = [];
+    const yAxis =
+      calculateHiringCost({
+        ...data,
+        fp: false,
+        m: false,
+      }) + PAYROLL_COST;
     const totalHiringCost = calculateHiringCost(data);
     const monthlyHiringCost = Math.round(totalHiringCost / MONTHS_PER_YEAR);
-    const totalMonths = MONTHS_PER_YEAR + CONTINGENCY_MONTHS_DURATION;
+    const totalMonths =
+      serviceModel === "c" && payMonthly
+        ? MONTHS_PER_YEAR + CONTINGENCY_MONTHS_DURATION
+        : MONTHS_PER_YEAR;
 
     for (let monthNum = 0; monthNum < totalMonths; monthNum++) {
       const date = new Date();
       date.setMonth(date.getMonth() + monthNum);
       chartData.push({
-        yAxis: PAYROLL_COST + totalHiringCost,
+        yAxis,
         month: date.toLocaleString("default", {
           month: "long",
           year: "numeric",
         }),
         payroll: includePayroll ? PAYROLL_COST : 0,
         fee:
-          payMonthly &&
-          monthNum >= CONTINGENCY_MONTHS_DURATION &&
-          monthNum < totalMonths
-            ? monthlyHiringCost
-            : monthNum === CONTINGENCY_MONTHS_DURATION
-              ? totalHiringCost
-              : 0,
+          serviceModel === "c"
+            ? payMonthly &&
+              monthNum >= CONTINGENCY_MONTHS_DURATION &&
+              monthNum < totalMonths
+              ? monthlyHiringCost
+              : monthNum === CONTINGENCY_MONTHS_DURATION
+                ? totalHiringCost
+                : 0
+            : monthlyHiringCost,
       });
     }
 
@@ -225,7 +242,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
     setShareLink(shareLink);
   }
 
-  function setContractProp(key: string, value: any) {
+  function setContractProp(key: keyof ContractProps, value: any) {
     setContractProps((params) => ({
       ...params,
       [key]: value,
@@ -248,6 +265,10 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             <CardRadioGroup
               key={i}
               onValueChange={(value) => {
+                if (field.name === "sm" && value === "s") {
+                  setContractProp("m", false);
+                  setContractProp("p", true);
+                }
                 setContractProp(field.name, value);
               }}
               currentValue={contractProps[field.name].toString()}
@@ -260,6 +281,9 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               onCheckedChange={(checked) => {
                 setContractProp(field.name, checked);
               }}
+              disabled={
+                contractProps.sm === "s" && ["m", "p"].includes(field.name)
+              }
               checked={Boolean(contractProps[field.name])}
               {...field}
             />
@@ -380,6 +404,7 @@ interface CardCheckboxProps {
   name: keyof ContractProps;
   label: string;
   description?: string;
+  disabled?: boolean;
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
 }
@@ -388,6 +413,7 @@ function CardCheckbox({
   name,
   label,
   description,
+  disabled,
   checked,
   onCheckedChange,
 }: CardCheckboxProps) {
@@ -395,8 +421,9 @@ function CardCheckbox({
     <Label htmlFor={name}>
       <Card
         className={cn(
-          "rounded-md border-border bg-transparent transition-colors hover:bg-accent",
+          "rounded-md border-border bg-transparent transition-colors",
           checked ? "border-foreground" : "",
+          disabled ? "cursor-not-allowed opacity-75" : "hover:bg-accent",
         )}
       >
         <CardHeader className="p-4">
@@ -406,6 +433,7 @@ function CardCheckbox({
               onCheckedChange={onCheckedChange}
               checked={checked}
               className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
+              disabled={disabled}
             />
             <span>{label}</span>
           </CardTitle>
