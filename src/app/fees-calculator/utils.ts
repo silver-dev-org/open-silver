@@ -5,6 +5,7 @@ export interface ContractProps {
   s: number; // Salary
   p: boolean; // Payroll
   fp: boolean; // Fast processing
+  m: boolean; // Pay over 12 months
   [key: string]: any;
 }
 
@@ -27,10 +28,19 @@ export const defaultContractProps: ContractProps = {
   s: parseInt(salaryOptions[0].value),
   p: false,
   fp: false,
+  m: false,
 };
 
-export function getFinalFee({ fp: fastProcessing, f: fee }: ContractProps) {
-  return fastProcessing ? fastProcessingFee : defaultContractProps.f;
+export function getFinalFee({
+  fp: fastProcessing,
+  m: payMonthly,
+  f: fee,
+}: ContractProps) {
+  let finalFee = fastProcessing ? fastProcessingFee : fee;
+  if (payMonthly) {
+    finalFee += 10;
+  }
+  return finalFee;
 }
 
 export function calculateContractCost(
