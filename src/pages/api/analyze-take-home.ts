@@ -1,9 +1,9 @@
 import {
   processableFileExtensions,
   prompt,
-} from "@/app/take-home-checker/constants";
-import { TakeHome, TakeHomeCheckerData } from "@/app/take-home-checker/types";
-import { takeHomeToXML } from "@/app/take-home-checker/utils";
+} from "@/takehome-checker/constants";
+import { TakeHome, TakeHomeCheckerData } from "@/takehome-checker/types";
+import { takeHomeToXML } from "@/takehome-checker/utils";
 import {
   getFileContent,
   getOctokit,
