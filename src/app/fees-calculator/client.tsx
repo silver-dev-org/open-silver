@@ -32,7 +32,7 @@ interface ContractProps {
   s: number; // Salary
   p: boolean; // Payroll
   fp: boolean; // Fast processing
-  m: boolean; // Pay over 12 months
+  m: boolean; // Monthly payment
   [key: string]: any; // avoid errors
 }
 
@@ -59,6 +59,7 @@ const DEFAULT_CONTRACT_PROPS: ContractProps = {
   m: false,
   c: true, // Contingency
 };
+const MONTHLY_PAYMENT_MARKUP = 10;
 const BOOLEAN_FIELDS = [
   {
     key: "c",
@@ -79,7 +80,7 @@ const BOOLEAN_FIELDS = [
   {
     key: "m",
     label: `Pay over ${MONTHS_PER_YEAR} months`,
-    description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. 10% markup applies.`,
+    description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. ${MONTHLY_PAYMENT_MARKUP}% markup applies.`,
   },
 ];
 
@@ -102,9 +103,11 @@ function calculateHiringCost(data: ContractProps) {
 
 function getFee({ fp: fastProcessing, m: payMonthly }: ContractProps) {
   let fee = fastProcessing ? FAST_PROCESSING_FEE : BASE_FEE;
+
   if (payMonthly) {
-    fee += 10;
+    fee *= 1 + MONTHLY_PAYMENT_MARKUP / 100;
   }
+
   return fee;
 }
 
