@@ -82,7 +82,7 @@ export function FeesCalculator() {
 
   function processContractProps(data: ContractProps) {
     const chartData = [];
-    const yAxis = 1000 + calculateContractCost(data, false);
+    const yAxis = payrollCost + calculateContractCost(data, false);
     for (let monthNum = 1; monthNum <= 12; monthNum++) {
       const month = new Date();
       month.setMonth(month.getMonth() + monthNum);
