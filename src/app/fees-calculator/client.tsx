@@ -191,7 +191,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
                     )}
                   >
                     <CardHeader className="p-4">
-                      <CardTitle className="flex gap-1.5 text-base font-semibold">
+                      <CardTitle className="flex gap-1.5 text-base font-semibold items-center">
                         <Checkbox
                           id={key}
                           onCheckedChange={(checked) =>
@@ -201,7 +201,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
                           disabled={isDisabled}
                           className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
                         />
-                        {label}
+                        <span>{label}</span>
                       </CardTitle>
                       <CardDescription className="text-sm">
                         {description}
