@@ -25,58 +25,103 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
-import {
-  calculateContractCost,
-  ContractProps,
-  defaultContractProps,
-  getFinalFee,
-  headcountOptions,
-  payrollCost,
-  salaryOptions,
-} from "./utils";
 
-const booleanFields = [
+interface ContractProps {
+  // Using single letters to keep the URL shorter
+  n: number; // Number of hires
+  s: number; // Salary
+  p: boolean; // Payroll
+  fp: boolean; // Fast processing
+  m: boolean; // Pay over 12 months
+  [key: string]: any; // avoid errors
+}
+
+const BASE_FEE = 25;
+const FAST_PROCESSING_FEE = 20;
+const PAYROLL_COST = 500;
+const CONTINGENCY_MONTHS_DURATION = 3;
+const MONTHS_PER_YEAR = 12;
+const HEADCOUNT_OPTIONS = [
+  { value: "1", label: "1" },
+  { value: "2", label: "2" },
+  { value: "3", label: "3+" },
+];
+const SALARY_OPTIONS = [
+  { value: "50000", label: "$50k" },
+  { value: "75000", label: "$75k" },
+  { value: "100000", label: "$100k+" },
+];
+const DEFAULT_CONTRACT_PROPS: ContractProps = {
+  n: parseInt(HEADCOUNT_OPTIONS[0].value),
+  s: parseInt(SALARY_OPTIONS[0].value),
+  p: false,
+  fp: false,
+  m: false,
+  c: true, // Contingency
+};
+const BOOLEAN_FIELDS = [
   {
     key: "c",
     label: "Contingency",
-    description: `You pay only 3 months after a successful hire.`,
+    description: `You pay only ${CONTINGENCY_MONTHS_DURATION} months after a successful hire.`,
     alwaysChecked: true,
   },
   {
     key: "p",
     label: "Payroll",
-    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${payrollCost} per person per month.`,
+    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${PAYROLL_COST} per person per month.`,
   },
   {
     key: "fp",
     label: "Fast processing",
-    description: `If you process the candidates in less than 3 weeks, 20%. Otherwise, 25%.`,
+    description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
   },
   {
     key: "m",
-    label: "Pay over 12 months",
-    description:
-      "Spread payments over 12 months for smoother cash flow. 10% markup applies.",
+    label: `Pay over ${MONTHS_PER_YEAR} months`,
+    description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. 10% markup applies.`,
   },
 ];
 
-const paymentAfterMonths = 3;
+function calculateTotalCost(data: ContractProps) {
+  const { p: includePayroll } = data;
+  let cost = calculateHiringCost(data);
+
+  if (includePayroll) {
+    cost += PAYROLL_COST * MONTHS_PER_YEAR;
+  }
+
+  return Math.round(cost);
+}
+
+function calculateHiringCost(data: ContractProps) {
+  const { n: numberOfHires, s: salary } = data;
+  const fee = getFee(data) / 100;
+  return Math.round(numberOfHires * fee * salary);
+}
+
+function getFee({ fp: fastProcessing, m: payMonthly }: ContractProps) {
+  let fee = fastProcessing ? FAST_PROCESSING_FEE : BASE_FEE;
+  if (payMonthly) {
+    fee += 10;
+  }
+  return fee;
+}
 
 export function FeesCalculator() {
   const searchParams = useSearchParams();
   const [chartData, setChartData] = useState<any[]>([]);
   const [cost, setCost] = useState<number>();
+  const [fee, setFee] = useState(BASE_FEE);
   const [shareLink, setShareLink] = useState("");
-  const [fee, setFee] = useState(defaultContractProps.f);
-  const [contractProps, setContractProps] = useState<ContractProps>({
-    n: getParamOrDefault("n", defaultContractProps.n),
-    f: getParamOrDefault("f", defaultContractProps.f),
-    s: getParamOrDefault("s", defaultContractProps.s),
-    p: getParamOrDefault("p", defaultContractProps.p),
-    fp: getParamOrDefault("fp", defaultContractProps.fp),
-    m: getParamOrDefault("m", defaultContractProps.m),
-    c: true, // Contingency
-  });
+  const [contractProps, setContractProps] = useState<ContractProps>(
+    Object.fromEntries(
+      Object.entries(DEFAULT_CONTRACT_PROPS).map(([key, defaultValue]) => [
+        key,
+        getParamOrDefault(key, defaultValue),
+      ]),
+    ) as ContractProps,
+  );
 
   function getParamOrDefault(key: string, defaultValue: any) {
     const param = searchParams?.get(key);
@@ -88,50 +133,47 @@ export function FeesCalculator() {
   useEffect(() => processContractProps(contractProps), [contractProps]);
 
   function processContractProps(data: ContractProps) {
-    const { m: payMonthly } = data;
+    const { m: payMonthly, p: includePayroll } = data;
     const chartData = [];
-    const totalCost = Math.round(calculateContractCost(data, false));
-    const monthlyCost = totalCost / 12;
-    const yAxis = payrollCost + totalCost;
+    const totalHiringCost = calculateHiringCost(data);
+    const monthlyHiringCost = Math.round(totalHiringCost / MONTHS_PER_YEAR);
+    const totalMonths = MONTHS_PER_YEAR + CONTINGENCY_MONTHS_DURATION;
 
-    for (let monthNum = 1; monthNum <= 14; monthNum++) {
-      const month = new Date();
-      month.setMonth(month.getMonth() + monthNum);
-
-      let fee = 0;
-
-      if (
-        payMonthly &&
-        monthNum >= paymentAfterMonths &&
-        monthNum < paymentAfterMonths + 12
-      ) {
-        fee = monthlyCost;
-      } else if (monthNum === paymentAfterMonths) {
-        fee = totalCost;
-      }
-
-      const payroll = data.p ? payrollCost : 0;
+    for (let monthNum = 0; monthNum < totalMonths; monthNum++) {
+      const date = new Date();
+      date.setMonth(date.getMonth() + monthNum);
       chartData.push({
-        month: month.toLocaleString("default", { month: "long" }),
-        fee,
-        payroll,
-        yAxis,
+        yAxis: PAYROLL_COST + totalHiringCost,
+        month: date.toLocaleString("default", {
+          month: "long",
+          year: "numeric",
+        }),
+        payroll: includePayroll ? PAYROLL_COST : 0,
+        fee:
+          payMonthly &&
+          monthNum >= CONTINGENCY_MONTHS_DURATION &&
+          monthNum < totalMonths
+            ? monthlyHiringCost
+            : monthNum === CONTINGENCY_MONTHS_DURATION
+              ? totalHiringCost
+              : 0,
       });
     }
+
     setChartData(chartData);
-    setCost(calculateContractCost(data));
-    setFee(getFinalFee(data));
+    setCost(calculateTotalCost(data));
+    setFee(getFee(data));
   }
 
   function share() {
     const queryString = Object.entries(contractProps)
-      .filter(([key, value]) => value)
+      .filter(([, value]) => value)
       .map(([key, value]) => `${key}=${value}`)
       .join("&");
 
-    const options: string[] = booleanFields
-      .filter(({ key }) => contractProps[key] === true)
-      .map(({ label }) => label);
+    const options: string[] = BOOLEAN_FIELDS.filter(
+      ({ key }) => contractProps[key] === true,
+    ).map(({ label }) => label);
 
     const expectedAverageSalary = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -185,7 +227,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               name="n"
               onValueChange={(value) => setContractProp("n", value)}
               currentValue={contractProps.n.toString()}
-              options={headcountOptions}
+              options={HEADCOUNT_OPTIONS}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -194,43 +236,45 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               name="s"
               onValueChange={(value) => setContractProp("s", value)}
               currentValue={contractProps.s.toString()}
-              options={salaryOptions}
+              options={SALARY_OPTIONS}
             />
           </div>
           <div className="flex flex-col gap-2">
-            {booleanFields.map(({ key, label, description, alwaysChecked }) => {
-              const isDisabled = alwaysChecked === true;
-              return (
-                <Label key={key} htmlFor={key}>
-                  <Card
-                    className={cn(
-                      "rounded-md border-border bg-transparent transition-colors",
-                      !isDisabled && "hover:bg-foreground/10 cursor-pointer",
-                      contractProps[key as keyof ContractProps] &&
-                        "border-foreground",
-                    )}
-                  >
-                    <CardHeader className="p-4">
-                      <CardTitle className="flex gap-1.5 text-base font-semibold items-center">
-                        <Checkbox
-                          id={key}
-                          onCheckedChange={(checked) =>
-                            !isDisabled && setContractProp(key, checked)
-                          }
-                          checked={contractProps[key as keyof ContractProps]}
-                          disabled={isDisabled}
-                          className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
-                        />
-                        <span>{label}</span>
-                      </CardTitle>
-                      <CardDescription className="text-sm">
-                        {description}
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Label>
-              );
-            })}
+            {BOOLEAN_FIELDS.map(
+              ({ key, label, description, alwaysChecked }) => {
+                const isDisabled = alwaysChecked === true;
+                return (
+                  <Label key={key} htmlFor={key}>
+                    <Card
+                      className={cn(
+                        "rounded-md border-border bg-transparent transition-colors",
+                        !isDisabled && "hover:bg-foreground/10 cursor-pointer",
+                        contractProps[key as keyof ContractProps] &&
+                          "border-foreground",
+                      )}
+                    >
+                      <CardHeader className="p-4">
+                        <CardTitle className="flex gap-1.5 text-base font-semibold items-center">
+                          <Checkbox
+                            id={key}
+                            onCheckedChange={(checked) =>
+                              !isDisabled && setContractProp(key, checked)
+                            }
+                            checked={contractProps[key as keyof ContractProps]}
+                            disabled={isDisabled}
+                            className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
+                          />
+                          <span>{label}</span>
+                        </CardTitle>
+                        <CardDescription className="text-sm">
+                          {description}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Label>
+                );
+              },
+            )}
           </div>
           <Button asChild onClick={share}>
             <Link target="_blank" href={shareLink}>
