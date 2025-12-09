@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "eval:dev": "evalite watch",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -85,10 +86,13 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.1",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "autoevals": "^0.0.131",
     "eslint": "^9.37.0",
     "eslint-config-next": "15.2.4",
+    "evalite": "^0.19.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.14",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   }
 }
