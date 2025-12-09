@@ -349,28 +349,27 @@ function CardRadioGroup({
       <div>
         <legend>{legend}:</legend>
       </div>
-      <RadioGroup value={currentValue || ""} className="flex gap-2">
+      <RadioGroup
+        value={currentValue || ""}
+        onValueChange={onValueChange}
+        className="flex gap-2"
+      >
         {options.map(({ value, label }) => (
-          <div
+          <Label
             key={value}
+            htmlFor={`${name}-${value}`}
             className={cn(
               "flex-grow flex items-center justify-center w-full gap-2 p-1 border rounded-lg cursor-pointer hover:bg-foreground/10 transition-all shadow",
               currentValue === value ? "border-foreground" : "border-border",
             )}
-            onClick={() => onValueChange?.(value)}
           >
             <RadioGroupItem
               className="hidden"
               value={value}
               id={`${name}-${value}`}
             />
-            <Label
-              htmlFor={`${name}-${value}`}
-              className="cursor-pointer text-sm font-medium"
-            >
-              {label}
-            </Label>
-          </div>
+            <span className="text-sm font-medium">{label}</span>
+          </Label>
         ))}
       </RadioGroup>
     </fieldset>
