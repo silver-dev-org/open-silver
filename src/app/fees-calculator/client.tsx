@@ -26,15 +26,27 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 
+type ServiceModel = typeof CONTINGENCY | typeof STAFFING;
+
 interface ContractProps {
   // Using single letters to keep the URL shorter
-  n: number; // Number of hires
-  s: number; // Salary
-  p: boolean; // Payroll
-  fp: boolean; // Fast processing
-  m: boolean; // Monthly payment
-  sm: "c" | "s"; // Service model: contingency or staffing
+  [NUMBER_OF_HIRES]: number;
+  [SALARY]: number;
+  [PAYROLL]: boolean;
+  [FAST_PROCESSING]: boolean;
+  [MONTHLY_PAYMENT]: boolean;
+  [SERVICE_MODEL]: ServiceModel;
 }
+
+const NUMBER_OF_HIRES = "n";
+const SALARY = "s";
+const PAYROLL = "p";
+const FAST_PROCESSING = "fp";
+const MONTHLY_PAYMENT = "m";
+const SERVICE_MODEL = "sm";
+
+const CONTINGENCY = "c";
+const STAFFING = "s";
 
 const BASE_FEE = 25;
 const FAST_PROCESSING_FEE = 20;
@@ -42,7 +54,8 @@ const PAYROLL_COST = 500;
 const CONTINGENCY_MONTHS_DURATION = 3;
 const MONTHS_PER_YEAR = 12;
 const MONTHLY_PAYMENT_MARKUP = 10;
-const HEADCOUNT_OPTIONS = [
+
+const NUMBER_OF_HIRES_OPTIONS = [
   { value: "1", label: "1" },
   { value: "2", label: "2" },
   { value: "3", label: "3+" },
@@ -53,57 +66,59 @@ const SALARY_OPTIONS = [
   { value: "100000", label: "$100k+" },
 ];
 const SERVICE_MODEL_OPTIONS = [
-  { value: "c", label: "Contingency" },
-  { value: "s", label: "Staffing" },
+  { value: CONTINGENCY, label: "Contingency" },
+  { value: STAFFING, label: "Staffing" },
 ];
+
 const DEFAULT_CONTRACT_PROPS: ContractProps = {
-  n: parseInt(HEADCOUNT_OPTIONS[0].value),
+  n: parseInt(NUMBER_OF_HIRES_OPTIONS[0].value),
   s: parseInt(SALARY_OPTIONS[0].value),
-  sm: SERVICE_MODEL_OPTIONS[0].value as ContractProps["sm"],
+  sm: SERVICE_MODEL_OPTIONS[0].value as ServiceModel,
   p: false,
   fp: false,
   m: false,
 };
+
 const RADIO_FIELDS: CardRadioGroupProps[] = [
   {
-    name: "n",
+    name: NUMBER_OF_HIRES,
     legend: "Expected headcount",
-    options: HEADCOUNT_OPTIONS,
+    options: NUMBER_OF_HIRES_OPTIONS,
   },
   {
-    name: "s",
+    name: SALARY,
     legend: "Salary",
     options: SALARY_OPTIONS,
   },
   {
-    name: "sm",
+    name: SERVICE_MODEL,
     legend: "Service model",
     options: SERVICE_MODEL_OPTIONS,
   },
 ];
 const CHECKBOX_FIELDS: CardCheckboxProps[] = [
   {
-    name: "p",
+    name: PAYROLL,
     label: "Payroll",
     description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${PAYROLL_COST} per person per month.`,
   },
   {
-    name: "m",
+    name: MONTHLY_PAYMENT,
     label: `Pay over ${MONTHS_PER_YEAR} months`,
     description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. ${MONTHLY_PAYMENT_MARKUP}% markup applies.`,
   },
   {
-    name: "fp",
+    name: FAST_PROCESSING,
     label: "Fast processing",
     description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
   },
 ];
 
 function calculateTotalCost(data: ContractProps) {
-  const { p: includePayroll } = data;
+  const { p: hasPayroll } = data;
   let cost = calculateHiringCost(data);
 
-  if (includePayroll) {
+  if (hasPayroll) {
     cost += PAYROLL_COST * MONTHS_PER_YEAR;
   }
 
@@ -117,13 +132,13 @@ function calculateHiringCost(data: ContractProps) {
 }
 
 function getFee({
-  fp: fastProcessing,
-  m: payMonthly,
+  fp: isFastProcessing,
+  m: isMonthlyPayment,
   sm: serviceModel,
 }: ContractProps) {
-  let fee = fastProcessing ? FAST_PROCESSING_FEE : BASE_FEE;
+  let fee = isFastProcessing ? FAST_PROCESSING_FEE : BASE_FEE;
 
-  if (serviceModel === "c" && payMonthly) {
+  if (serviceModel === CONTINGENCY && isMonthlyPayment) {
     fee *= 1 + MONTHLY_PAYMENT_MARKUP / 100;
   }
 
@@ -133,7 +148,7 @@ function getFee({
 export function FeesCalculator() {
   const searchParams = useSearchParams();
   const [chartData, setChartData] = useState<any[]>([]);
-  const [cost, setCost] = useState<number>();
+  const [cost, setCost] = useState<number>(0);
   const [fee, setFee] = useState(BASE_FEE);
   const [shareLink, setShareLink] = useState("");
   const [contractProps, setContractProps] = useState<ContractProps>(
@@ -156,19 +171,19 @@ export function FeesCalculator() {
   useEffect(() => processContractProps(contractProps), [contractProps]);
 
   function processContractProps(data: ContractProps) {
-    const { m: payMonthly, p: includePayroll, sm: serviceModel } = data;
+    const { m: isMonthlyPayment, p: hasPayroll, sm: serviceModel } = data;
 
     const chartData = [];
     const yAxis =
       calculateHiringCost({
         ...data,
-        fp: false,
-        m: false,
+        [FAST_PROCESSING]: false,
+        [MONTHLY_PAYMENT]: false,
       }) + PAYROLL_COST;
     const totalHiringCost = calculateHiringCost(data);
     const monthlyHiringCost = Math.round(totalHiringCost / MONTHS_PER_YEAR);
     const totalMonths =
-      serviceModel === "c" && payMonthly
+      serviceModel === CONTINGENCY && isMonthlyPayment
         ? MONTHS_PER_YEAR + CONTINGENCY_MONTHS_DURATION
         : MONTHS_PER_YEAR;
 
@@ -181,10 +196,10 @@ export function FeesCalculator() {
           month: "long",
           year: "numeric",
         }),
-        payroll: includePayroll ? PAYROLL_COST : 0,
+        payroll: hasPayroll ? PAYROLL_COST : 0,
         fee:
-          serviceModel === "c"
-            ? payMonthly &&
+          serviceModel === CONTINGENCY
+            ? isMonthlyPayment &&
               monthNum >= CONTINGENCY_MONTHS_DURATION &&
               monthNum < totalMonths
               ? monthlyHiringCost
@@ -214,7 +229,7 @@ export function FeesCalculator() {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
-    }).format(contractProps.s);
+    }).format(contractProps[SALARY]);
 
     const expectedContractCost = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -224,13 +239,14 @@ export function FeesCalculator() {
 
     const serviceModel = new Map(
       SERVICE_MODEL_OPTIONS.map(({ value, label }) => [value, label]),
-    ).get(contractProps.sm);
+    ).get(contractProps[SERVICE_MODEL]);
 
     const emailSubject = encodeURIComponent("Contract Details");
     const emailBody = encodeURIComponent(
-      `Number of placements: ${contractProps.n}
+      `Number of placements: ${contractProps[NUMBER_OF_HIRES]}
 Expected average salary: ${expectedAverageSalary}
 Service model: ${serviceModel}
+
 Placement fee: ${fee}%
 Expected contract cost: ${expectedContractCost}
 ${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
@@ -265,9 +281,9 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             <CardRadioGroup
               key={i}
               onValueChange={(value) => {
-                if (field.name === "sm" && value === "s") {
-                  setContractProp("m", false);
-                  setContractProp("p", true);
+                if (field.name === SERVICE_MODEL && value === STAFFING) {
+                  setContractProp(MONTHLY_PAYMENT, false);
+                  setContractProp(PAYROLL, true);
                 }
                 setContractProp(field.name, value);
               }}
@@ -282,7 +298,8 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
                 setContractProp(field.name, checked);
               }}
               disabled={
-                contractProps.sm === "s" && ["m", "p"].includes(field.name)
+                contractProps[SERVICE_MODEL] === STAFFING &&
+                [MONTHLY_PAYMENT, PAYROLL].includes(field.name)
               }
               checked={Boolean(contractProps[field.name])}
               {...field}
@@ -296,26 +313,12 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
         </div>
         <div className="flex flex-col flex-grow">
           <div className="flex gap-1.5 mb-12">
-            <Card className="w-1/2 text-center rounded-md border-foreground bg-card">
-              <CardHeader className="h-full">
-                <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
-                  <NumberFlow prefix="$" value={cost || 0} />
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Expected contract cost
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="w-1/2 text-center rounded-md border-foreground bg-card">
-              <CardHeader className="h-full">
-                <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
-                  <NumberFlow suffix="%" value={fee} />
-                </CardTitle>
-                <CardDescription className="text-muted-foreground flex items-center gap-1 justify-center">
-                  Placement fee
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <NumberCard
+              label="Expected Contract Cost"
+              value={cost}
+              prefix="$"
+            />
+            <NumberCard label="Placement Fee" value={fee} suffix="%" />
           </div>
           <ChartContainer
             config={{ fee: { label: "Fee" }, payroll: { label: "Payroll" } }}
@@ -441,5 +444,27 @@ function CardCheckbox({
         </CardHeader>
       </Card>
     </Label>
+  );
+}
+
+interface NumberCardProps {
+  value: number;
+  label: string;
+  prefix?: string;
+  suffix?: string;
+}
+
+function NumberCard({ value, label, prefix, suffix }: NumberCardProps) {
+  return (
+    <Card className="w-1/2 text-center rounded-md border-foreground bg-card">
+      <CardHeader className="h-full">
+        <CardTitle className="text-3xl sm:text-6xl my-auto font-[Georgia]">
+          <NumberFlow prefix={prefix} suffix={suffix} value={value} />
+        </CardTitle>
+        <CardDescription className="text-muted-foreground flex items-center gap-1 justify-center">
+          {label}
+        </CardDescription>
+      </CardHeader>
+    </Card>
   );
 }
