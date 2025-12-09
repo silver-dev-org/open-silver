@@ -168,19 +168,21 @@ export function FeesCalculator() {
     return Number(value);
   }
 
-  useEffect(() => processContractProps(contractProps), [contractProps]);
-
-  function processContractProps(data: ContractProps) {
-    const { m: isMonthlyPayment, p: hasPayroll, sm: serviceModel } = data;
+  useEffect(() => {
+    const {
+      m: isMonthlyPayment,
+      p: hasPayroll,
+      sm: serviceModel,
+    } = contractProps;
 
     const chartData = [];
     const yAxis =
       calculateHiringCost({
-        ...data,
+        ...contractProps,
         [FAST_PROCESSING]: false,
         [MONTHLY_PAYMENT]: false,
       }) + PAYROLL_COST;
-    const totalHiringCost = calculateHiringCost(data);
+    const totalHiringCost = calculateHiringCost(contractProps);
     const monthlyHiringCost = Math.round(totalHiringCost / MONTHS_PER_YEAR);
     const totalMonths =
       serviceModel === CONTINGENCY && isMonthlyPayment
@@ -211,9 +213,9 @@ export function FeesCalculator() {
     }
 
     setChartData(chartData);
-    setCost(calculateTotalCost(data));
-    setFee(getFee(data));
-  }
+    setCost(calculateTotalCost(contractProps));
+    setFee(getFee(contractProps));
+  }, [contractProps]);
 
   function share() {
     const queryString = Object.entries(contractProps)
@@ -281,9 +283,13 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             <CardRadioGroup
               key={i}
               onValueChange={(value) => {
-                if (field.name === SERVICE_MODEL && value === STAFFING) {
-                  setContractProp(MONTHLY_PAYMENT, false);
-                  setContractProp(PAYROLL, true);
+                if (field.name === SERVICE_MODEL) {
+                  setContractProps({
+                    ...contractProps,
+                    [MONTHLY_PAYMENT]: false,
+                    [FAST_PROCESSING]: false,
+                    [PAYROLL]: false,
+                  });
                 }
                 setContractProp(field.name, value);
               }}
@@ -297,10 +303,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               onCheckedChange={(checked) => {
                 setContractProp(field.name, checked);
               }}
-              disabled={
-                contractProps[SERVICE_MODEL] === STAFFING &&
-                [MONTHLY_PAYMENT, PAYROLL].includes(field.name)
-              }
+              disabled={contractProps[SERVICE_MODEL] === STAFFING}
               checked={Boolean(contractProps[field.name])}
               {...field}
             />
