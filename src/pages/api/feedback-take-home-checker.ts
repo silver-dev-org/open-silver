@@ -1,14 +1,14 @@
 // TODO(refactor): DRY this endpoint and its related dialog with the equivalent of the Resume Checker
 
-import { TakeHomeCheckerData } from "@/app/take-home-checker/types";
-import { codebaseToString } from "@/app/take-home-checker/utils";
+import { TakeHomeCheckerData } from "@/takehome-checker/types";
+import { codebaseToString } from "@/takehome-checker/utils";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_KEY);
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   try {
     const data = req.body as TakeHomeCheckerData;
