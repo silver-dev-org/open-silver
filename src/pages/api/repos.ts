@@ -1,10 +1,10 @@
-import { GithubRepo } from "@/app/take-home-checker/types";
+import { GithubRepo } from "@/takehome-checker/types";
 import { getOctokit } from "@/lib/github";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   try {
     const repos = await getRepos(req.body.installationId);
