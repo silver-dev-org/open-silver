@@ -103,6 +103,7 @@ You will receive a resume in PDF format and your task is to evaluate its content
 - NEVER say using Gmail is wrong
 ${isSilver ?? "- Do NOT mention ANYTHING regarding the template"}
 - Don't comment on things you're not 100% sure about. Don't assume anything from the resume that isn't in it.
+- Saying "WHY COMPANY [COMPANY NAME] SHOULD HIRE ME" instead of "ABOUT ME" should NOT be penalized.
 - The location of the candidate's past jobs doesn't matter; don't mention it as a shortcoming or a "flag".
 - The answer should be in the second person, so instead of talking "about the candidate" (in the third person), communicate directly with the candidate to give them advice.
 - The answer should be in Argentine/Rio de la Plata Spanish; don't use words like "debes" or "incluyes," but rather "tenés" or "incluís."
