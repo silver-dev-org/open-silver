@@ -1,0 +1,15 @@
+[project]
+name = "podcast"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "audioop-lts>=0.2.2",
+    "openai>=2.11.0",
+    "pydub>=0.25.1",
+    "python-dotenv>=1.2.1",
+    "python-slugify>=8.0.4",
+    "tqdm>=4.67.1",
+    "yt-dlp>=2025.12.8",
+]
