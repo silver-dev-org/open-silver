@@ -25,13 +25,13 @@ export function Header() {
     ],
     [
       {
-        href: "https://ready.silver.dev",
-        label: "Interview Ready",
+        href: "https://silver.dev/jobs",
+        label: "Jobs",
         external: true,
       },
       {
-        href: "https://silver.dev/jobs",
-        label: "Jobs",
+        href: "https://ready.silver.dev",
+        label: "Interview Ready",
         external: true,
       },
     ],
