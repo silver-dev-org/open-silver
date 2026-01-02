@@ -79,6 +79,10 @@ const DEFAULT_PARAMS: Params = {
   salary: 100000,
   monthlyPrivateHealth: 100,
 };
+const SHORTENED_PARAM_KEYS: Record<keyof Params, string> = {
+  salary: "s",
+  monthlyPrivateHealth: "h",
+};
 const FEES = {
   eor: {
     employer: {
@@ -314,7 +318,7 @@ export function SalaryCalculator() {
   const [params, setParams] = useState<Params>(() => {
     let { salary, monthlyPrivateHealth } = DEFAULT_PARAMS;
 
-    const salaryStr = searchParams?.get("salary");
+    const salaryStr = searchParams?.get(SHORTENED_PARAM_KEYS.salary);
     if (salaryStr) {
       const salaryNum = Number.parseInt(salaryStr, 10);
       if (
@@ -344,7 +348,10 @@ export function SalaryCalculator() {
     setTimeout(() => {
       const newSearchParams = new URLSearchParams(searchParams?.toString());
       for (const [key, value] of Object.entries(params)) {
-        newSearchParams.set(key, value.toString());
+        newSearchParams.set(
+          SHORTENED_PARAM_KEYS[key as keyof Params],
+          value.toString(),
+        );
       }
       window.history.pushState(null, "", `?${newSearchParams.toString()}`);
       setIsUpdatingParams(false);
