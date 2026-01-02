@@ -7,14 +7,23 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
+  DialogPortal,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Kbd } from "@/components/ui/kbd";
 import { Slider } from "@/components/ui/slider";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
-import { Fragment, HTMLAttributes, useState } from "react";
+import { Fragment, HTMLAttributes, useEffect, useState } from "react";
 
 type SalaryModel = "aor" | "eor";
 
@@ -49,6 +58,12 @@ const CURRENCY_FORMAT: Intl.NumberFormatOptions = {
 };
 const ARS_USD = 1415;
 const MAX_TAXABLE_GROSS = (3505701.35 / ARS_USD) * 13;
+const SCENARIOS: Scenario[] = [
+  "eor-employer",
+  "eor-worker",
+  "aor-employer",
+  "aor-worker",
+];
 const FEES = {
   eor: {
     employer: {
@@ -310,6 +325,7 @@ export function SalaryCalculator() {
         salary={salary}
         isOpen={activeModal !== null}
         onClose={() => setActiveModal(null)}
+        onNavigate={setActiveModal}
       />
     </>
   );
@@ -462,58 +478,159 @@ function BreakdownModal({
   salary,
   isOpen,
   onClose,
+  onNavigate,
 }: {
   scenario: Scenario | null;
   salary: number;
   isOpen: boolean;
   onClose: () => void;
+  onNavigate: (scenario: Scenario) => void;
 }) {
+  const currentIndex = scenario ? SCENARIOS.indexOf(scenario) : -1;
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < SCENARIOS.length - 1;
+
+  function handlePrevious() {
+    if (hasPrevious) {
+      onNavigate(SCENARIOS[currentIndex - 1]);
+    }
+  }
+
+  function handleNext() {
+    if (hasNext) {
+      onNavigate(SCENARIOS[currentIndex + 1]);
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (e.key === "ArrowLeft" && hasPrevious) {
+        handlePrevious();
+      } else if (e.key === "ArrowRight" && hasNext) {
+        handleNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, hasPrevious, hasNext, currentIndex]);
+
   if (!scenario) return null;
+
   const breakdown = getBreakdown(scenario, salary);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{breakdown.title}</DialogTitle>
-          <DialogDescription>
-            {breakdown.description}
-            {scenario === "eor-worker" && (
-              <>
-                <br />
-                (*) Capped at max. taxable gross of{" "}
-                {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
-                  "en-US",
-                  CURRENCY_FORMAT,
-                )}
-              </>
-            )}
-            <br />
-            Sources:{" "}
-            {breakdown.sources.map((source, i) => (
-              <Fragment key={i}>
-                <Link className="link" target="_blank" href={source}>
-                  {new URL(source).host.replace("www.", "")}
-                </Link>
-                {i < breakdown.sources.length - 1 && ", "}
-              </Fragment>
+      <DialogPortal>
+        <DialogContent>
+          <Tooltip delayDuration={0} open={hasPrevious ? undefined : false}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePrevious}
+                disabled={!hasPrevious}
+                tabIndex={-1}
+                className="absolute -left-16 top-1/2 -translate-y-1/2 hidden md:flex translate-none disabled:pointer-events-auto disabled:cursor-not-allowed"
+                aria-label="Previous breakdown"
+              >
+                <ChevronLeft />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p className="flex items-center gap-1">
+                Try pressing <Kbd>←</Kbd>
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip delayDuration={0} open={hasNext ? undefined : false}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNext}
+                disabled={!hasNext}
+                tabIndex={-1}
+                className="absolute -right-16 top-1/2 -translate-y-1/2 hidden md:flex translate-none disabled:pointer-events-auto disabled:cursor-not-allowed"
+                aria-label="Next breakdown"
+              >
+                <ChevronRight />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p className="flex items-center gap-1">
+                Try pressing <Kbd>→</Kbd>
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <DialogHeader>
+            <DialogTitle className="text-left">{breakdown.title}</DialogTitle>
+            <DialogDescription className="text-left">
+              {breakdown.description}
+              {scenario === "eor-worker" && (
+                <>
+                  <br />
+                  (*) Capped at max. taxable gross of{" "}
+                  {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
+                    "en-US",
+                    CURRENCY_FORMAT,
+                  )}
+                </>
+              )}
+              <br />
+              Sources:{" "}
+              {breakdown.sources.map((source, i) => (
+                <Fragment key={i}>
+                  <Link className="link" target="_blank" href={source}>
+                    {new URL(source).host.replace("www.", "")}
+                  </Link>
+                  {i < breakdown.sources.length - 1 && ", "}
+                </Fragment>
+              ))}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <BreakdownItem label="Gross Salary" value={breakdown.base} />
+            {breakdown.items.map((item, idx) => (
+              <BreakdownItem key={idx} {...item} />
             ))}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <BreakdownItem label="Gross Salary" value={breakdown.base} />
-          {breakdown.items.map((item, idx) => (
-            <BreakdownItem key={idx} {...item} />
-          ))}
-          <BreakdownItem
-            label={
-              scenario.endsWith("worker") ? "Net Salary" : "Total Employer Cost"
-            }
-            value={breakdown.total}
-            className="text-base font-semibold border-t border-foreground pt-4"
-          />
-        </div>
-      </DialogContent>
+            <BreakdownItem
+              label={
+                scenario.endsWith("worker")
+                  ? "Net Salary"
+                  : "Total Employer Cost"
+              }
+              value={breakdown.total}
+              className="text-base font-semibold border-t border-foreground pt-4"
+            />
+          </div>
+          <DialogFooter className="md:hidden flex-row items-center border-t pt-6">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={!hasPrevious}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft />
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground w-full text-center">
+              {currentIndex + 1} / {SCENARIOS.length}
+            </span>
+            <Button
+              variant="outline"
+              onClick={handleNext}
+              disabled={!hasNext}
+              className="flex items-center gap-2"
+            >
+              Next
+              <ChevronRight />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogPortal>
     </Dialog>
   );
 }
