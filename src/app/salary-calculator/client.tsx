@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { Fragment, HTMLAttributes, useEffect, useRef, useState } from "react";
 
@@ -284,6 +284,7 @@ function getBreakdown(scenario: Scenario, salary: number) {
 
 export function SalaryCalculator() {
   const searchParams = useSearchParams();
+  const [isUpdatingParams, setIsUpdatingParams] = useState(false);
   const [params, setParams] = useState<{ salary: number }>(() => {
     let salary = DEFAULT_SALARY;
     const salaryStr = searchParams?.get("salary");
@@ -310,11 +311,16 @@ export function SalaryCalculator() {
   });
 
   useEffect(() => {
-    const newSearchParams = new URLSearchParams(searchParams?.toString());
-    for (const [key, value] of Object.entries(params)) {
-      newSearchParams.set(key, value.toString());
-    }
-    window.history.pushState(null, "", `?${newSearchParams.toString()}`);
+    if (isUpdatingParams) return;
+    setIsUpdatingParams(true);
+    setTimeout(() => {
+      const newSearchParams = new URLSearchParams(searchParams?.toString());
+      for (const [key, value] of Object.entries(params)) {
+        newSearchParams.set(key, value.toString());
+      }
+      window.history.pushState(null, "", `?${newSearchParams.toString()}`);
+      setIsUpdatingParams(false);
+    }, 1000);
   }, [params, searchParams]);
 
   function handleOpenModal(scenario: Scenario) {
@@ -337,7 +343,7 @@ export function SalaryCalculator() {
     <>
       <div className="hidden md:block max-w-md mx-auto">
         <Card>
-          <CardHeader>
+          <CardHeader className="relativ">
             <SalarySlider
               value={params.salary}
               onChange={setSalary}
