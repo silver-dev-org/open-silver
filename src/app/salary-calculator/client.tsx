@@ -8,12 +8,16 @@ import {
   DialogHeader,
   DialogPortal,
   DialogTitle,
+  DialogTrigger,
+  DialogContent,
   useAnimatedDialog,
 } from "@/components/animated-dialog";
 import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import {
   Tooltip,
@@ -22,7 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, DollarSign, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
@@ -49,9 +53,13 @@ type BreakdownItem = {
   value: number;
 };
 
+type Params = {
+  salary: number;
+  monthlyPrivateHealth: number;
+};
+
 const MIN_SALARY = 50000;
 const MAX_SALARY = 150000;
-const DEFAULT_SALARY = 100000;
 const CURRENCY_FORMAT: Intl.NumberFormatOptions = {
   maximumFractionDigits: 0,
   currency: "USD",
@@ -67,6 +75,10 @@ const SCENARIOS: Scenario[] = [
   "aor-employer",
   "aor-worker",
 ];
+const DEFAULT_PARAMS: Params = {
+  salary: 100000,
+  monthlyPrivateHealth: 100,
+};
 const FEES = {
   eor: {
     employer: {
@@ -129,7 +141,10 @@ const FEES = {
   },
 } satisfies Record<SalaryModel, Record<Persona, Record<string, any>>>;
 
-function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
+function getBreakdowns({
+  salary,
+  monthlyPrivateHealth,
+}: Params): Record<Scenario, Breakdown> {
   const roundedSalary = Math.round(salary / 5000) * 5000;
   const clampedSalary = Math.max(
     MIN_SALARY,
@@ -147,20 +162,22 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
   const totalGross = salary + thirteenthSalary;
   const taxableGrossEmployee = Math.min(MAX_TAXABLE_GROSS, totalGross);
 
+  const privateHealth = monthlyPrivateHealth * 12;
   const pensionEmployer = totalGross * (FEES.eor.employer.pension / 100);
   const socialServicesEmployer =
     totalGross * (FEES.eor.employer.socialServices / 100);
   const employmentFund = totalGross * (FEES.eor.employer.employmentFund / 100);
-  const health = totalGross * (FEES.eor.employer.health / 100);
+  const publicHealth = totalGross * (FEES.eor.employer.health / 100);
   const lifeInsurance = totalGross * (FEES.eor.employer.lifeInsurance / 100);
   const accidentInsurance =
     totalGross * (FEES.eor.employer.accidentInsurance / 100);
 
   const totalEmployerCost =
     totalGross +
+    privateHealth +
     pensionEmployer +
     socialServicesEmployer +
-    health +
+    publicHealth +
     employmentFund +
     lifeInsurance +
     accidentInsurance;
@@ -172,7 +189,8 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
   const incomeTax = totalGross * (incomeTaxRate / 100);
 
   const totalWorkerNet =
-    totalGross -
+    totalGross +
+    privateHealth -
     pensionWorker -
     healthWorker -
     socialServicesWorker -
@@ -191,6 +209,10 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: thirteenthSalary,
         },
         {
+          label: "Private Health Insurance",
+          value: privateHealth,
+        },
+        {
           label: `Pension (+${FEES.eor.employer.pension}%)`,
           value: pensionEmployer,
         },
@@ -199,8 +221,8 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: socialServicesEmployer,
         },
         {
-          label: `Health (+${FEES.eor.employer.health}%)`,
-          value: health,
+          label: `Public Health Insurance (+${FEES.eor.employer.health}%)`,
+          value: publicHealth,
         },
         {
           label: `Employment Fund (+${FEES.eor.employer.employmentFund}%)`,
@@ -229,11 +251,15 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
           value: thirteenthSalary,
         },
         {
+          label: "Private Health Insurance (not cash)",
+          value: privateHealth,
+        },
+        {
           label: `Pension (-${FEES.eor.worker.pension}%*)`,
           value: -pensionWorker,
         },
         {
-          label: `Health (-${FEES.eor.worker.health}%*)`,
+          label: `Public Health Insurance (-${FEES.eor.worker.health}%*)`,
           value: -healthWorker,
         },
         {
@@ -278,15 +304,16 @@ function getBreakdowns(salary: number): Record<Scenario, Breakdown> {
   };
 }
 
-function getBreakdown(scenario: Scenario, salary: number) {
-  return getBreakdowns(salary)[scenario];
+function getBreakdown(scenario: Scenario, params: Params) {
+  return getBreakdowns(params)[scenario];
 }
 
 export function SalaryCalculator() {
   const searchParams = useSearchParams();
   const [isUpdatingParams, setIsUpdatingParams] = useState(false);
-  const [params, setParams] = useState<{ salary: number }>(() => {
-    let salary = DEFAULT_SALARY;
+  const [params, setParams] = useState<Params>(() => {
+    let { salary, monthlyPrivateHealth } = DEFAULT_PARAMS;
+
     const salaryStr = searchParams?.get("salary");
     if (salaryStr) {
       const salaryNum = Number.parseInt(salaryStr, 10);
@@ -298,10 +325,11 @@ export function SalaryCalculator() {
         salary = salaryNum;
       }
     }
-    return { salary };
+
+    return { salary, monthlyPrivateHealth };
   });
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
-  const breakdowns = getBreakdowns(params.salary);
+  const breakdowns = getBreakdowns(params);
   const dialog = useAnimatedDialog();
   const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
     "eor-employer": null,
@@ -341,18 +369,22 @@ export function SalaryCalculator() {
 
   return (
     <>
-      <div className="hidden md:block max-w-md mx-auto">
-        <Card>
-          <CardHeader className="relativ">
-            <SalarySlider
-              value={params.salary}
-              onChange={setSalary}
-              min={MIN_SALARY}
-              max={MAX_SALARY}
-              step={1000}
-            />
-          </CardHeader>
-        </Card>
+      <div className="mx-auto flex flex-col items-center">
+        <div className="hidden md:block">
+          <Card className="min-w-md">
+            <CardHeader className="relative">
+              <SalarySlider
+                value={params.salary}
+                onChange={setSalary}
+                min={MIN_SALARY}
+                max={MAX_SALARY}
+                step={1000}
+              />
+            </CardHeader>
+          </Card>
+          <Spacer />
+        </div>
+        <ParamsDialog params={params} setParams={setParams} />
       </div>
       <Spacer size="lg" />
       <div
@@ -380,12 +412,102 @@ export function SalaryCalculator() {
       </div>
       <BreakdownModal
         scenario={activeModal}
-        salary={params.salary}
+        params={params}
         onNavigate={handleNavigate}
         originRect={dialog.originRect}
         {...dialog.dialogProps}
       />
     </>
+  );
+}
+
+function ParamsDialog({
+  params,
+  setParams,
+}: {
+  params: Params;
+  setParams: (params: Params) => void;
+}) {
+  const [localParams, setLocalParams] = useState<Params>(params);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalParams(params);
+    }
+  }, [isOpen, params]);
+
+  function handleSave() {
+    setParams(localParams);
+    setIsOpen(false);
+  }
+
+  function handleCancel() {
+    setLocalParams(params);
+    setIsOpen(false);
+  }
+
+  function handleReset() {
+    setLocalParams(DEFAULT_PARAMS);
+  }
+
+  function handleHealthChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const cleanValue = e.target.value.replace(/\D/g, "");
+    const newValue = Number.parseInt(cleanValue, 10) || 0;
+    setLocalParams({ ...localParams, monthlyPrivateHealth: newValue });
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") {
+      handleSave();
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Settings2 />
+          Edit additional parameters
+        </Button>
+      </DialogTrigger>
+      <DialogContent onKeyDown={handleKeyDown}>
+        <DialogHeader>
+          <DialogTitle>Edit additional parameters</DialogTitle>
+          <DialogDescription>Money amounts are in USD.</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-6 py-4">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="health-input" className="font-semibold">
+              Monthly Health Contribution
+            </Label>
+            <div className="flex items-center gap-1.5">
+              <span>$</span>
+              <Input
+                id="health-input"
+                type="text"
+                value={localParams.monthlyPrivateHealth.toLocaleString("en-US")}
+                onChange={handleHealthChange}
+                className="w-min"
+              />
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="flex-col md:flex-row gap-2">
+          <Button
+            variant="destructive"
+            onClick={handleReset}
+            className="md:mr-auto order-last md:order-first"
+          >
+            Reset to defaults
+          </Button>
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -540,14 +662,14 @@ function BreakdownCard({
 
 function BreakdownModal({
   scenario,
-  salary,
+  params,
   open,
   onOpenChange,
   onNavigate,
   originRect,
 }: {
   scenario: Scenario | null;
-  salary: number;
+  params: Params;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onNavigate: (scenario: Scenario) => void;
@@ -599,7 +721,7 @@ function BreakdownModal({
 
   if (!scenario) return null;
 
-  const breakdown = getBreakdown(scenario, salary);
+  const breakdown = getBreakdown(scenario, params);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

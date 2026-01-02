@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogPortal,
   DialogTitle,
+  DialogTrigger,
 } from "./ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -110,4 +111,6 @@ export {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
+  DialogContent,
 };
