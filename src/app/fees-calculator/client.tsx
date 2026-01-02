@@ -434,7 +434,9 @@ function CardCheckbox({
         className={cn(
           "rounded-md border-border bg-transparent transition-colors",
           checked ? "border-foreground" : "",
-          disabled ? "cursor-not-allowed opacity-75" : "hover:bg-accent",
+          disabled
+            ? "cursor-not-allowed opacity-75"
+            : "cursor-pointer hover:bg-accent",
         )}
       >
         <CardHeader className="p-4">
