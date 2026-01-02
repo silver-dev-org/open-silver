@@ -32,7 +32,7 @@ export default function Page() {
         Argentina <span className="text-primary">Salary</span> Calculator
       </Heading>
       <Spacer />
-      <Description className="text-center mx-auto">
+      <Description center>
         Compare employer and worker costs between EOR and Contractors for
         Argentina.
       </Description>
