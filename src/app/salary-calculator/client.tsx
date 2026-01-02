@@ -486,21 +486,31 @@ function BreakdownModal({
   onClose: () => void;
   onNavigate: (scenario: Scenario) => void;
 }) {
+  const [direction, setDirection] = useState<"left" | "right" | null>(null);
   const currentIndex = scenario ? SCENARIOS.indexOf(scenario) : -1;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < SCENARIOS.length - 1;
 
   function handlePrevious() {
     if (hasPrevious) {
+      setDirection("left");
       onNavigate(SCENARIOS[currentIndex - 1]);
     }
   }
 
   function handleNext() {
     if (hasNext) {
+      setDirection("right");
       onNavigate(SCENARIOS[currentIndex + 1]);
     }
   }
+
+  useEffect(() => {
+    if (direction) {
+      const timer = setTimeout(() => setDirection(null), 200);
+      return () => clearTimeout(timer);
+    }
+  }, [direction, scenario]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -565,46 +575,56 @@ function BreakdownModal({
               </p>
             </TooltipContent>
           </Tooltip>
-          <DialogHeader>
-            <DialogTitle className="text-left">{breakdown.title}</DialogTitle>
-            <DialogDescription className="text-left">
-              {breakdown.description}
-              {scenario === "eor-worker" && (
-                <>
-                  <br />
-                  (*) Capped at max. taxable gross of{" "}
-                  {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
-                    "en-US",
-                    CURRENCY_FORMAT,
-                  )}
-                </>
-              )}
-              <br />
-              Sources:{" "}
-              {breakdown.sources.map((source, i) => (
-                <Fragment key={i}>
-                  <Link className="link" target="_blank" href={source}>
-                    {new URL(source).host.replace("www.", "")}
-                  </Link>
-                  {i < breakdown.sources.length - 1 && ", "}
-                </Fragment>
+          <div
+            key={scenario}
+            className={cn(
+              "animate-in duration-200",
+              direction === "left" && "slide-in-from-left-4",
+              direction === "right" && "slide-in-from-right-4",
+              !direction && "fade-in",
+            )}
+          >
+            <DialogHeader>
+              <DialogTitle className="text-left">{breakdown.title}</DialogTitle>
+              <DialogDescription className="text-left">
+                {breakdown.description}
+                {scenario === "eor-worker" && (
+                  <>
+                    <br />
+                    (*) Capped at max. taxable gross of{" "}
+                    {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
+                      "en-US",
+                      CURRENCY_FORMAT,
+                    )}
+                  </>
+                )}
+                <br />
+                Sources:{" "}
+                {breakdown.sources.map((source, i) => (
+                  <Fragment key={i}>
+                    <Link className="link" target="_blank" href={source}>
+                      {new URL(source).host.replace("www.", "")}
+                    </Link>
+                    {i < breakdown.sources.length - 1 && ", "}
+                  </Fragment>
+                ))}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 mt-4">
+              <BreakdownItem label="Gross Salary" value={breakdown.base} />
+              {breakdown.items.map((item, idx) => (
+                <BreakdownItem key={idx} {...item} />
               ))}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <BreakdownItem label="Gross Salary" value={breakdown.base} />
-            {breakdown.items.map((item, idx) => (
-              <BreakdownItem key={idx} {...item} />
-            ))}
-            <BreakdownItem
-              label={
-                scenario.endsWith("worker")
-                  ? "Net Salary"
-                  : "Total Employer Cost"
-              }
-              value={breakdown.total}
-              className="text-base font-semibold border-t border-foreground pt-4"
-            />
+              <BreakdownItem
+                label={
+                  scenario.endsWith("worker")
+                    ? "Net Salary"
+                    : "Total Employer Cost"
+                }
+                value={breakdown.total}
+                className="text-base font-semibold border-t border-foreground pt-4"
+              />
+            </div>
           </div>
           <DialogFooter className="md:hidden flex-row items-center border-t pt-6">
             <Button
