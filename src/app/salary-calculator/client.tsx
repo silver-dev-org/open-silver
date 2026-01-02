@@ -487,6 +487,7 @@ function BreakdownModal({
   onNavigate: (scenario: Scenario) => void;
 }) {
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
+  const [hasUsedArrowKeys, setHasUsedKeys] = useState(false);
   const currentIndex = scenario ? SCENARIOS.indexOf(scenario) : -1;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < SCENARIOS.length - 1;
@@ -518,8 +519,10 @@ function BreakdownModal({
 
       if (e.key === "ArrowLeft" && hasPrevious) {
         handlePrevious();
+        setHasUsedKeys(true);
       } else if (e.key === "ArrowRight" && hasNext) {
         handleNext();
+        setHasUsedKeys(true);
       }
     };
 
@@ -535,7 +538,10 @@ function BreakdownModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogPortal>
         <DialogContent>
-          <Tooltip delayDuration={0} open={hasPrevious ? undefined : false}>
+          <Tooltip
+            delayDuration={0}
+            open={hasUsedArrowKeys ? false : hasPrevious ? undefined : false}
+          >
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
@@ -555,7 +561,10 @@ function BreakdownModal({
               </p>
             </TooltipContent>
           </Tooltip>
-          <Tooltip delayDuration={0} open={hasNext ? undefined : false}>
+          <Tooltip
+            delayDuration={0}
+            open={hasUsedArrowKeys ? false : hasNext ? undefined : false}
+          >
             <TooltipTrigger asChild>
               <Button
                 variant="outline"
