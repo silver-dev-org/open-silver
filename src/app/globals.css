@@ -205,7 +205,7 @@ body,
 }
 
 .link {
-  @apply underline underline-offset-4 hover:decoration-secondary transition-all duration-300;
+  @apply hover:text-primary focus-visible:ring-ring font-medium underline underline-offset-4 transition-all hover:underline-offset-2 focus-visible:ring-1 focus-visible:outline-none;
 }
 
 .a {
