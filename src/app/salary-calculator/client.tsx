@@ -671,7 +671,7 @@ function BreakdownItem({
   ...props
 }: BreakdownItem & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn("flex justify-between text-sm", className)} {...props}>
+    <div className={cn("flex justify-between", className)} {...props}>
       <span>{label}</span>
       <span>{value.toLocaleString("en-US", CURRENCY_FORMAT)}</span>
     </div>
