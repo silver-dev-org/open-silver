@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import { Fragment, HTMLAttributes, useEffect, useRef, useState } from "react";
 
@@ -282,9 +283,24 @@ function getBreakdown(scenario: Scenario, salary: number) {
 }
 
 export function SalaryCalculator() {
-  const [salary, setSalary] = useState(DEFAULT_SALARY);
+  const searchParams = useSearchParams();
+  const [params, setParams] = useState<{ salary: number }>(() => {
+    let salary = DEFAULT_SALARY;
+    const salaryStr = searchParams?.get("salary");
+    if (salaryStr) {
+      const salaryNum = Number.parseInt(salaryStr, 10);
+      if (
+        !Number.isNaN(salaryNum) &&
+        salaryNum >= 0 &&
+        salaryNum <= MAX_SALARY
+      ) {
+        salary = salaryNum;
+      }
+    }
+    return { salary };
+  });
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
-  const breakdowns = getBreakdowns(salary);
+  const breakdowns = getBreakdowns(params.salary);
   const dialog = useAnimatedDialog();
   const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
     "eor-employer": null,
@@ -292,6 +308,14 @@ export function SalaryCalculator() {
     "aor-employer": null,
     "aor-worker": null,
   });
+
+  useEffect(() => {
+    const newSearchParams = new URLSearchParams(searchParams?.toString());
+    for (const [key, value] of Object.entries(params)) {
+      newSearchParams.set(key, value.toString());
+    }
+    window.history.pushState(null, "", `?${newSearchParams.toString()}`);
+  }, [params, searchParams]);
 
   function handleOpenModal(scenario: Scenario) {
     const button = buttonRefs.current[scenario];
@@ -305,13 +329,17 @@ export function SalaryCalculator() {
     setActiveModal(scenario);
   }
 
+  function setSalary(salary: number) {
+    setParams({ ...params, salary });
+  }
+
   return (
     <>
       <div className="hidden md:block max-w-md mx-auto">
         <Card>
           <CardHeader>
             <SalarySlider
-              value={salary}
+              value={params.salary}
               onChange={setSalary}
               min={MIN_SALARY}
               max={MAX_SALARY}
@@ -329,7 +357,7 @@ export function SalaryCalculator() {
       >
         <SalaryModelSection
           heading="Employer of Record (EOR)"
-          salary={salary}
+          salary={params.salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
           onViewBreakdown={handleOpenModal}
@@ -337,7 +365,7 @@ export function SalaryCalculator() {
         />
         <SalaryModelSection
           heading="Contractor"
-          salary={salary}
+          salary={params.salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["aor-employer"], breakdowns["aor-worker"]]}
           onViewBreakdown={handleOpenModal}
@@ -346,7 +374,7 @@ export function SalaryCalculator() {
       </div>
       <BreakdownModal
         scenario={activeModal}
-        salary={salary}
+        salary={params.salary}
         onNavigate={handleNavigate}
         originRect={dialog.originRect}
         {...dialog.dialogProps}
