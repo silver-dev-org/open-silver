@@ -1,17 +1,18 @@
 "use client";
 
-import { Spacer, spacing } from "@/components/spacer";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  AnimatedDialogContent,
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogPortal,
   DialogTitle,
-} from "@/components/ui/dialog";
+  useAnimatedDialog,
+} from "@/components/animated-dialog";
+import { Spacer, spacing } from "@/components/spacer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Kbd } from "@/components/ui/kbd";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -20,10 +21,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import type React from "react";
-import { Fragment, HTMLAttributes, useEffect, useState } from "react";
+import { Fragment, HTMLAttributes, useEffect, useRef, useState } from "react";
 
 type SalaryModel = "aor" | "eor";
 
@@ -283,6 +285,26 @@ export function SalaryCalculator() {
   const [salary, setSalary] = useState(DEFAULT_SALARY);
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
   const breakdowns = getBreakdowns(salary);
+  const dialog = useAnimatedDialog();
+  const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
+    "eor-employer": null,
+    "eor-worker": null,
+    "aor-employer": null,
+    "aor-worker": null,
+  });
+
+  function handleOpenModal(scenario: Scenario) {
+    const button = buttonRefs.current[scenario];
+    dialog.open(button);
+    setActiveModal(scenario);
+  }
+
+  function handleNavigate(scenario: Scenario) {
+    const button = buttonRefs.current[scenario];
+    dialog.updateOrigin(button);
+    setActiveModal(scenario);
+  }
+
   return (
     <>
       <div className="hidden md:block max-w-md mx-auto">
@@ -310,22 +332,24 @@ export function SalaryCalculator() {
           salary={salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
-          onViewBreakdown={setActiveModal}
+          onViewBreakdown={handleOpenModal}
+          buttonRefs={buttonRefs}
         />
         <SalaryModelSection
           heading="Contractor"
           salary={salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["aor-employer"], breakdowns["aor-worker"]]}
-          onViewBreakdown={setActiveModal}
+          onViewBreakdown={handleOpenModal}
+          buttonRefs={buttonRefs}
         />
       </div>
       <BreakdownModal
         scenario={activeModal}
         salary={salary}
-        isOpen={activeModal !== null}
-        onClose={() => setActiveModal(null)}
-        onNavigate={setActiveModal}
+        onNavigate={handleNavigate}
+        originRect={dialog.originRect}
+        {...dialog.dialogProps}
       />
     </>
   );
@@ -395,12 +419,14 @@ function SalaryModelSection({
   setSalary,
   breakdowns,
   onViewBreakdown,
+  buttonRefs,
 }: {
   heading: string;
   salary: number;
   setSalary: (value: number) => void;
   breakdowns: Breakdown[];
   onViewBreakdown: (scenario: Scenario) => void;
+  buttonRefs: React.RefObject<Record<Scenario, HTMLButtonElement | null>>;
 }) {
   return (
     <div className={cn("flex flex-col", spacing.sm.gap)}>
@@ -429,6 +455,9 @@ function SalaryModelSection({
             key={breakdown.scenario}
             breakdown={breakdown}
             onView={() => onViewBreakdown(breakdown.scenario)}
+            buttonRef={(el) => {
+              buttonRefs.current[breakdown.scenario] = el;
+            }}
           />
         ))}
       </div>
@@ -439,9 +468,11 @@ function SalaryModelSection({
 function BreakdownCard({
   breakdown,
   onView,
+  buttonRef,
 }: {
   breakdown: Breakdown;
   onView: () => void;
+  buttonRef: (el: HTMLButtonElement | null) => void;
 }) {
   return (
     <Card className="flex flex-col size-full">
@@ -453,15 +484,15 @@ function BreakdownCard({
       <CardContent className="space-y-6 flex-1 flex flex-col">
         <div>
           <div className="flex items-baseline gap-2 justify-center">
-            <div className="text-3xl font-bold text-primary">
-              $
-              {breakdown.total.toLocaleString("en-US", {
-                maximumFractionDigits: 0,
-              })}
-            </div>
+            <NumberFlow
+              className="text-3xl font-bold text-primary"
+              value={Math.round(breakdown.total)}
+              prefix="$"
+            />
           </div>
         </div>
         <Button
+          ref={buttonRef}
           variant="outline"
           onClick={onView}
           className="w-full bg-transparent mt-auto"
@@ -476,15 +507,17 @@ function BreakdownCard({
 function BreakdownModal({
   scenario,
   salary,
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onNavigate,
+  originRect,
 }: {
   scenario: Scenario | null;
   salary: number;
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onNavigate: (scenario: Scenario) => void;
+  originRect: DOMRect | null;
 }) {
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
   const [hasUsedArrowKeys, setHasUsedKeys] = useState(false);
@@ -515,7 +548,7 @@ function BreakdownModal({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!open) return;
 
       if (e.key === "ArrowLeft" && hasPrevious) {
         handlePrevious();
@@ -528,16 +561,16 @@ function BreakdownModal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, hasPrevious, hasNext, currentIndex]);
+  }, [open, hasPrevious, hasNext, currentIndex]);
 
   if (!scenario) return null;
 
   const breakdown = getBreakdown(scenario, salary);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <DialogContent>
+        <AnimatedDialogContent originRect={originRect}>
           <Tooltip
             delayDuration={0}
             open={hasUsedArrowKeys ? false : hasPrevious ? undefined : false}
@@ -587,9 +620,9 @@ function BreakdownModal({
           <div
             key={scenario}
             className={cn(
-              "animate-in duration-200",
-              direction === "left" && "slide-in-from-left-4",
-              direction === "right" && "slide-in-from-right-4",
+              "animate-in duration-300",
+              direction === "left" && "slide-in-from-left-4 fade-in-0",
+              direction === "right" && "slide-in-from-right-4 fade-in-0",
               !direction && "fade-in",
             )}
           >
@@ -658,7 +691,7 @@ function BreakdownModal({
               <ChevronRight />
             </Button>
           </DialogFooter>
-        </DialogContent>
+        </AnimatedDialogContent>
       </DialogPortal>
     </Dialog>
   );
