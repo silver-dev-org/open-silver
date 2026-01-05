@@ -481,43 +481,39 @@ function ParamsDialog({
               <Label htmlFor="monthlyPrivateHealth" className="font-semibold">
                 Monthly Health Contribution
               </Label>
-              <div className="flex flex-col items-end gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span>$</span>
-                  <Input
-                    id="monthlyPrivateHealth"
-                    type="number"
-                    className="w-min"
-                    min={0}
-                    max={999999}
-                    required
-                    {...register("monthlyPrivateHealth", {
-                      valueAsNumber: true,
-                    })}
-                  />
-                </div>
+              <div className="flex items-center gap-1">
+                <span>$</span>
+                <Input
+                  id="monthlyPrivateHealth"
+                  type="number"
+                  className="w-min"
+                  min={0}
+                  max={999999}
+                  required
+                  {...register("monthlyPrivateHealth", {
+                    valueAsNumber: true,
+                  })}
+                />
               </div>
             </div>
             <div className="flex justify-between items-center">
               <Label htmlFor="contractorTaxRate" className="font-semibold">
                 Contractor Tax Rate
               </Label>
-              <div className="flex flex-col items-end gap-1.5">
-                <div className="flex items-center gap-1.5">
-                  <Input
-                    id="contractorTaxRate"
-                    type="number"
-                    className="w-min"
-                    min={0}
-                    max={100}
-                    step="0.01"
-                    required
-                    {...register("contractorTaxRate", {
-                      valueAsNumber: true,
-                    })}
-                  />
-                  <span>%</span>
-                </div>
+              <div className="flex items-center gap-1">
+                <Input
+                  id="contractorTaxRate"
+                  type="number"
+                  className="w-min"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  required
+                  {...register("contractorTaxRate", {
+                    valueAsNumber: true,
+                  })}
+                />
+                <span>%</span>
               </div>
             </div>
           </div>
