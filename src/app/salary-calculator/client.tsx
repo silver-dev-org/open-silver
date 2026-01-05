@@ -25,7 +25,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
 import Link from "next/link";
@@ -58,6 +57,7 @@ type BreakdownItem = {
 type Params = {
   salary: number;
   monthlyPrivateHealth: number;
+  contractorTaxRate: number; // Monotributo
 };
 
 const MIN_SALARY = 50000;
@@ -80,10 +80,12 @@ const SCENARIOS: Scenario[] = [
 const DEFAULT_PARAMS: Params = {
   salary: 100000,
   monthlyPrivateHealth: 100,
+  contractorTaxRate: 15,
 };
 const SHORTENED_PARAM_KEYS: Record<keyof Params, string> = {
   salary: "s",
   monthlyPrivateHealth: "h",
+  contractorTaxRate: "c",
 };
 const FEES = {
   eor: {
@@ -142,7 +144,6 @@ const FEES = {
     },
     worker: {
       sources: ["https://www.afip.gob.ar/monotributo/categorias.asp"],
-      taxes: 15, // Monotributo estimado
     },
   },
 } satisfies Record<SalaryModel, Record<Persona, Record<string, any>>>;
@@ -150,6 +151,7 @@ const FEES = {
 function getBreakdowns({
   salary,
   monthlyPrivateHealth,
+  contractorTaxRate,
 }: Params): Record<Scenario, Breakdown> {
   const roundedSalary = Math.round(salary / 5000) * 5000;
   const clampedSalary = Math.max(
@@ -301,11 +303,11 @@ function getBreakdowns({
       base: salary,
       items: [
         {
-          label: `Simplified taxes regime (-${FEES.aor.worker.taxes}%)`,
-          value: salary * -(FEES.aor.worker.taxes / 100),
+          label: `Simplified tax regime (-${contractorTaxRate}%)`,
+          value: salary * -(contractorTaxRate / 100),
         },
       ],
-      total: salary * (1 - FEES.aor.worker.taxes / 100),
+      total: salary * (1 - contractorTaxRate / 100),
     },
   };
 }
@@ -318,21 +320,17 @@ export function SalaryCalculator() {
   const searchParams = useSearchParams();
   const [isUpdatingParams, setIsUpdatingParams] = useState(false);
   const [params, setParams] = useState<Params>(() => {
-    let { salary, monthlyPrivateHealth } = DEFAULT_PARAMS;
+    const params = DEFAULT_PARAMS;
 
-    const salaryStr = searchParams?.get(SHORTENED_PARAM_KEYS.salary);
-    if (salaryStr) {
-      const salaryNum = Number.parseInt(salaryStr, 10);
-      if (
-        !Number.isNaN(salaryNum) &&
-        salaryNum >= 0 &&
-        salaryNum <= MAX_SALARY
-      ) {
-        salary = salaryNum;
+    for (const key of Object.keys(params)) {
+      const shortenedKey = SHORTENED_PARAM_KEYS[key as keyof Params];
+      const strValue = searchParams?.get(shortenedKey);
+      if (strValue) {
+        params[key as keyof Params] = parseFloat(strValue);
       }
     }
 
-    return { salary, monthlyPrivateHealth };
+    return params;
   });
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
   const breakdowns = getBreakdowns(params);
@@ -438,12 +436,7 @@ function ParamsDialog({
   setParams: (params: Params) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<Params>({
+  const { register, handleSubmit, reset } = useForm<Params>({
     defaultValues: params,
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -483,7 +476,7 @@ function ParamsDialog({
             <DialogTitle>Edit additional parameters</DialogTitle>
             <DialogDescription>Money amounts are in USD.</DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-6 py-4">
+          <div className="flex flex-col gap-6 py-6">
             <div className="flex justify-between items-center">
               <Label htmlFor="monthlyPrivateHealth" className="font-semibold">
                 Monthly Health Contribution
@@ -503,11 +496,28 @@ function ParamsDialog({
                     })}
                   />
                 </div>
-                {errors.monthlyPrivateHealth && (
-                  <span className="text-xs text-destructive">
-                    {errors.monthlyPrivateHealth.message}
-                  </span>
-                )}
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="contractorTaxRate" className="font-semibold">
+                Contractor Tax Rate
+              </Label>
+              <div className="flex flex-col items-end gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    id="contractorTaxRate"
+                    type="number"
+                    className="w-min"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    required
+                    {...register("contractorTaxRate", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                  <span>%</span>
+                </div>
               </div>
             </div>
           </div>
