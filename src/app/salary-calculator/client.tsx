@@ -3,13 +3,13 @@
 import {
   AnimatedDialogContent,
   Dialog,
+  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-  DialogContent,
   useAnimatedDialog,
 } from "@/components/animated-dialog";
 import { Spacer, spacing } from "@/components/spacer";
@@ -25,12 +25,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
 import NumberFlow from "@number-flow/react";
-import { ChevronLeft, ChevronRight, DollarSign, Settings2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { Fragment, HTMLAttributes, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 
 type SalaryModel = "aor" | "eor";
 
@@ -435,39 +437,36 @@ function ParamsDialog({
   params: Params;
   setParams: (params: Params) => void;
 }) {
-  const [localParams, setLocalParams] = useState<Params>(params);
   const [isOpen, setIsOpen] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<Params>({
+    defaultValues: params,
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
+  });
 
   useEffect(() => {
     if (isOpen) {
-      setLocalParams(params);
+      reset(params);
     }
-  }, [isOpen, params]);
+  }, [isOpen, params, reset]);
 
-  function handleSave() {
-    setParams(localParams);
+  function onSubmit(data: Params) {
+    setParams(data);
     setIsOpen(false);
   }
 
   function handleCancel() {
-    setLocalParams(params);
+    reset(params);
     setIsOpen(false);
   }
 
   function handleReset() {
-    setLocalParams(DEFAULT_PARAMS);
-  }
-
-  function handleHealthChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const cleanValue = e.target.value.replace(/\D/g, "");
-    const newValue = Number.parseInt(cleanValue, 10) || 0;
-    setLocalParams({ ...localParams, monthlyPrivateHealth: newValue });
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") {
-      handleSave();
-    }
+    reset(DEFAULT_PARAMS);
   }
 
   return (
@@ -478,41 +477,55 @@ function ParamsDialog({
           Edit additional parameters
         </Button>
       </DialogTrigger>
-      <DialogContent onKeyDown={handleKeyDown}>
-        <DialogHeader>
-          <DialogTitle>Edit additional parameters</DialogTitle>
-          <DialogDescription>Money amounts are in USD.</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-6 py-4">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="health-input" className="font-semibold">
-              Monthly Health Contribution
-            </Label>
-            <div className="flex items-center gap-1.5">
-              <span>$</span>
-              <Input
-                id="health-input"
-                type="text"
-                value={localParams.monthlyPrivateHealth.toLocaleString("en-US")}
-                onChange={handleHealthChange}
-                className="w-min"
-              />
+      <DialogContent>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogHeader>
+            <DialogTitle>Edit additional parameters</DialogTitle>
+            <DialogDescription>Money amounts are in USD.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-6 py-4">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="monthlyPrivateHealth" className="font-semibold">
+                Monthly Health Contribution
+              </Label>
+              <div className="flex flex-col items-end gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span>$</span>
+                  <Input
+                    id="monthlyPrivateHealth"
+                    type="number"
+                    className="w-min"
+                    min={0}
+                    max={999999}
+                    required
+                    {...register("monthlyPrivateHealth", {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+                {errors.monthlyPrivateHealth && (
+                  <span className="text-xs text-destructive">
+                    {errors.monthlyPrivateHealth.message}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <DialogFooter className="flex-col md:flex-row gap-2">
-          <Button
-            variant="destructive"
-            onClick={handleReset}
-            className="md:mr-auto order-last md:order-first"
-          >
-            Reset to defaults
-          </Button>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save changes</Button>
-        </DialogFooter>
+          <DialogFooter className="flex-col md:flex-row gap-2">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleReset}
+              className="md:mr-auto order-last md:order-first"
+            >
+              Reset to defaults
+            </Button>
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">Save changes</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
