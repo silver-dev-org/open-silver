@@ -559,6 +559,7 @@ function ParamsDialog({
     !!(params.shareFMV || params.growthRate || params.grantedRSUs),
   );
   const getNewRow = () => ({ amount: undefined, vesting: undefined });
+  const rsuRowsRef = useRef<HTMLDivElement>(null);
   const [rsuRows, setRsuRows] = useState<
     Array<{ amount?: number; vesting?: number }>
   >(
@@ -586,6 +587,12 @@ function ParamsDialog({
       );
     }
   }, [isOpen, params, reset]);
+
+  useEffect(() => {
+    if (rsuRowsRef.current) {
+      rsuRowsRef.current.scrollTop = rsuRowsRef.current.scrollHeight;
+    }
+  }, [rsuRows.length]);
 
   function onSubmit(data: Params) {
     const updatedData = { ...data };
@@ -757,64 +764,72 @@ function ParamsDialog({
                       </Label>
                       <div className="w-10 shrink-0" />
                     </div>
-                    {rsuRows.map((row, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-12 text-center font-medium">
-                          {index}
-                        </div>
-                        <div className="flex items-center gap-1 flex-1">
-                          <Input
-                            type="number"
-                            placeholder="Amount"
-                            min={1}
-                            value={row.amount ?? ""}
-                            onChange={(e) => {
-                              const newRows = [...rsuRows];
-                              newRows[index].amount = e.target.value
-                                ? Number(e.target.value)
-                                : undefined;
-                              setRsuRows(newRows);
-                            }}
-                            required
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            RSUs
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 flex-1">
-                          <Input
-                            type="number"
-                            placeholder="Vesting"
-                            min={0}
-                            step="0.25"
-                            value={row.vesting ?? ""}
-                            onChange={(e) => {
-                              const newRows = [...rsuRows];
-                              newRows[index].vesting = e.target.value
-                                ? Number(e.target.value)
-                                : undefined;
-                              setRsuRows(newRows);
-                            }}
-                            required
-                          />
-                          <span className="text-sm text-muted-foreground">
-                            years
-                          </span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          disabled={rsuRows.length === 1}
-                          onClick={() => {
-                            setRsuRows(rsuRows.filter((_, i) => i !== index));
-                          }}
-                          className="shrink-0"
+                    <div
+                      className="flex flex-col gap-2 h-36 overflow-auto"
+                      ref={rsuRowsRef}
+                    >
+                      {rsuRows.map((row, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 duration-300 fade-in animate-in"
                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="w-12 text-center font-medium">
+                            {index}
+                          </div>
+                          <div className="flex items-center gap-1 flex-1">
+                            <Input
+                              type="number"
+                              placeholder="Amount"
+                              min={1}
+                              value={row.amount ?? ""}
+                              onChange={(e) => {
+                                const newRows = [...rsuRows];
+                                newRows[index].amount = e.target.value
+                                  ? Number(e.target.value)
+                                  : undefined;
+                                setRsuRows(newRows);
+                              }}
+                              required
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              RSUs
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 flex-1">
+                            <Input
+                              type="number"
+                              placeholder="Vesting"
+                              min={0}
+                              step="0.25"
+                              value={row.vesting ?? ""}
+                              onChange={(e) => {
+                                const newRows = [...rsuRows];
+                                newRows[index].vesting = e.target.value
+                                  ? Number(e.target.value)
+                                  : undefined;
+                                setRsuRows(newRows);
+                              }}
+                              required
+                            />
+                            <span className="text-sm text-muted-foreground">
+                              years
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={rsuRows.length === 1}
+                            onClick={() => {
+                              setRsuRows(rsuRows.filter((_, i) => i !== index));
+                            }}
+                            className="shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
