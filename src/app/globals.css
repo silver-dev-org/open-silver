@@ -194,6 +194,10 @@ body,
   font-family: "Amiri", serif;
 }
 
+abbr {
+  @apply cursor-help underline-offset-2;
+}
+
 @keyframes shimmer {
   from {
     background-position-x: calc(var(--to) * -1ch);

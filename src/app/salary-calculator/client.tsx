@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Kbd } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +27,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
-import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Settings2, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
@@ -58,6 +59,14 @@ type Params = {
   salary: number;
   monthlyPrivateHealth: number;
   contractorTaxRate: number; // Monotributo
+  shareFMV?: number;
+  growthRate?: number;
+  /**
+   * `[amount of granted RSUs, vesting period in years][]`
+   *
+   * Stored like this in the URL: `1000-4_200-2_200-2` -> `[ [1000, 4], [200, 2], [200, 2] ]`
+   */
+  grantedRSUs?: [number, number][];
 };
 
 const MIN_SALARY = 50000;
@@ -81,12 +90,20 @@ const DEFAULT_PARAMS: Params = {
   salary: 100000,
   monthlyPrivateHealth: 100,
   contractorTaxRate: 15,
+  shareFMV: undefined,
+  growthRate: undefined,
+  grantedRSUs: undefined,
 };
 const SHORTENED_PARAM_KEYS: Record<keyof Params, string> = {
   salary: "s",
   monthlyPrivateHealth: "h",
   contractorTaxRate: "c",
+  shareFMV: "fmv",
+  growthRate: "gr",
+  grantedRSUs: "rsu",
 };
+const ARRAY_SEP = "_";
+const ARRAY_ITEM_SEP = "-";
 const FEES = {
   eor: {
     employer: {
@@ -326,7 +343,16 @@ export function SalaryCalculator() {
       const shortenedKey = SHORTENED_PARAM_KEYS[key as keyof Params];
       const strValue = searchParams?.get(shortenedKey);
       if (strValue) {
-        params[key as keyof Params] = parseFloat(strValue);
+        if (key === "grantedRSUs") {
+          params.grantedRSUs = strValue
+            .split(ARRAY_SEP)
+            .map(
+              (item) =>
+                item.split(ARRAY_ITEM_SEP).map(Number) as [number, number],
+            );
+        } else {
+          (params[key as keyof Params] as number) = parseFloat(strValue);
+        }
       }
     }
 
@@ -346,12 +372,19 @@ export function SalaryCalculator() {
     if (isUpdatingParams) return;
     setIsUpdatingParams(true);
     setTimeout(() => {
-      const newSearchParams = new URLSearchParams(searchParams?.toString());
+      const newSearchParams = new URLSearchParams();
       for (const [key, value] of Object.entries(params)) {
-        newSearchParams.set(
-          SHORTENED_PARAM_KEYS[key as keyof Params],
-          value.toString(),
-        );
+        if (!value) continue;
+        const shortenedKey = SHORTENED_PARAM_KEYS[key as keyof Params];
+        let strValue;
+        if (key === "grantedRSUs") {
+          strValue = (value as [number, number][])
+            .map(([amount, years]) => `${amount}${ARRAY_ITEM_SEP}${years}`)
+            .join(ARRAY_SEP);
+        } else {
+          strValue = value.toString();
+        }
+        newSearchParams.set(shortenedKey, strValue);
       }
       window.history.pushState(null, "", `?${newSearchParams.toString()}`);
       setIsUpdatingParams(false);
@@ -436,6 +469,17 @@ function ParamsDialog({
   setParams: (params: Params) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [rsuEnabled, setRsuEnabled] = useState(
+    !!(params.shareFMV || params.growthRate || params.grantedRSUs),
+  );
+  const getNewRow = () => ({ amount: undefined, vesting: undefined });
+  const [rsuRows, setRsuRows] = useState<
+    Array<{ amount?: number; vesting?: number }>
+  >(
+    params.grantedRSUs?.map(([amount, vesting]) => ({ amount, vesting })) || [
+      getNewRow(),
+    ],
+  );
   const { register, handleSubmit, reset } = useForm<Params>({
     defaultValues: params,
     mode: "onSubmit",
@@ -445,11 +489,30 @@ function ParamsDialog({
   useEffect(() => {
     if (isOpen) {
       reset(params);
+      setRsuEnabled(
+        !!(params.shareFMV || params.growthRate || params.grantedRSUs),
+      );
+      setRsuRows(
+        params.grantedRSUs?.map(([amount, vesting]) => ({
+          amount,
+          vesting,
+        })) || [{ amount: undefined, vesting: undefined }],
+      );
     }
   }, [isOpen, params, reset]);
 
   function onSubmit(data: Params) {
-    setParams(data);
+    const updatedData = { ...data };
+    if (rsuEnabled) {
+      updatedData.grantedRSUs = rsuRows.map(
+        (row) => [row.amount, row.vesting] as [number, number],
+      );
+    } else {
+      delete updatedData.shareFMV;
+      delete updatedData.growthRate;
+      delete updatedData.grantedRSUs;
+    }
+    setParams(updatedData);
     setIsOpen(false);
   }
 
@@ -529,6 +592,158 @@ function ParamsDialog({
                 />
                 <span>%</span>
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label
+                  htmlFor="rsuEnabled"
+                  className="font-semibold md:text-base"
+                >
+                  <abbr title="Restricted Stock Units">RSUs</abbr> Compensation
+                </Label>
+                <Switch
+                  id="rsuEnabled"
+                  checked={rsuEnabled}
+                  onCheckedChange={setRsuEnabled}
+                />
+              </div>
+
+              {rsuEnabled && (
+                <fieldset className="space-y-4 pl-4 border-l-2">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="shareFMV" className="font-semibold">
+                      Current <abbr title="Fair Market Value">FMV</abbr> of
+                      Shares
+                    </Label>
+                    <div className="flex items-center gap-1">
+                      <span>$</span>
+                      <Input
+                        id="shareFMV"
+                        type="number"
+                        className="w-min max-w-32"
+                        min={0}
+                        step="0.01"
+                        required
+                        {...register("shareFMV", {
+                          valueAsNumber: true,
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <Label
+                      htmlFor="growthRate"
+                      className="font-semibold flex flex-col"
+                    >
+                      <span>Yearly Growth Rate</span>
+                      <span className="text-xs text-muted-foreground">
+                        Expected estimation of the company
+                      </span>
+                    </Label>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        id="growthRate"
+                        type="number"
+                        className="w-min max-w-32"
+                        min={0}
+                        required
+                        step="0.01"
+                        {...register("growthRate", {
+                          valueAsNumber: true,
+                        })}
+                      />
+                      <span>%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Label className="font-semibold w-12 text-center">
+                        Year
+                      </Label>
+                      <Label className="font-semibold flex-1">
+                        Granted RSUs
+                      </Label>
+                      <Label className="font-semibold flex-1">
+                        Vesting period
+                      </Label>
+                      <div className="w-10 shrink-0" />
+                    </div>
+                    {rsuRows.map((row, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="w-12 text-center font-medium">
+                          {index}
+                        </div>
+                        <div className="flex items-center gap-1 flex-1">
+                          <Input
+                            type="number"
+                            placeholder="Amount"
+                            min={1}
+                            value={row.amount ?? ""}
+                            onChange={(e) => {
+                              const newRows = [...rsuRows];
+                              newRows[index].amount = e.target.value
+                                ? Number(e.target.value)
+                                : undefined;
+                              setRsuRows(newRows);
+                            }}
+                            required
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            RSUs
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 flex-1">
+                          <Input
+                            type="number"
+                            placeholder="Vesting"
+                            min={0}
+                            step="0.25"
+                            value={row.vesting ?? ""}
+                            onChange={(e) => {
+                              const newRows = [...rsuRows];
+                              newRows[index].vesting = e.target.value
+                                ? Number(e.target.value)
+                                : undefined;
+                              setRsuRows(newRows);
+                            }}
+                            required
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            years
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          disabled={rsuRows.length === 1}
+                          onClick={() => {
+                            setRsuRows(rsuRows.filter((_, i) => i !== index));
+                          }}
+                          className="shrink-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setRsuRows([...rsuRows, getNewRow()]);
+                      }}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add RSU Grant
+                    </Button>
+                  </div>
+                </fieldset>
+              )}
             </div>
           </div>
           <DialogFooter className="flex-col md:flex-row gap-2">
