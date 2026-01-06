@@ -33,6 +33,17 @@ import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { Fragment, HTMLAttributes, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 type SalaryModel = "aor" | "eor";
 
@@ -53,6 +64,18 @@ type Breakdown = {
 type BreakdownItem = {
   label: string;
   value: number;
+};
+
+type YearlyData = {
+  year: number;
+  aor: {
+    employer: number;
+    worker: number;
+  };
+  eor: {
+    employer: number;
+    worker: number;
+  };
 };
 
 type Params = {
@@ -333,6 +356,48 @@ function getBreakdown(scenario: Scenario, params: Params) {
   return getBreakdowns(params)[scenario];
 }
 
+function calculateYearlyBreakdown(params: Params): YearlyData[] {
+  const { shareFMV, growthRate, grantedRSUs } = params;
+  if (!shareFMV || !growthRate || !grantedRSUs) {
+    return [];
+  }
+
+  const maxYear = Math.max(
+    ...grantedRSUs.map(([_, vesting], idx) => idx + vesting + 1),
+  );
+  const yearlyData: YearlyData[] = [];
+
+  for (let year = 0; year < Math.ceil(maxYear); year++) {
+    const breakdowns = getBreakdowns(params);
+
+    let rsuValueThisYear = 0;
+    grantedRSUs.forEach(([amount, vestingPeriod], grantYear) => {
+      if (year >= grantYear && year < grantYear + vestingPeriod) {
+        const annualVest = amount / vestingPeriod;
+        const yearsSinceGrant = year - grantYear;
+        const fmvAtVesting =
+          shareFMV * Math.pow(1 + growthRate / 100, yearsSinceGrant);
+        if (vestingPeriod && !yearsSinceGrant) return;
+        rsuValueThisYear += annualVest * fmvAtVesting;
+      }
+    });
+
+    yearlyData.push({
+      year,
+      aor: {
+        employer: breakdowns["aor-employer"].total + rsuValueThisYear,
+        worker: breakdowns["aor-worker"].total + rsuValueThisYear,
+      },
+      eor: {
+        employer: breakdowns["eor-employer"].total + rsuValueThisYear,
+        worker: breakdowns["eor-worker"].total + rsuValueThisYear,
+      },
+    });
+  }
+
+  return yearlyData;
+}
+
 export function SalaryCalculator() {
   const searchParams = useSearchParams();
   const [isUpdatingParams, setIsUpdatingParams] = useState(false);
@@ -360,6 +425,23 @@ export function SalaryCalculator() {
   });
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
   const breakdowns = getBreakdowns(params);
+  const yearlyData = calculateYearlyBreakdown(params);
+  const hasRSUData = yearlyData.length > 0;
+  const sharedYDomain: [number, number] | undefined = hasRSUData
+    ? [
+        0,
+        Math.max(
+          MAX_SALARY * 2,
+          ...yearlyData.flatMap((d) => [
+            d.eor.employer,
+            d.eor.worker,
+            d.aor.employer,
+            d.aor.worker,
+          ]),
+        ),
+      ]
+    : undefined;
+
   const dialog = useAnimatedDialog();
   const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
     "eor-employer": null,
@@ -434,20 +516,24 @@ export function SalaryCalculator() {
         )}
       >
         <SalaryModelSection
-          heading="Employer of Record (EOR)"
+          salaryModel="eor"
           salary={params.salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
           onViewBreakdown={handleOpenModal}
           buttonRefs={buttonRefs}
+          yearlyData={hasRSUData ? yearlyData : undefined}
+          yDomain={sharedYDomain}
         />
         <SalaryModelSection
-          heading="Contractor"
+          salaryModel="aor"
           salary={params.salary}
           setSalary={setSalary}
           breakdowns={[breakdowns["aor-employer"], breakdowns["aor-worker"]]}
           onViewBreakdown={handleOpenModal}
           buttonRefs={buttonRefs}
+          yearlyData={hasRSUData ? yearlyData : undefined}
+          yDomain={sharedYDomain}
         />
       </div>
       <BreakdownModal
@@ -613,8 +699,8 @@ function ParamsDialog({
                 <fieldset className="space-y-4 pl-4 border-l-2">
                   <div className="flex justify-between items-center">
                     <Label htmlFor="shareFMV" className="font-semibold">
-                      Current <abbr title="Fair Market Value">FMV</abbr> of
-                      Shares
+                      Current <abbr title="Fair Market Value">FMV</abbr> of Each
+                      Share
                     </Label>
                     <div className="flex items-center gap-1">
                       <span>$</span>
@@ -825,20 +911,26 @@ function SalarySlider({
 }
 
 function SalaryModelSection({
-  heading,
+  salaryModel,
   salary,
   setSalary,
   breakdowns,
   onViewBreakdown,
   buttonRefs,
+  yearlyData,
+  yDomain,
 }: {
-  heading: string;
+  salaryModel: SalaryModel;
   salary: number;
   setSalary: (value: number) => void;
   breakdowns: Breakdown[];
   onViewBreakdown: (scenario: Scenario) => void;
   buttonRefs: React.RefObject<Record<Scenario, HTMLButtonElement | null>>;
+  yearlyData?: YearlyData[];
+  yDomain?: [number, number];
 }) {
+  const heading =
+    salaryModel === "eor" ? "Employer of Record (EOR)" : "Contractor";
   return (
     <div className={cn("flex flex-col", spacing.sm.gap)}>
       <Card className="md:hidden">
@@ -855,23 +947,38 @@ function SalaryModelSection({
           />
         </CardContent>
       </Card>
-      <div className="hidden md:block">
-        <h3 className="text-2xl font-semibold text-center">{heading}</h3>
-      </div>
-      <div
-        className={cn("flex flex-col md:flex-row size-full", spacing.sm.gap)}
-      >
-        {breakdowns.map((breakdown) => (
-          <BreakdownCard
-            key={breakdown.scenario}
-            breakdown={breakdown}
-            onView={() => onViewBreakdown(breakdown.scenario)}
-            buttonRef={(el) => {
-              buttonRefs.current[breakdown.scenario] = el;
-            }}
-          />
-        ))}
-      </div>
+      {yearlyData && yearlyData.length > 0 ? (
+        <YearlyCompensationChart
+          salaryModel={salaryModel}
+          heading={heading}
+          data={yearlyData}
+          salary={salary}
+          yDomain={yDomain}
+        />
+      ) : (
+        <>
+          <div className="hidden md:block">
+            <h3 className="text-2xl font-semibold text-center">{heading}</h3>
+          </div>
+          <div
+            className={cn(
+              "flex flex-col md:flex-row size-full",
+              spacing.sm.gap,
+            )}
+          >
+            {breakdowns.map((breakdown) => (
+              <BreakdownCard
+                key={breakdown.scenario}
+                breakdown={breakdown}
+                onView={() => onViewBreakdown(breakdown.scenario)}
+                buttonRef={(el) => {
+                  buttonRefs.current[breakdown.scenario] = el;
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1119,5 +1226,98 @@ function BreakdownItem({
       <span>{label}</span>
       <span>{value.toLocaleString("en-US", CURRENCY_FORMAT)}</span>
     </div>
+  );
+}
+
+function YearlyCompensationChart({
+  salaryModel,
+  data,
+  salary,
+  heading,
+  yDomain,
+}: {
+  salaryModel: SalaryModel;
+  data: YearlyData[];
+  salary: number;
+  heading: string;
+  yDomain?: [number, number];
+}) {
+  const employerLabel = "Employer pays";
+  const workerLabel =
+    salaryModel === "eor" ? "Employee gets" : "Contractor gets";
+  const chartData = data.map((d) => ({
+    year: `Year ${d.year}`,
+    [employerLabel]: Math.round(d[salaryModel].employer),
+    [workerLabel]: Math.round(d[salaryModel].worker),
+  }));
+
+  return (
+    <Card className="w-full">
+      <CardHeader className="text-center">
+        <CardTitle>{heading}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis
+              dataKey="year"
+              stroke="var(--muted-foreground)"
+              tick={{ fill: "var(--muted-foreground)" }}
+              fontSize={12}
+            />
+            <YAxis
+              stroke="var(--muted-foreground)"
+              tick={{ fill: "var(--muted-foreground)" }}
+              fontSize={12}
+              tickFormatter={(value: number) =>
+                value.toLocaleString("en-US", {
+                  ...CURRENCY_FORMAT,
+                  notation: "compact",
+                })
+              }
+              domain={yDomain}
+            />
+            <RechartsTooltip
+              contentStyle={{
+                backgroundColor: "var(--popover)",
+                border: "1px solid var(--border)",
+                borderRadius: "6px",
+                color: "var(--popover-foreground)",
+              }}
+              formatter={(value: number) =>
+                value.toLocaleString("en-US", CURRENCY_FORMAT)
+              }
+            />
+            <Legend
+              wrapperStyle={{ paddingTop: "24px", fontWeight: "bold" }}
+              iconType="rect"
+            />
+            <Bar
+              dataKey={employerLabel}
+              fill="var(--primary)"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey={workerLabel}
+              fill="var(--secondary)"
+              radius={[4, 4, 0, 0]}
+            />
+            <ReferenceLine
+              y={salary}
+              stroke="var(--foreground)"
+              strokeDasharray="3 3"
+              label={{
+                value: "Gross",
+                fill: "var(--foreground)",
+                fontSize: 14,
+                fontWeight: "bold",
+                position: "left",
+              }}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   );
 }
