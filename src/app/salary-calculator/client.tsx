@@ -303,7 +303,7 @@ function getBreakdowns({
       base: salary,
       items: [
         {
-          label: `Simplified tax regime (-${contractorTaxRate}%)`,
+          label: `Simplified Tax Regime (-${contractorTaxRate}%)`,
           value: salary * -(contractorTaxRate / 100),
         },
       ],
