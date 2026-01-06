@@ -235,7 +235,7 @@ export function ParamsDialog({
                       <div className="w-10 shrink-0" />
                     </div>
                     <div
-                      className="flex flex-col gap-2 h-36 overflow-auto"
+                      className="flex flex-col gap-2 max-h-36 overflow-auto"
                       ref={rsuRowsRef}
                     >
                       {rsuRows.map((row, index) => (
