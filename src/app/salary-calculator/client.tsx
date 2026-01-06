@@ -478,8 +478,16 @@ function ParamsDialog({
           </DialogHeader>
           <div className="flex flex-col gap-6 py-6">
             <div className="flex justify-between items-center">
-              <Label htmlFor="monthlyPrivateHealth" className="font-semibold">
-                Monthly Health Contribution
+              <Label
+                htmlFor="monthlyPrivateHealth"
+                className="font-semibold flex flex-col"
+              >
+                <span className="md:text-base">
+                  Monthly Private Health Contribution
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Don&apos;t include the public health contribution here
+                </span>
               </Label>
               <div className="flex items-center gap-1">
                 <span>$</span>
@@ -497,8 +505,14 @@ function ParamsDialog({
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <Label htmlFor="contractorTaxRate" className="font-semibold">
-                Contractor Tax Rate
+              <Label
+                htmlFor="contractorTaxRate"
+                className="font-semibold flex flex-col"
+              >
+                <span className="md:text-base">Contractor Tax Rate</span>
+                <span className="text-xs text-muted-foreground">
+                  For the Simplified Tax Regime (Monotributo)
+                </span>
               </Label>
               <div className="flex items-center gap-1">
                 <Input
