@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Metadata } from "next";
 import Link from "next/link";
-import { SalaryCalculator } from "./client";
+import { SalaryCalculator } from "@/salary-calculator";
 import { Divider } from "@/components/divider";
 
 export const metadata: Metadata = {
