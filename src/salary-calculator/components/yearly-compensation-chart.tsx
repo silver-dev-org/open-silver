@@ -80,10 +80,11 @@ export function YearlyCompensationChart({
             />
             <RechartsTooltip
               contentStyle={{
-                backgroundColor: "var(--popover)",
+                backgroundColor: "var(--background)",
                 border: "1px solid var(--border)",
                 borderRadius: "6px",
                 color: "var(--popover-foreground)",
+                fontWeight: "bold",
               }}
               formatter={(value: number) =>
                 value.toLocaleString("en-US", CURRENCY_FORMAT)
