@@ -31,3 +31,9 @@ export type Params = {
    */
   grantedRSUs?: [number, number][];
 };
+
+export type Color = {
+  var: string;
+  border: string;
+  text: string;
+};

@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Bar,
   BarChart,
@@ -10,7 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CURRENCY_FORMAT } from "../constants";
+import { COLORS_BY_PERSONA, CURRENCY_FORMAT } from "../constants";
 import type { Breakdown, SalaryModel, Scenario } from "../types";
 import { getOrdinal } from "@/lib/utils";
 
@@ -20,12 +26,14 @@ export function YearlyCompensationChart({
   salary,
   heading,
   yDomain,
+  onBarClick,
 }: {
   salaryModel: SalaryModel;
   yearlyBreakdowns: Record<Scenario, Breakdown>[];
   salary: number;
   heading: string;
   yDomain?: [number, number];
+  onBarClick?: (year: number, scenario: Scenario) => void;
 }) {
   const employerLabel = "Employer pays";
   const workerLabel =
@@ -40,6 +48,9 @@ export function YearlyCompensationChart({
     <Card className="w-full">
       <CardHeader className="text-center">
         <CardTitle>{heading}</CardTitle>
+        <CardDescription>
+          Tip: click a bar to see its breakdown.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
@@ -82,13 +93,22 @@ export function YearlyCompensationChart({
             />
             <Bar
               dataKey={employerLabel}
-              fill="var(--primary)"
+              fill={COLORS_BY_PERSONA.employer.var}
               radius={[4, 4, 0, 0]}
+              style={{ cursor: onBarClick ? "pointer" : "default" }}
+              onClick={(_data, index) => {
+                onBarClick?.(index, `${salaryModel}-employer`);
+              }}
             />
             <Bar
               dataKey={workerLabel}
-              fill="var(--secondary)"
+              fill={COLORS_BY_PERSONA.worker.var}
               radius={[4, 4, 0, 0]}
+              opacity={0.8}
+              style={{ cursor: onBarClick ? "pointer" : "default" }}
+              onClick={(_data, index) => {
+                onBarClick?.(index, `${salaryModel}-worker`);
+              }}
             />
             <ReferenceLine
               y={salary}

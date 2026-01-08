@@ -1,4 +1,4 @@
-import type { Params, Persona, SalaryModel, Scenario } from "./types";
+import type { Color, Params, Persona, SalaryModel, Scenario } from "./types";
 
 export const MIN_SALARY = 50000;
 export const MAX_SALARY = 150000;
@@ -35,6 +35,24 @@ export const SHORTENED_PARAM_KEYS: Record<keyof Params, string> = {
 };
 export const ARRAY_SEP = "_";
 export const ARRAY_ITEM_SEP = "-";
+export const COLORS_BY_PERSONA: Record<Persona, Color> = {
+  employer: {
+    var: "var(--primary)",
+    border: "border-primary",
+    text: "text-primary",
+  },
+  worker: {
+    var: "var(--secondary)",
+    border: "border-secondary",
+    text: "text-secondary",
+  },
+};
+export const COLORS_BY_SCENARIO: Record<Scenario, Color> = {
+  "aor-employer": COLORS_BY_PERSONA.employer,
+  "aor-worker": COLORS_BY_PERSONA.worker,
+  "eor-employer": COLORS_BY_PERSONA.employer,
+  "eor-worker": COLORS_BY_PERSONA.worker,
+};
 export const FEES = {
   eor: {
     employer: {

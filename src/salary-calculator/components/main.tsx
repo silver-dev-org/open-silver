@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { MAX_SALARY } from "../constants";
+import { COLORS_BY_SCENARIO, MAX_SALARY } from "../constants";
 import type { Breakdown, Params, SalaryModel, Scenario } from "../types";
 import { getYearlyBreakdowns, parseParams, saveParams } from "../utils";
 import { BreakdownCard } from "./breakdown-card";
@@ -20,7 +20,10 @@ export function SalaryCalculator() {
   const searchParams = useSearchParams();
   const [isUpdatingParams, setIsUpdatingParams] = useState(false);
   const [params, setParams] = useState<Params>(() => parseParams(searchParams));
-  const [currentScenario, setCurrentScenario] = useState<Scenario>();
+  const [breakdownProps, setBreakdownProps] = useState<{
+    scenario: Scenario;
+    year: number;
+  }>();
   const yearlyBreakdowns = getYearlyBreakdowns(params);
   const dialog = useAnimatedDialog();
   const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
@@ -46,10 +49,10 @@ export function SalaryCalculator() {
         ]),
       ),
     ],
-    onViewBreakdown(scenario: Scenario) {
+    onViewBreakdown(year, scenario: Scenario) {
       const button = buttonRefs.current[scenario];
       dialog.open(button);
-      setCurrentScenario(scenario);
+      setBreakdownProps({ scenario, year });
     },
   } as SalaryModelSectionProps;
 
@@ -62,10 +65,10 @@ export function SalaryCalculator() {
     }, 1000);
   }, [params, searchParams]);
 
-  function handleNavigate(scenario: Scenario) {
+  function handleNavigate(year: number, scenario: Scenario) {
     const button = buttonRefs.current[scenario];
     dialog.updateOrigin(button);
-    setCurrentScenario(scenario);
+    setBreakdownProps({ scenario, year });
   }
 
   function setSalary(salary: number) {
@@ -96,10 +99,10 @@ export function SalaryCalculator() {
         <SalaryModelSection {...sharedSectionProps} salaryModel="aor" />
       </div>
       <BreakdownModal
-        currentScenario={currentScenario}
         yearlyBreakdowns={yearlyBreakdowns}
         onNavigate={handleNavigate}
         originRect={dialog.originRect}
+        {...breakdownProps}
         {...dialog.dialogProps}
       />
     </>
@@ -110,7 +113,7 @@ interface SalaryModelSectionProps {
   salaryModel: SalaryModel;
   salary: number;
   setSalary: (value: number) => void;
-  onViewBreakdown: (scenario: Scenario) => void;
+  onViewBreakdown: (year: number, scenario: Scenario) => void;
   buttonRefs: React.RefObject<Record<Scenario, HTMLButtonElement | null>>;
   yDomain?: [number, number];
   yearlyBreakdowns: Record<Scenario, Breakdown>[];
@@ -147,6 +150,7 @@ function SalaryModelSection({
           yearlyBreakdowns={yearlyBreakdowns}
           salary={salary}
           yDomain={yDomain}
+          onBarClick={onViewBreakdown}
         />
       ) : (
         <>
@@ -159,16 +163,19 @@ function SalaryModelSection({
               spacing.sm.gap,
             )}
           >
-            {firstYearBreakdowns.map(([scenario, breakdown]) => (
-              <BreakdownCard
-                key={scenario}
-                breakdown={breakdown}
-                onView={() => onViewBreakdown(scenario as Scenario)}
-                buttonRef={(el) => {
-                  buttonRefs.current[scenario as Scenario] = el;
-                }}
-              />
-            ))}
+            {firstYearBreakdowns.map(([scenario, breakdown]) => {
+              return (
+                <BreakdownCard
+                  key={scenario}
+                  breakdown={breakdown}
+                  onView={() => onViewBreakdown(0, scenario as Scenario)}
+                  buttonRef={(el) => {
+                    buttonRefs.current[scenario as Scenario] = el;
+                  }}
+                  color={COLORS_BY_SCENARIO[scenario as Scenario]}
+                />
+              );
+            })}
           </div>
         </>
       )}
