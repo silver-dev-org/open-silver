@@ -173,7 +173,7 @@ export function ParamsDialog({
               </div>
 
               {rsuEnabled && (
-                <fieldset className="space-y-4 pl-4 border-l-2">
+                <fieldset className="space-y-4 pl-4 border-l-2 animate-in fade-in duration-300">
                   <div className="flex justify-between items-center">
                     <Label htmlFor="shareFMV" className="font-semibold">
                       Current <abbr title="Fair Market Value">FMV</abbr> of Each
