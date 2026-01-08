@@ -10,26 +10,28 @@ import {
 } from "./constants";
 import type { Breakdown, Params, Scenario, YearlyData } from "./types";
 
-export function getBreakdowns({
-  salary,
-  monthlyPrivateHealth,
-  contractorTaxRate,
-}: Params): Record<Scenario, Breakdown> {
-  const roundedSalary = Math.round(salary / 5000) * 5000;
+export function getBreakdowns(
+  params: Params,
+  rsuValue: number = 0,
+): Record<Scenario, Breakdown> {
+  const { salary, monthlyPrivateHealth, contractorTaxRate } = params;
+
+  const thirteenthSalary = salary / 12;
+  const salaryWithRSUs = salary + rsuValue;
+  const totalGross = salaryWithRSUs + thirteenthSalary;
+  const roundedTotalGross = Math.round(totalGross / 5000) * 5000;
   const clampedSalary = Math.max(
     MIN_SALARY,
-    Math.min(MAX_SALARY, roundedSalary),
+    Math.min(MAX_SALARY, roundedTotalGross),
   );
   const incomeTaxRate =
-    roundedSalary < MIN_SALARY
+    roundedTotalGross < MIN_SALARY
       ? 0
-      : roundedSalary > MAX_SALARY
+      : roundedTotalGross > MAX_SALARY
         ? 35
         : FEES.eor.worker.incomeTax[
             clampedSalary as keyof typeof FEES.eor.worker.incomeTax
           ];
-  const thirteenthSalary = salary / 12;
-  const totalGross = salary + thirteenthSalary;
   const taxableGrossEmployee = Math.min(MAX_TAXABLE_GROSS, totalGross);
 
   const privateHealth = monthlyPrivateHealth * 12;
@@ -66,6 +68,16 @@ export function getBreakdowns({
     socialServicesWorker -
     incomeTax;
 
+  const rsuItem =
+    rsuValue > 0
+      ? [
+          {
+            label: "Vested RSUs Value",
+            value: rsuValue,
+          },
+        ]
+      : [];
+
   return {
     "eor-employer": {
       scenario: "eor-employer",
@@ -74,6 +86,11 @@ export function getBreakdowns({
       sources: FEES.eor.employer.sources,
       base: salary,
       items: [
+        {
+          label: "Base Salary",
+          value: salary,
+        },
+        ...rsuItem,
         {
           label: "Gross 13th Salary",
           value: thirteenthSalary,
@@ -117,6 +134,11 @@ export function getBreakdowns({
       base: salary,
       items: [
         {
+          label: "Base Salary",
+          value: salary,
+        },
+        ...rsuItem,
+        {
           label: "Gross 13th Salary",
           value: thirteenthSalary,
         },
@@ -151,11 +173,16 @@ export function getBreakdowns({
       base: salary,
       items: [
         {
+          label: "Base Salary",
+          value: salary,
+        },
+        ...rsuItem,
+        {
           label: "Silver.dev AOR Fee (+$300/mo)",
           value: FEES.aor.employer.aorMonthlyFee * 12,
         },
       ],
-      total: salary + FEES.aor.employer.aorMonthlyFee * 12,
+      total: salaryWithRSUs + FEES.aor.employer.aorMonthlyFee * 12,
     },
     "aor-worker": {
       scenario: "aor-worker",
@@ -165,11 +192,16 @@ export function getBreakdowns({
       base: salary,
       items: [
         {
+          label: "Base Salary",
+          value: salary,
+        },
+        ...rsuItem,
+        {
           label: `Simplified Tax Regime (-${contractorTaxRate}%)`,
-          value: salary * -(contractorTaxRate / 100),
+          value: salaryWithRSUs * -(contractorTaxRate / 100),
         },
       ],
-      total: salary * (1 - contractorTaxRate / 100),
+      total: salaryWithRSUs * (1 - contractorTaxRate / 100),
     },
   };
 }
@@ -178,8 +210,9 @@ export function getBreakdown(scenario: Scenario, params: Params) {
   return getBreakdowns(params)[scenario];
 }
 
-export function calculateYearlyBreakdown(params: Params): YearlyData[] {
+export function getYearlyBreakdowns(params: Params): YearlyData[] {
   const { shareFMV, growthRate, grantedRSUs } = params;
+
   if (!shareFMV || !growthRate || !grantedRSUs) {
     return [];
   }
@@ -190,30 +223,24 @@ export function calculateYearlyBreakdown(params: Params): YearlyData[] {
   const yearlyData: YearlyData[] = [];
 
   for (let year = 0; year < Math.ceil(maxYear); year++) {
-    const breakdowns = getBreakdowns(params);
-
-    let rsuValueThisYear = 0;
-    grantedRSUs.forEach(([amount, vestingPeriod], grantYear) => {
-      if (year >= grantYear && year < grantYear + vestingPeriod) {
-        const annualVest = amount / vestingPeriod;
-        const yearsSinceGrant = year - grantYear;
-        const fmvAtVesting =
-          shareFMV * Math.pow(1 + growthRate / 100, yearsSinceGrant);
-        if (vestingPeriod && !yearsSinceGrant) return;
-        rsuValueThisYear += annualVest * fmvAtVesting;
-      }
-    });
-
+    const rsuValueThisYear = grantedRSUs.reduce(
+      (acc, [amount, vestingPeriod], grantYear) => {
+        if (year >= grantYear && year < grantYear + vestingPeriod) {
+          const annualVest = amount / vestingPeriod;
+          const yearsSinceGrant = year - grantYear;
+          const fmvAtVesting =
+            shareFMV * Math.pow(1 + growthRate / 100, yearsSinceGrant);
+          if (vestingPeriod && !yearsSinceGrant) return acc;
+          return acc + annualVest * fmvAtVesting;
+        }
+        return acc;
+      },
+      0,
+    );
+    const breakdowns = getBreakdowns(params, rsuValueThisYear);
     yearlyData.push({
       year,
-      aor: {
-        employer: breakdowns["aor-employer"].total + rsuValueThisYear,
-        worker: breakdowns["aor-worker"].total + rsuValueThisYear,
-      },
-      eor: {
-        employer: breakdowns["eor-employer"].total + rsuValueThisYear,
-        worker: breakdowns["eor-worker"].total + rsuValueThisYear,
-      },
+      breakdowns,
     });
   }
 
