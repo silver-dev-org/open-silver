@@ -4,24 +4,18 @@ export type Persona = "worker" | "employer";
 
 export type Scenario = `${SalaryModel}-${Persona}`;
 
+export type BreakdownItem = {
+  label: string;
+  value: number;
+};
+
 export type Breakdown = {
-  scenario: Scenario;
   sources: string[];
   title: string;
   description?: string;
   base: number;
   items: BreakdownItem[];
   total: number;
-};
-
-export type BreakdownItem = {
-  label: string;
-  value: number;
-};
-
-export type YearlyData = {
-  year: number;
-  breakdowns: Record<Scenario, Breakdown>;
 };
 
 export type Params = {
