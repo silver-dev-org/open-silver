@@ -14,11 +14,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { cn, getOrdinal } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Fragment, HTMLAttributes, useEffect, useState } from "react";
-import { CURRENCY_FORMAT, MAX_TAXABLE_GROSS, SCENARIOS } from "../constants";
+import {
+  COLORS_BY_SCENARIO,
+  CURRENCY_FORMAT,
+  MAX_TAXABLE_GROSS,
+  SCENARIOS,
+} from "../constants";
 import type { Breakdown, BreakdownItem, Scenario } from "../types";
 
 export function BreakdownModal({
@@ -27,39 +32,38 @@ export function BreakdownModal({
   onOpenChange,
   onNavigate,
   originRect,
-  currentYear = 0,
+  year = 0,
   scenarios = SCENARIOS,
-  currentScenario = SCENARIOS[0],
+  scenario = SCENARIOS[0],
 }: {
   yearlyBreakdowns: Record<Scenario, Breakdown>[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onNavigate: (scenario: Scenario) => void;
+  onNavigate: (year: number, scenario: Scenario) => void;
   originRect: DOMRect | null;
-  currentYear?: number;
+  year?: number;
   scenarios?: Scenario[];
-  currentScenario?: Scenario;
+  scenario?: Scenario;
 }) {
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
   const [hasUsedArrowKeys, setHasUsedKeys] = useState(false);
-  const breakdown = yearlyBreakdowns[currentYear][currentScenario];
-  const currentIndex = currentScenario
-    ? scenarios.indexOf(currentScenario)
-    : -1;
+  const breakdown = yearlyBreakdowns[year ?? 0][scenario];
+  const currentIndex = scenario ? scenarios.indexOf(scenario) : -1;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < scenarios.length - 1;
+  const color = COLORS_BY_SCENARIO[scenario];
 
   function handlePrevious() {
     if (hasPrevious) {
       setDirection("left");
-      onNavigate(scenarios[currentIndex - 1]);
+      onNavigate(year, scenarios[currentIndex - 1]);
     }
   }
 
   function handleNext() {
     if (hasNext) {
       setDirection("right");
-      onNavigate(scenarios[currentIndex + 1]);
+      onNavigate(year, scenarios[currentIndex + 1]);
     }
   }
 
@@ -68,7 +72,7 @@ export function BreakdownModal({
       const timer = setTimeout(() => setDirection(null), 200);
       return () => clearTimeout(timer);
     }
-  }, [direction, currentScenario]);
+  }, [direction, scenario]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -90,9 +94,9 @@ export function BreakdownModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
-        <AnimatedDialogContent originRect={originRect}>
+        <AnimatedDialogContent className={color.border} originRect={originRect}>
           <div
-            key={currentScenario}
+            key={scenario}
             className={cn(
               "animate-in duration-300",
               direction === "left" && "slide-in-from-left-4 fade-in-0",
@@ -101,10 +105,14 @@ export function BreakdownModal({
             )}
           >
             <DialogHeader>
-              <DialogTitle className="text-left">{breakdown.title}</DialogTitle>
+              <DialogTitle className="text-left">
+                {yearlyBreakdowns.length > 1 &&
+                  `${getOrdinal(year + 1)} year • `}
+                {breakdown.title}
+              </DialogTitle>
               <DialogDescription className="text-left">
                 {breakdown.description}
-                {currentScenario === "eor-worker" && (
+                {scenario === "eor-worker" && (
                   <>
                     <br />
                     (*) Capped at max. taxable gross of{" "}
@@ -133,7 +141,7 @@ export function BreakdownModal({
               ))}
               <BreakdownItem
                 label={
-                  currentScenario.endsWith("worker")
+                  scenario.endsWith("worker")
                     ? "Net Salary"
                     : "Total Employer Cost"
                 }
