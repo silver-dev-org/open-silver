@@ -8,9 +8,9 @@ import {
   MIN_SALARY,
   SHORTENED_PARAM_KEYS,
 } from "./constants";
-import type { Breakdown, Params, Scenario, YearlyData } from "./types";
+import type { Params, Scenario, Breakdown } from "./types";
 
-export function getBreakdowns(
+function getBreakdownsByScenario(
   params: Params,
   rsuValue: number = 0,
 ): Record<Scenario, Breakdown> {
@@ -80,7 +80,6 @@ export function getBreakdowns(
 
   return {
     "eor-employer": {
-      scenario: "eor-employer",
       title: "Employer pays",
       description: "EOR total employer cost including all contributions.",
       sources: FEES.eor.employer.sources,
@@ -127,7 +126,6 @@ export function getBreakdowns(
       total: totalEmployerCost,
     },
     "eor-worker": {
-      scenario: "eor-worker",
       title: "Employee gets",
       sources: FEES.eor.worker.sources,
       description: "EOR worker net salary after all deductions",
@@ -166,7 +164,6 @@ export function getBreakdowns(
       total: totalWorkerNet,
     },
     "aor-employer": {
-      scenario: "aor-employer",
       title: "Employer pays",
       description: "AOR total employer cost including monthly fee",
       sources: FEES.aor.employer.sources,
@@ -185,7 +182,6 @@ export function getBreakdowns(
       total: salaryWithRSUs + FEES.aor.employer.aorMonthlyFee * 12,
     },
     "aor-worker": {
-      scenario: "aor-worker",
       title: "Contractor gets",
       description: "AOR worker net income after taxes",
       sources: FEES.aor.worker.sources,
@@ -206,45 +202,46 @@ export function getBreakdowns(
   };
 }
 
-export function getBreakdown(scenario: Scenario, params: Params) {
-  return getBreakdowns(params)[scenario];
-}
-
-export function getYearlyBreakdowns(params: Params): YearlyData[] {
+export function getYearlyBreakdowns(
+  params: Params,
+): Record<Scenario, Breakdown>[] {
   const { shareFMV, growthRate, grantedRSUs } = params;
 
   if (!shareFMV || !growthRate || !grantedRSUs) {
-    return [];
+    return [getBreakdownsByScenario(params)];
   }
 
   const maxYear = Math.max(
     ...grantedRSUs.map(([_, vesting], idx) => idx + vesting + 1),
   );
-  const yearlyData: YearlyData[] = [];
+  const yearlyBreakdowns: Record<Scenario, Breakdown>[] = [];
 
   for (let year = 0; year < Math.ceil(maxYear); year++) {
-    const rsuValueThisYear = grantedRSUs.reduce(
-      (acc, [amount, vestingPeriod], grantYear) => {
-        if (year >= grantYear && year < grantYear + vestingPeriod) {
-          const annualVest = amount / vestingPeriod;
-          const yearsSinceGrant = year - grantYear;
-          const fmvAtVesting =
-            shareFMV * Math.pow(1 + growthRate / 100, yearsSinceGrant);
-          if (vestingPeriod && !yearsSinceGrant) return acc;
-          return acc + annualVest * fmvAtVesting;
-        }
-        return acc;
-      },
-      0,
-    );
-    const breakdowns = getBreakdowns(params, rsuValueThisYear);
-    yearlyData.push({
-      year,
-      breakdowns,
-    });
+    let rsuValueThisYear = 0;
+    for (let grantYear = 0; grantYear < grantedRSUs.length; grantYear++) {
+      const [amount, vestingPeriod] = grantedRSUs[grantYear];
+      const vestingYear = grantYear + vestingPeriod;
+      const yearsSinceGrant = year - grantYear;
+
+      if (
+        year < grantYear ||
+        year >= vestingYear ||
+        (vestingPeriod && yearsSinceGrant >= vestingPeriod)
+      ) {
+        continue;
+      }
+
+      const fmvAtVesting =
+        shareFMV * Math.pow(1 + growthRate / 100, yearsSinceGrant);
+      const annualVest = amount / vestingPeriod;
+
+      rsuValueThisYear += annualVest * fmvAtVesting;
+    }
+    const breakdowns = getBreakdownsByScenario(params, rsuValueThisYear);
+    yearlyBreakdowns.push(breakdowns);
   }
 
-  return yearlyData;
+  return yearlyBreakdowns;
 }
 
 export function parseParams(searchParams?: URLSearchParams | null) {

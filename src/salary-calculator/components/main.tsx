@@ -8,19 +8,8 @@ import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { MAX_SALARY } from "../constants";
-import type {
-  Breakdown,
-  Params,
-  SalaryModel,
-  Scenario,
-  YearlyData,
-} from "../types";
-import {
-  getYearlyBreakdowns,
-  getBreakdowns,
-  parseParams,
-  saveParams,
-} from "../utils";
+import type { Breakdown, Params, SalaryModel, Scenario } from "../types";
+import { getYearlyBreakdowns, parseParams, saveParams } from "../utils";
 import { BreakdownCard } from "./breakdown-card";
 import { BreakdownModal } from "./breakdown-modal";
 import { ParamsDialog } from "./params-dialog";
@@ -31,25 +20,8 @@ export function SalaryCalculator() {
   const searchParams = useSearchParams();
   const [isUpdatingParams, setIsUpdatingParams] = useState(false);
   const [params, setParams] = useState<Params>(() => parseParams(searchParams));
-  const [activeModal, setActiveModal] = useState<Scenario | null>(null);
-  const breakdowns = getBreakdowns(params);
-  const yearlyData = getYearlyBreakdowns(params);
-  const hasRSUData = yearlyData.length > 0;
-  const sharedYDomain: [number, number] | undefined = hasRSUData
-    ? [
-        0,
-        Math.max(
-          MAX_SALARY * 2,
-          ...yearlyData.flatMap((d) => [
-            d.breakdowns["eor-employer"].total,
-            d.breakdowns["eor-worker"].total,
-            d.breakdowns["aor-employer"].total,
-            d.breakdowns["aor-worker"].total,
-          ]),
-        ),
-      ]
-    : undefined;
-
+  const [currentScenario, setCurrentScenario] = useState<Scenario>();
+  const yearlyBreakdowns = getYearlyBreakdowns(params);
   const dialog = useAnimatedDialog();
   const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
     "eor-employer": null,
@@ -57,6 +29,29 @@ export function SalaryCalculator() {
     "aor-employer": null,
     "aor-worker": null,
   });
+  const sharedSectionProps = {
+    salary: params.salary,
+    setSalary,
+    buttonRefs,
+    yearlyBreakdowns,
+    yDomain: [
+      0,
+      Math.max(
+        MAX_SALARY * 2,
+        ...yearlyBreakdowns.flatMap((breakdowns) => [
+          breakdowns["eor-employer"].total,
+          breakdowns["eor-worker"].total,
+          breakdowns["aor-employer"].total,
+          breakdowns["aor-worker"].total,
+        ]),
+      ),
+    ],
+    onViewBreakdown(scenario: Scenario) {
+      const button = buttonRefs.current[scenario];
+      dialog.open(button);
+      setCurrentScenario(scenario);
+    },
+  } as SalaryModelSectionProps;
 
   useEffect(() => {
     if (isUpdatingParams) return;
@@ -67,16 +62,10 @@ export function SalaryCalculator() {
     }, 1000);
   }, [params, searchParams]);
 
-  function handleOpenModal(scenario: Scenario) {
-    const button = buttonRefs.current[scenario];
-    dialog.open(button);
-    setActiveModal(scenario);
-  }
-
   function handleNavigate(scenario: Scenario) {
     const button = buttonRefs.current[scenario];
     dialog.updateOrigin(button);
-    setActiveModal(scenario);
+    setCurrentScenario(scenario);
   }
 
   function setSalary(salary: number) {
@@ -103,30 +92,12 @@ export function SalaryCalculator() {
           spacing.lg.gap,
         )}
       >
-        <SalaryModelSection
-          salaryModel="eor"
-          salary={params.salary}
-          setSalary={setSalary}
-          breakdowns={[breakdowns["eor-employer"], breakdowns["eor-worker"]]}
-          onViewBreakdown={handleOpenModal}
-          buttonRefs={buttonRefs}
-          yearlyData={hasRSUData ? yearlyData : undefined}
-          yDomain={sharedYDomain}
-        />
-        <SalaryModelSection
-          salaryModel="aor"
-          salary={params.salary}
-          setSalary={setSalary}
-          breakdowns={[breakdowns["aor-employer"], breakdowns["aor-worker"]]}
-          onViewBreakdown={handleOpenModal}
-          buttonRefs={buttonRefs}
-          yearlyData={hasRSUData ? yearlyData : undefined}
-          yDomain={sharedYDomain}
-        />
+        <SalaryModelSection {...sharedSectionProps} salaryModel="eor" />
+        <SalaryModelSection {...sharedSectionProps} salaryModel="aor" />
       </div>
       <BreakdownModal
-        scenario={activeModal}
-        params={params}
+        currentScenario={currentScenario}
+        yearlyBreakdowns={yearlyBreakdowns}
         onNavigate={handleNavigate}
         originRect={dialog.originRect}
         {...dialog.dialogProps}
@@ -135,27 +106,30 @@ export function SalaryCalculator() {
   );
 }
 
+interface SalaryModelSectionProps {
+  salaryModel: SalaryModel;
+  salary: number;
+  setSalary: (value: number) => void;
+  onViewBreakdown: (scenario: Scenario) => void;
+  buttonRefs: React.RefObject<Record<Scenario, HTMLButtonElement | null>>;
+  yDomain?: [number, number];
+  yearlyBreakdowns: Record<Scenario, Breakdown>[];
+}
+
 function SalaryModelSection({
   salaryModel,
   salary,
   setSalary,
-  breakdowns,
   onViewBreakdown,
   buttonRefs,
-  yearlyData,
   yDomain,
-}: {
-  salaryModel: SalaryModel;
-  salary: number;
-  setSalary: (value: number) => void;
-  breakdowns: Breakdown[];
-  onViewBreakdown: (scenario: Scenario) => void;
-  buttonRefs: React.RefObject<Record<Scenario, HTMLButtonElement | null>>;
-  yearlyData?: YearlyData[];
-  yDomain?: [number, number];
-}) {
+  yearlyBreakdowns,
+}: SalaryModelSectionProps) {
   const heading =
     salaryModel === "eor" ? "Employer of Record (EOR)" : "Contractor";
+  const firstYearBreakdowns = Object.entries(yearlyBreakdowns[0]).filter(
+    ([key]) => key.startsWith(salaryModel),
+  );
   return (
     <div className={cn("flex flex-col", spacing.sm.gap)}>
       <Card className="md:hidden">
@@ -166,11 +140,11 @@ function SalaryModelSection({
           <SalarySlider value={salary} onChange={setSalary} />
         </CardContent>
       </Card>
-      {yearlyData && yearlyData.length > 0 ? (
+      {yearlyBreakdowns && yearlyBreakdowns.length > 1 ? (
         <YearlyCompensationChart
           salaryModel={salaryModel}
           heading={heading}
-          data={yearlyData}
+          yearlyBreakdowns={yearlyBreakdowns}
           salary={salary}
           yDomain={yDomain}
         />
@@ -185,13 +159,13 @@ function SalaryModelSection({
               spacing.sm.gap,
             )}
           >
-            {breakdowns.map((breakdown) => (
+            {firstYearBreakdowns.map(([scenario, breakdown]) => (
               <BreakdownCard
-                key={breakdown.scenario}
+                key={scenario}
                 breakdown={breakdown}
-                onView={() => onViewBreakdown(breakdown.scenario)}
+                onView={() => onViewBreakdown(scenario as Scenario)}
                 buttonRef={(el) => {
-                  buttonRefs.current[breakdown.scenario] = el;
+                  buttonRefs.current[scenario as Scenario] = el;
                 }}
               />
             ))}

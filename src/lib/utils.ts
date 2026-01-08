@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ORDINAL_SUFFIXES } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,6 +18,16 @@ export function extractJsonFromString(input: string) {
   return JSON.parse(match[1]) as Record<string, unknown> | unknown[];
 }
 
+export function getOrdinal(
+  value: number,
+  locale: Intl.LocalesArgument = "en-US",
+): string {
+  const pluralRules = new Intl.PluralRules(locale, { type: "ordinal" });
+  const rule = pluralRules.select(value);
+  const suffix = ORDINAL_SUFFIXES[rule];
+  return `${value}${suffix}`;
+}
+
 export class PreppingData {
   static readonly cookieName = "prepping-data";
   static readonly tools = {
@@ -31,8 +42,8 @@ export class PreppingData {
         document.cookie
           .split("; ")
           .find((row) => row.startsWith(this.cookieName))
-          ?.split("=")[1] || "{}"
-      )
+          ?.split("=")[1] || "{}",
+      ),
     );
   }
 

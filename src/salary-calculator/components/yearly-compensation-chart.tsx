@@ -11,33 +11,18 @@ import {
   YAxis,
 } from "recharts";
 import { CURRENCY_FORMAT } from "../constants";
-import type { SalaryModel, YearlyData } from "../types";
-
-const pluralRules = new Intl.PluralRules("en-US", { type: "ordinal" });
-const suffixes: Record<Intl.LDMLPluralRule, string> = {
-  one: "st",
-  two: "nd",
-  few: "rd",
-  other: "th",
-  zero: "th",
-  many: "th",
-};
-
-function getOrdinal(value: number): string {
-  const rule = pluralRules.select(value);
-  const suffix = suffixes[rule];
-  return `${value}${suffix}`;
-}
+import type { Breakdown, SalaryModel, Scenario } from "../types";
+import { getOrdinal } from "@/lib/utils";
 
 export function YearlyCompensationChart({
   salaryModel,
-  data,
+  yearlyBreakdowns,
   salary,
   heading,
   yDomain,
 }: {
   salaryModel: SalaryModel;
-  data: YearlyData[];
+  yearlyBreakdowns: Record<Scenario, Breakdown>[];
   salary: number;
   heading: string;
   yDomain?: [number, number];
@@ -45,10 +30,10 @@ export function YearlyCompensationChart({
   const employerLabel = "Employer pays";
   const workerLabel =
     salaryModel === "eor" ? "Employee gets" : "Contractor gets";
-  const chartData = data.map((d) => ({
-    year: `${getOrdinal(d.year + 1)} year`,
-    [employerLabel]: Math.round(d.breakdowns[`${salaryModel}-employer`].total),
-    [workerLabel]: Math.round(d.breakdowns[`${salaryModel}-worker`].total),
+  const chartData = yearlyBreakdowns.map((breakdowns, index) => ({
+    year: `${getOrdinal(index + 1)} year`,
+    [employerLabel]: Math.round(breakdowns[`${salaryModel}-employer`].total),
+    [workerLabel]: Math.round(breakdowns[`${salaryModel}-worker`].total),
   }));
 
   return (
