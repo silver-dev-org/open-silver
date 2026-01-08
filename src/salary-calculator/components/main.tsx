@@ -16,7 +16,7 @@ import type {
   YearlyData,
 } from "../types";
 import {
-  calculateYearlyBreakdown,
+  getYearlyBreakdowns,
   getBreakdowns,
   parseParams,
   saveParams,
@@ -33,7 +33,7 @@ export function SalaryCalculator() {
   const [params, setParams] = useState<Params>(() => parseParams(searchParams));
   const [activeModal, setActiveModal] = useState<Scenario | null>(null);
   const breakdowns = getBreakdowns(params);
-  const yearlyData = calculateYearlyBreakdown(params);
+  const yearlyData = getYearlyBreakdowns(params);
   const hasRSUData = yearlyData.length > 0;
   const sharedYDomain: [number, number] | undefined = hasRSUData
     ? [
@@ -41,10 +41,10 @@ export function SalaryCalculator() {
         Math.max(
           MAX_SALARY * 2,
           ...yearlyData.flatMap((d) => [
-            d.eor.employer,
-            d.eor.worker,
-            d.aor.employer,
-            d.aor.worker,
+            d.breakdowns["eor-employer"].total,
+            d.breakdowns["eor-worker"].total,
+            d.breakdowns["aor-employer"].total,
+            d.breakdowns["aor-worker"].total,
           ]),
         ),
       ]

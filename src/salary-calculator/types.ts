@@ -21,14 +21,7 @@ export type BreakdownItem = {
 
 export type YearlyData = {
   year: number;
-  aor: {
-    employer: number;
-    worker: number;
-  };
-  eor: {
-    employer: number;
-    worker: number;
-  };
+  breakdowns: Record<Scenario, Breakdown>;
 };
 
 export type Params = {

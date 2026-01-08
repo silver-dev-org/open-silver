@@ -47,8 +47,8 @@ export function YearlyCompensationChart({
     salaryModel === "eor" ? "Employee gets" : "Contractor gets";
   const chartData = data.map((d) => ({
     year: `${getOrdinal(d.year + 1)} year`,
-    [employerLabel]: Math.round(d[salaryModel].employer),
-    [workerLabel]: Math.round(d[salaryModel].worker),
+    [employerLabel]: Math.round(d.breakdowns[`${salaryModel}-employer`].total),
+    [workerLabel]: Math.round(d.breakdowns[`${salaryModel}-worker`].total),
   }));
 
   return (
