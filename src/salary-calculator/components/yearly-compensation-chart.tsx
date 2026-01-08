@@ -13,6 +13,22 @@ import {
 import { CURRENCY_FORMAT } from "../constants";
 import type { SalaryModel, YearlyData } from "../types";
 
+const pluralRules = new Intl.PluralRules("en-US", { type: "ordinal" });
+const suffixes: Record<Intl.LDMLPluralRule, string> = {
+  one: "st",
+  two: "nd",
+  few: "rd",
+  other: "th",
+  zero: "th",
+  many: "th",
+};
+
+function getOrdinal(value: number): string {
+  const rule = pluralRules.select(value);
+  const suffix = suffixes[rule];
+  return `${value}${suffix}`;
+}
+
 export function YearlyCompensationChart({
   salaryModel,
   data,
@@ -30,7 +46,7 @@ export function YearlyCompensationChart({
   const workerLabel =
     salaryModel === "eor" ? "Employee gets" : "Contractor gets";
   const chartData = data.map((d) => ({
-    year: `Year ${d.year}`,
+    year: `${getOrdinal(d.year + 1)} year`,
     [employerLabel]: Math.round(d[salaryModel].employer),
     [workerLabel]: Math.round(d[salaryModel].worker),
   }));
