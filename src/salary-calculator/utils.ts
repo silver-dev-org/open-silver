@@ -14,7 +14,7 @@ function getBreakdownsByScenario(
   params: Params,
   rsuValue: number = 0,
 ): Record<Scenario, Breakdown> {
-  const { salary, monthlyPrivateHealth, contractorTaxRate } = params;
+  const { salary, monthlyPrivateHealth, contractorTaxRate, discretionaryBudget = 0 } = params;
 
   const thirteenthSalary = salary / 12;
   const salaryWithRSUs = salary + rsuValue;
@@ -35,6 +35,7 @@ function getBreakdownsByScenario(
   const taxableGrossEmployee = Math.min(MAX_TAXABLE_GROSS, totalGross);
 
   const privateHealth = monthlyPrivateHealth * 12;
+  const discretionaryBudgetAnnual = discretionaryBudget * 12;
   const pensionEmployer = totalGross * (FEES.eor.employer.pension / 100);
   const socialServicesEmployer =
     totalGross * (FEES.eor.employer.socialServices / 100);
@@ -47,6 +48,7 @@ function getBreakdownsByScenario(
   const totalEmployerCost =
     totalGross +
     privateHealth +
+    discretionaryBudgetAnnual +
     pensionEmployer +
     socialServicesEmployer +
     publicHealth +
@@ -62,7 +64,8 @@ function getBreakdownsByScenario(
 
   const totalWorkerNet =
     totalGross +
-    privateHealth -
+    privateHealth +
+    discretionaryBudgetAnnual -
     pensionWorker -
     healthWorker -
     socialServicesWorker -
@@ -97,6 +100,10 @@ function getBreakdownsByScenario(
         {
           label: "Private Health Insurance",
           value: privateHealth,
+        },
+        {
+          label: "Discretionary Budget",
+          value: discretionaryBudgetAnnual,
         },
         {
           label: `Pension (+${FEES.eor.employer.pension}%)`,
@@ -145,6 +152,10 @@ function getBreakdownsByScenario(
           value: privateHealth,
         },
         {
+          label: "Discretionary Budget (not cash)",
+          value: discretionaryBudgetAnnual,
+        },
+        {
           label: `Pension (-${FEES.eor.worker.pension}%*)`,
           value: -pensionWorker,
         },
@@ -178,6 +189,10 @@ function getBreakdownsByScenario(
           label: "Silver.dev AOR Fee (+$300/mo)",
           value: FEES.aor.employer.aorMonthlyFee * 12,
         },
+        {
+          label: "Discretionary Budget",
+          value: discretionaryBudgetAnnual,
+        },
       ],
       total: salaryWithRSUs + FEES.aor.employer.aorMonthlyFee * 12,
     },
@@ -195,6 +210,10 @@ function getBreakdownsByScenario(
         {
           label: `Simplified Tax Regime (-${contractorTaxRate}%)`,
           value: salaryWithRSUs * -(contractorTaxRate / 100),
+        },
+        {
+          label: "Discretionary Budget",
+          value: discretionaryBudgetAnnual,
         },
       ],
       total: salaryWithRSUs * (1 - contractorTaxRate / 100),

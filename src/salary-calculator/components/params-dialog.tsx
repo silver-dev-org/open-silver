@@ -156,6 +156,31 @@ export function ParamsDialog({
                 <span>%</span>
               </div>
             </div>
+            <div className="flex justify-between items-center">
+              <Label
+                htmlFor="discretionaryBudget"
+                className="font-semibold flex flex-col"
+              >
+                <span className="md:text-base">Monthly Discretionary Budget</span>
+                <span className="text-xs text-muted-foreground">
+                  For gym membership, home office setups, etc.
+                </span>
+              </Label>
+              <div className="flex items-center gap-1">
+                <span>$</span>
+                <Input
+                  id="discretionaryBudget"
+                  type="number"
+                  className="w-min"
+                  min={0}
+                  max={999999}
+                  step="0.01"
+                  {...register("discretionaryBudget", {
+                    valueAsNumber: true,
+                  })}
+                />
+              </div>
+            </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
