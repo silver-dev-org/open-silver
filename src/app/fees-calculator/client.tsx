@@ -25,6 +25,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
+import posthog from "posthog-js";
 
 type ServiceModel = typeof CONTINGENCY | typeof STAFFING;
 
@@ -256,6 +257,17 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
     );
 
     const shareLink = `mailto:gabriel@silver.dev?subject=${emailSubject}&body=${emailBody}`;
+
+    posthog.capture("fees_calculator_shared", {
+      number_of_hires: contractProps[NUMBER_OF_HIRES],
+      salary: contractProps[SALARY],
+      service_model: serviceModel,
+      expected_contract_cost: cost,
+      placement_fee: fee,
+      has_payroll: contractProps[PAYROLL],
+      has_fast_processing: contractProps[FAST_PROCESSING],
+      has_monthly_payment: contractProps[MONTHLY_PAYMENT],
+    });
 
     setShareLink(shareLink);
   }

@@ -3,14 +3,8 @@ import { Grid } from "@/components/grid";
 import { Heading } from "@/components/heading";
 import { Section } from "@/components/section";
 import { Spacer, spacing } from "@/components/spacer";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ToolCard } from "@/components/tool-card";
 import { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   description:
@@ -128,14 +122,13 @@ export default function Home() {
             <Spacer />
             <Grid>
               {list.map(({ title, description, href }) => (
-                <Link href={href} key={href} prefetch={true}>
-                  <Card className="hover:bg-foreground/10 transition-all size-full duration-300">
-                    <CardHeader>
-                      <CardTitle>{title}</CardTitle>
-                      <CardDescription>{description}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Link>
+                <ToolCard
+                  key={href}
+                  title={title}
+                  description={description}
+                  href={href}
+                  section={slug}
+                />
               ))}
             </Grid>
           </Section>

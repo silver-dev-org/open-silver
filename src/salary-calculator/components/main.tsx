@@ -15,6 +15,7 @@ import { BreakdownModal } from "./breakdown-modal";
 import { ParamsDialog } from "./params-dialog";
 import { SalarySlider } from "./salary-slider";
 import { YearlyCompensationChart } from "./yearly-compensation-chart";
+import posthog from "posthog-js";
 
 export function SalaryCalculator() {
   const searchParams = useSearchParams();
@@ -53,6 +54,12 @@ export function SalaryCalculator() {
       const button = buttonRefs.current[scenario];
       dialog.open(button);
       setBreakdownProps({ scenario, year });
+
+      posthog.capture("salary_breakdown_viewed", {
+        scenario,
+        year,
+        salary: params.salary,
+      });
     },
   } as SalaryModelSectionProps;
 

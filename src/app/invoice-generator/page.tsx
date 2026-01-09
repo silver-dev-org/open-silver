@@ -28,6 +28,7 @@ import { InvoiceSummary } from "./components/InvoiceSummary";
 import { ValidationErrors } from "./components/ValidationErrors";
 import { SilverEdForm } from "./components/SilverEdForm";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import posthog from "posthog-js";
 
 const invoiceItemSchema = z.object({
   id: z.string(),
@@ -235,6 +236,11 @@ export default function Component() {
       return response.json();
     },
     onSuccess: (_, data) => {
+      posthog.capture("invoice_submitted", {
+        invoice_type: data.invoiceType,
+        items_count: data.items?.length ?? 0,
+      });
+
       toast.success("Invoice submitted successfully!", {
         description: "The invoice has been sent via email.",
       });
