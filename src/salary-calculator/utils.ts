@@ -14,7 +14,12 @@ function getBreakdownsByScenario(
   params: Params,
   rsuValue: number = 0,
 ): Record<Scenario, Breakdown> {
-  const { salary, monthlyPrivateHealth, contractorTaxRate, discretionaryBudget = 0 } = params;
+  const {
+    salary,
+    monthlyPrivateHealth,
+    contractorTaxRate,
+    discretionaryBudget = 0,
+  } = params;
 
   const thirteenthSalary = salary / 12;
   const salaryWithRSUs = salary + rsuValue;
@@ -89,7 +94,7 @@ function getBreakdownsByScenario(
       base: salary,
       items: [
         {
-          label: "Base Salary",
+          label: "Gross Salary",
           value: salary,
         },
         ...rsuItem,
@@ -139,7 +144,7 @@ function getBreakdownsByScenario(
       base: salary,
       items: [
         {
-          label: "Base Salary",
+          label: "Gross Salary",
           value: salary,
         },
         ...rsuItem,
@@ -181,7 +186,7 @@ function getBreakdownsByScenario(
       base: salary,
       items: [
         {
-          label: "Base Salary",
+          label: "Gross Salary",
           value: salary,
         },
         ...rsuItem,
@@ -203,7 +208,7 @@ function getBreakdownsByScenario(
       base: salary,
       items: [
         {
-          label: "Base Salary",
+          label: "Gross Salary",
           value: salary,
         },
         ...rsuItem,

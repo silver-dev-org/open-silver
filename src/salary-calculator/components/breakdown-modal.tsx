@@ -135,7 +135,6 @@ export function BreakdownModal({
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 mt-4">
-              <BreakdownItem label="Gross Salary" value={breakdown.base} />
               {breakdown.items.map((item, idx) => (
                 <BreakdownItem key={idx} {...item} />
               ))}
