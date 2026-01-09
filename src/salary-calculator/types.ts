@@ -22,6 +22,7 @@ export type Params = {
   salary: number;
   monthlyPrivateHealth: number;
   contractorTaxRate: number; // Monotributo
+  discretionaryBudget?: number;
   shareFMV?: number;
   growthRate?: number;
   /**
