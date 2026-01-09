@@ -10,6 +10,7 @@ import { Step2 } from "@/behavioral-checker/components/Step2";
 import { Question, questions } from "@/behavioral-checker/data/questions";
 import { PreppingData } from "@/lib/utils";
 import { useState } from "react";
+import posthog from "posthog-js";
 
 export function Home() {
   const [result, setResult] = useState<AssistanceResponse>();
@@ -51,8 +52,14 @@ export function Home() {
       preppingData[id] = data.result;
       PreppingData.setToolData("behavioral-checker", preppingData);
       setResult(data);
+
+      posthog.capture("behavioral_answer_submitted", {
+        question_id: id,
+        result: data.result,
+      });
     } catch (error: any) {
       console.error("Error during audio analysis:", error.message);
+      posthog.captureException(error);
       setError("An error occurred, please try again.");
     } finally {
       setIsLoading(false);
@@ -89,8 +96,14 @@ export function Home() {
 
       const data = await response.json();
       setResult(data);
+
+      posthog.capture("behavioral_example_viewed", {
+        question_id: id,
+        example_result: result,
+      });
     } catch (error: any) {
       console.error("Error processing example:", error.message);
+      posthog.captureException(error);
       setError("Error trying to show the example");
     } finally {
       setLoadingExampleId(null);

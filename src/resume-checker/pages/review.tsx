@@ -17,6 +17,7 @@ import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import posthog from "posthog-js";
 
 export function Review() {
   const router = useRouter();
@@ -61,9 +62,15 @@ export function Review() {
     },
     onSuccess: (data) => {
       sendGAEvent("event", "resume-checker-success", data);
+      posthog.capture("resume_analysis_completed", {
+        grade: data.grade,
+        red_flags_count: data.red_flags?.length ?? 0,
+        yellow_flags_count: data.yellow_flags?.length ?? 0,
+      });
     },
     onError: (e) => {
       sendGAEvent("event", "resume-checker-error", e);
+      posthog.captureException(e);
       router.push("/resume-checker");
     },
   });

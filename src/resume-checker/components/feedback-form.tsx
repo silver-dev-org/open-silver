@@ -3,6 +3,7 @@ import { useFormState } from "@/resume-checker/hooks/form-context";
 import { FormState } from "@/resume-checker/types";
 import { useMutation } from "@tanstack/react-query";
 import { Dispatch, FormEvent, SetStateAction, useState } from "react";
+import posthog from "posthog-js";
 
 export function FeedbackForm({
   data,
@@ -33,6 +34,9 @@ export function FeedbackForm({
       }
     },
     onSuccess: () => {
+      posthog.capture("resume_feedback_submitted", {
+        grade: data.grade,
+      });
       setFeedbackFormOpen(false);
     },
   });

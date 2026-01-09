@@ -71,6 +71,7 @@ import {
   GithubRepo,
   TakeHomeCheckerData,
 } from "../../takehome-checker/types";
+import posthog from "posthog-js";
 
 export default function TakeHomeCheckerClient({
   installationId,
@@ -153,6 +154,12 @@ export default function TakeHomeCheckerClient({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.files) return;
       const file = event.target.files[0];
+
+      posthog.capture("takehome_analysis_started", {
+        source: "zip_upload",
+        file_size_bytes: file.size,
+      });
+
       setZipRepo(file);
     },
     [],
@@ -214,7 +221,16 @@ export default function TakeHomeCheckerClient({
             isAnalyzing={isFetching}
           />
           <AnalyzeButton
-            onClick={analyze}
+            onClick={() => {
+              if (githubRepo) {
+                posthog.capture("takehome_analysis_started", {
+                  source: "github",
+                  repo_name: githubRepo.full_name,
+                  repo_private: githubRepo.private,
+                });
+              }
+              analyze();
+            }}
             isLoading={isFetching}
             hasSelectedRepo={!!githubRepo || !!zipRepo}
           />
@@ -484,6 +500,9 @@ function UserFeedbackDialog(data: TakeHomeCheckerData) {
       }
     },
     onSuccess: () => {
+      posthog.capture("takehome_feedback_submitted", {
+        score: data.analysis.score,
+      });
       form.reset();
       setOpen(false);
       toast("Gracias por tu feedback.");

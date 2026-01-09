@@ -20,6 +20,7 @@ import {
 } from "react";
 import { useDropzone } from "react-dropzone";
 import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
+import posthog from "posthog-js";
 
 function usePasteEvent(pasteListener: (event: ClipboardEvent) => void) {
   useEffect(() => {
@@ -42,6 +43,12 @@ export function Home() {
       const [cvFile] = files;
 
       if (!cvFile) return;
+
+      posthog.capture("resume_uploaded", {
+        upload_method: "drop",
+        file_type: cvFile.type,
+        file_size_bytes: cvFile.size,
+      });
 
       formData.set("resume", cvFile);
       setFormState({ formData });
@@ -70,6 +77,11 @@ export function Home() {
       );
       return;
     }
+
+    posthog.capture("resume_uploaded", {
+      upload_method: "paste_url",
+    });
+
     setFormState({ url });
     router.push("/resume-checker/review");
   });
@@ -77,6 +89,12 @@ export function Home() {
   function submitWithResumeUrl(letter: string) {
     const url = `public/${letter}_resume.pdf`;
     console.log("Setting URL:", url);
+
+    posthog.capture("resume_uploaded", {
+      upload_method: "example",
+      example_letter: letter,
+    });
+
     setFormState({ url });
     router.push(`/resume-checker/review?url=${encodeURIComponent(url)}`);
   }
@@ -90,6 +108,13 @@ export function Home() {
     if (honeypot) {
       return;
     }
+
+    const resumeFile = formData.get("resume") as File | null;
+    posthog.capture("resume_uploaded", {
+      upload_method: "drop/click",
+      file_type: resumeFile?.type,
+      file_size_bytes: resumeFile?.size,
+    });
 
     setFormState({ formData });
     router.push("/resume-checker/review");
