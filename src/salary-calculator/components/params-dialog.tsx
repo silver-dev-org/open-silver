@@ -10,12 +10,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Settings2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { DEFAULT_PARAMS } from "../constants";
-import type { Params } from "../types";
+import type { Params, RSUGrant } from "../types";
+
+function getNewRow(mode: RSUGrant["mode"] = "units"): RSUGrant {
+  if (mode === "units") return { mode: "units" };
+  else return { mode: "dollars" };
+}
 
 export function ParamsDialog({
   params,
@@ -28,14 +40,9 @@ export function ParamsDialog({
   const [rsuEnabled, setRsuEnabled] = useState(
     !!(params.shareFMV || params.growthRate || params.grantedRSUs),
   );
-  const getNewRow = () => ({ amount: undefined, vesting: undefined });
   const rsuRowsRef = useRef<HTMLDivElement>(null);
-  const [rsuRows, setRsuRows] = useState<
-    Array<{ amount?: number; vesting?: number }>
-  >(
-    params.grantedRSUs?.map(([amount, vesting]) => ({ amount, vesting })) || [
-      getNewRow(),
-    ],
+  const [rsuRows, setRsuRows] = useState<RSUGrant[]>(
+    params.grantedRSUs || [getNewRow()],
   );
   const { register, handleSubmit, reset } = useForm<Params>({
     defaultValues: params,
@@ -49,12 +56,7 @@ export function ParamsDialog({
       setRsuEnabled(
         !!(params.shareFMV || params.growthRate || params.grantedRSUs),
       );
-      setRsuRows(
-        params.grantedRSUs?.map(([amount, vesting]) => ({
-          amount,
-          vesting,
-        })) || [{ amount: undefined, vesting: undefined }],
-      );
+      setRsuRows(params.grantedRSUs || [getNewRow()]);
     }
   }, [isOpen, params, reset]);
 
@@ -67,9 +69,15 @@ export function ParamsDialog({
   function onSubmit(data: Params) {
     const updatedData = { ...data };
     if (rsuEnabled) {
-      updatedData.grantedRSUs = rsuRows.map(
-        (row) => [row.amount, row.vesting] as [number, number],
-      );
+      updatedData.grantedRSUs = rsuRows.filter((row) => {
+        if (row.mode === "units") {
+          return row.amount !== undefined && row.vestingPeriod !== undefined;
+        } else {
+          return (
+            row.dollarValue !== undefined && row.vestingPeriod !== undefined
+          );
+        }
+      });
     } else {
       delete updatedData.shareFMV;
       delete updatedData.growthRate;
@@ -161,7 +169,9 @@ export function ParamsDialog({
                 htmlFor="discretionaryBudget"
                 className="font-semibold flex flex-col"
               >
-                <span className="md:text-base">Monthly Discretionary Budget</span>
+                <span className="md:text-base">
+                  Monthly Discretionary Budget
+                </span>
                 <span className="text-xs text-muted-foreground">
                   For gym membership, home office setups, etc.
                 </span>
@@ -251,16 +261,16 @@ export function ParamsDialog({
                       <Label className="font-semibold w-12 text-center">
                         Year
                       </Label>
-                      <Label className="font-semibold flex-1">
-                        Granted RSUs
+                      <Label className="font-semibold flex-2">
+                        Grant Amount
                       </Label>
-                      <Label className="font-semibold flex-1">
+                      <Label className="font-semibold flex-1 max-w-32">
                         Vesting period
                       </Label>
                       <div className="w-10 shrink-0" />
                     </div>
                     <div
-                      className="flex flex-col gap-2 max-h-36 overflow-auto"
+                      className="flex flex-col gap-2 max-h-36 overflow-auto py-1.5"
                       ref={rsuRowsRef}
                     >
                       {rsuRows.map((row, index) => (
@@ -271,37 +281,80 @@ export function ParamsDialog({
                           <div className="w-12 text-center font-medium">
                             {index}
                           </div>
-                          <div className="flex items-center gap-1 flex-1">
+                          <div className="flex items-center gap-1 flex-2">
                             <Input
                               type="number"
-                              placeholder="Amount"
-                              min={1}
-                              value={row.amount ?? ""}
+                              placeholder={
+                                row.mode === "units" ? "Amount" : "Value"
+                              }
+                              min={row.mode === "units" ? 1 : 0}
+                              step={row.mode === "units" ? 1 : 0.01}
+                              value={
+                                row.mode === "units"
+                                  ? (row.amount ?? "")
+                                  : (row.dollarValue ?? "")
+                              }
                               onChange={(e) => {
                                 const newRows = [...rsuRows];
-                                newRows[index].amount = e.target.value
+                                const value = e.target.value
                                   ? Number(e.target.value)
                                   : undefined;
+                                if (row.mode === "units") {
+                                  newRows[index] = {
+                                    ...row,
+                                    amount: value as number,
+                                  };
+                                } else {
+                                  newRows[index] = {
+                                    ...row,
+                                    dollarValue: value as number,
+                                  };
+                                }
                                 setRsuRows(newRows);
                               }}
                               required
                             />
-                            <span className="text-sm text-muted-foreground">
-                              RSUs
-                            </span>
+                            <Select
+                              value={row.mode}
+                              onValueChange={(value: "units" | "dollars") => {
+                                const newRows = [...rsuRows];
+                                if (value === "units") {
+                                  newRows[index] = {
+                                    mode: "units",
+                                    vestingPeriod: row.vestingPeriod,
+                                  };
+                                } else {
+                                  newRows[index] = {
+                                    mode: "dollars",
+                                    vestingPeriod: row.vestingPeriod,
+                                  };
+                                }
+                                setRsuRows(newRows);
+                              }}
+                            >
+                              <SelectTrigger className="w-fit">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="units">RSUs</SelectItem>
+                                <SelectItem value="dollars">dollars</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <div className="flex items-center gap-1 flex-1">
+                          <div className="flex items-center gap-1 flex-1 max-w-32">
                             <Input
                               type="number"
-                              placeholder="Vesting"
                               min={0}
                               step="0.25"
-                              value={row.vesting ?? ""}
+                              value={row.vestingPeriod ?? ""}
                               onChange={(e) => {
                                 const newRows = [...rsuRows];
-                                newRows[index].vesting = e.target.value
-                                  ? Number(e.target.value)
-                                  : undefined;
+                                newRows[index] = {
+                                  ...row,
+                                  vestingPeriod: e.target.value
+                                    ? Number(e.target.value)
+                                    : undefined,
+                                };
                                 setRsuRows(newRows);
                               }}
                               required
@@ -330,7 +383,11 @@ export function ParamsDialog({
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setRsuRows([...rsuRows, getNewRow()]);
+                        const lastRowMode =
+                          rsuRows.length > 0
+                            ? rsuRows[rsuRows.length - 1].mode
+                            : "units";
+                        setRsuRows([...rsuRows, getNewRow(lastRowMode)]);
                       }}
                       className="w-full"
                     >

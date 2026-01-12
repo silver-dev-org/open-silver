@@ -8,7 +8,7 @@ import {
   MIN_SALARY,
   SHORTENED_PARAM_KEYS,
 } from "./constants";
-import type { Params, Scenario, Breakdown } from "./types";
+import type { Params, Scenario, Breakdown, RSUGrant } from "./types";
 
 function getBreakdownsByScenario(
   params: Params,
@@ -226,31 +226,75 @@ function getBreakdownsByScenario(
   };
 }
 
+/**
+ * Normalize RSU grants to unit-based format for calculation
+ * Converts dollar-based grants to units using current FMV
+ */
+function normalizeRSUGrants(
+  grants: RSUGrant[],
+  shareFMV: number,
+): [number, number][] {
+  return grants
+    .filter((grant) => {
+      if (grant.mode === "units") {
+        return grant.amount !== undefined && grant.vestingPeriod !== undefined;
+      } else {
+        return (
+          grant.dollarValue !== undefined && grant.vestingPeriod !== undefined
+        );
+      }
+    })
+    .map((grant) => {
+      if (grant.mode === "units") {
+        return [grant.amount!, grant.vestingPeriod!];
+      } else {
+        const numberOfRSUs = grant.dollarValue! / shareFMV;
+        return [numberOfRSUs, grant.vestingPeriod!];
+      }
+    });
+}
+
 export function getYearlyBreakdowns(
   params: Params,
 ): Record<Scenario, Breakdown>[] {
   const { shareFMV, growthRate, grantedRSUs } = params;
 
-  if (!shareFMV || !growthRate || !grantedRSUs) {
+  if (
+    shareFMV == null ||
+    growthRate == null ||
+    !grantedRSUs ||
+    grantedRSUs.length === 0
+  ) {
     return [getBreakdownsByScenario(params)];
   }
 
+  const normalizedGrants = normalizeRSUGrants(grantedRSUs, shareFMV);
+
   const maxYear = Math.max(
-    ...grantedRSUs.map(([_, vesting], idx) => idx + vesting + 1),
+    ...normalizedGrants.map(([_, vesting], idx) => idx + vesting + 1),
   );
   const yearlyBreakdowns: Record<Scenario, Breakdown>[] = [];
 
   for (let year = 0; year < Math.ceil(maxYear); year++) {
     let rsuValueThisYear = 0;
-    for (let grantYear = 0; grantYear < grantedRSUs.length; grantYear++) {
-      const [amount, vestingPeriod] = grantedRSUs[grantYear];
+    for (let grantYear = 0; grantYear < normalizedGrants.length; grantYear++) {
+      const [amount, vestingPeriod] = normalizedGrants[grantYear];
       const vestingYear = grantYear + vestingPeriod;
       const yearsSinceGrant = year - grantYear;
+
+      // For immediate vesting (vestingPeriod = 0), vest all in grant year
+      if (vestingPeriod === 0) {
+        if (year === grantYear) {
+          const fmvAtVesting = shareFMV;
+          rsuValueThisYear += amount * fmvAtVesting;
+        }
+        continue;
+      }
 
       if (
         year < grantYear ||
         year >= vestingYear ||
-        (vestingPeriod && yearsSinceGrant >= vestingPeriod)
+        yearsSinceGrant >= vestingPeriod
       ) {
         continue;
       }
@@ -275,12 +319,45 @@ export function parseParams(searchParams?: URLSearchParams | null) {
     const strValue = searchParams?.get(shortenedKey);
     if (strValue) {
       if (key === "grantedRSUs") {
-        params.grantedRSUs = strValue
-          .split(ARRAY_SEP)
-          .map(
-            (item) =>
-              item.split(ARRAY_ITEM_SEP).map(Number) as [number, number],
-          );
+        params.grantedRSUs = strValue.split(ARRAY_SEP).map((item) => {
+          const dotIndex = item.indexOf(".");
+
+          if (dotIndex === -1) {
+            // Backward compatibility: no prefix = units
+            const [amountStr, vestingStr] = item.split(ARRAY_ITEM_SEP);
+            return {
+              mode: "units" as const,
+              amount: Number(amountStr),
+              vestingPeriod: Number(vestingStr),
+            };
+          }
+
+          const prefix = item.substring(0, dotIndex);
+          const rest = item.substring(dotIndex + 1);
+          const [valueStr, vestingStr] = rest.split(ARRAY_ITEM_SEP);
+          const vestingPeriod = Number(vestingStr);
+
+          if (prefix === "u") {
+            return {
+              mode: "units" as const,
+              amount: Number(valueStr),
+              vestingPeriod,
+            };
+          } else if (prefix === "d") {
+            return {
+              mode: "dollars" as const,
+              dollarValue: Number(valueStr),
+              vestingPeriod,
+            };
+          }
+
+          // Fallback to units
+          return {
+            mode: "units" as const,
+            amount: Number(valueStr),
+            vestingPeriod,
+          };
+        });
       } else {
         (params[key as keyof Params] as number) = parseFloat(strValue);
       }
@@ -296,8 +373,14 @@ export function saveParams(params: Params) {
     const shortenedKey = SHORTENED_PARAM_KEYS[key as keyof Params];
     let strValue;
     if (key === "grantedRSUs") {
-      strValue = (value as [number, number][])
-        .map(([amount, years]) => `${amount}${ARRAY_ITEM_SEP}${years}`)
+      strValue = (value as RSUGrant[])
+        .map((grant) => {
+          if (grant.mode === "units") {
+            return `u.${grant.amount}${ARRAY_ITEM_SEP}${grant.vestingPeriod}`;
+          } else {
+            return `d.${grant.dollarValue}${ARRAY_ITEM_SEP}${grant.vestingPeriod}`;
+          }
+        })
         .join(ARRAY_SEP);
     } else {
       strValue = value.toString();
