@@ -115,35 +115,6 @@ export function BreakdownModal({
                 {breakdown.title}
               </DialogTitle>
               <DialogDescription className="text-left">
-                {breakdown.description}
-                {scenario === "eor-worker" && (
-                  <>
-                    <br />
-                    (*) Capped at max. taxable gross of{" "}
-                    {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
-                      "en-US",
-                      CURRENCY_FORMAT,
-                    )}
-                  </>
-                )}
-                {scenario === "aor-worker" &&
-                  totalGross > MAX_SIMPLIFIED_TAX_REGIME && (
-                    <span className="text-yellow-600">
-                      <br />
-                      <strong>NOTE:</strong> Simplified Tax Regime (
-                      <i>monotributo</i>) is not fully applicable for salaries
-                      over{" "}
-                      {Math.round(MAX_SIMPLIFIED_TAX_REGIME).toLocaleString(
-                        "en-US",
-                        CURRENCY_FORMAT,
-                      )}
-                      . Beyond that threshold, you should move to the more
-                      complex, expensive tax regime (
-                      <i>Responsable Inscripto</i>), currently not supported by
-                      this calculator.
-                    </span>
-                  )}
-                <br />
                 Sources:{" "}
                 {breakdown.sources.map((source, i) => (
                   <Fragment key={i}>
@@ -155,6 +126,20 @@ export function BreakdownModal({
                 ))}
               </DialogDescription>
             </DialogHeader>
+            {scenario === "aor-worker" &&
+              totalGross > MAX_SIMPLIFIED_TAX_REGIME && (
+                <p className="text-yellow-600 text-xs mt-4">
+                  <strong>Note:</strong> Simplified Tax Regime (
+                  <i>monotributo</i>) is not fully applicable for salaries over{" "}
+                  {Math.round(MAX_SIMPLIFIED_TAX_REGIME).toLocaleString(
+                    "en-US",
+                    CURRENCY_FORMAT,
+                  )}
+                  . Beyond that threshold, you should move to the more complex,
+                  expensive tax regime (<i>Responsable Inscripto</i>), currently
+                  not supported by this calculator.
+                </p>
+              )}
             <div className="flex flex-col gap-4 mt-4">
               {breakdown.items.map((item, idx) => (
                 <BreakdownItem key={idx} {...item} />
@@ -193,6 +178,15 @@ export function BreakdownModal({
               <ChevronRight />
             </Button>
           </DialogFooter>
+          {scenario === "eor-worker" && (
+            <p className="text-muted-foreground text-xs">
+              (*) Capped at max. taxable gross of{" "}
+              {Math.round(MAX_TAXABLE_GROSS).toLocaleString(
+                "en-US",
+                CURRENCY_FORMAT,
+              )}
+            </p>
+          )}
           <FloatingArrowButton
             side="left"
             onClick={handlePrevious}
