@@ -11,6 +11,7 @@ export const CURRENCY_FORMAT: Intl.NumberFormatOptions = {
 };
 export const ARS_USD = 1415;
 export const MAX_TAXABLE_GROSS = (3505701.35 / ARS_USD) * 13;
+export const MAX_SIMPLIFIED_TAX_REGIME = 63628;
 export const SCENARIOS: Scenario[] = [
   "eor-employer",
   "eor-worker",
