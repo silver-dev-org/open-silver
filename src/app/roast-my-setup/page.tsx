@@ -1,7 +1,7 @@
 import { Description } from "@/components/description";
 import { Heading } from "@/components/heading";
 import { QueryClientWrapper } from "@/components/query-client-wrapper";
-import { Section } from "@/components/section";
+import { Container } from "@/components/container";
 import { Spacer } from "@/components/spacer";
 import { RoastMySetup } from "@/roast-my-setup";
 import { METADATA } from "@/roast-my-setup/constants";
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <Section>
-      <Heading center>
+    <Container>
+      <Heading lvl={1} center>
         <span className="text-primary">Roast</span> my Setup
       </Heading>
       <Spacer />
@@ -26,6 +26,6 @@ export default function Page() {
       <QueryClientWrapper>
         <RoastMySetup />
       </QueryClientWrapper>
-    </Section>
+    </Container>
   );
 }

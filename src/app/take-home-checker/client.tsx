@@ -349,7 +349,7 @@ function LoadingState() {
     <>
       <div className="flex flex-col gap-6 mx-auto max-w-[130ch]">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex justify-between items-center relative">
               <div className="text-center flex items-center gap-3">
                 <Skeleton className="h-10 w-20 mx-auto rounded-full" />
@@ -418,7 +418,7 @@ function SuccessState(data: TakeHomeCheckerData) {
   return (
     <div className="flex flex-col gap-6 mx-auto">
       <Card>
-        <CardContent className="pt-6">
+        <CardContent>
           <section className="flex justify-between items-center flex-col gap-6 md:flex-row">
             <div className="text-center flex gap-3 items-center">
               <h1 className="text-lg font-semibold text-muted-foreground order-last">

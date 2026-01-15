@@ -9,8 +9,8 @@ import { Step1 } from "@/behavioral-checker/components/Step1";
 import { Step2 } from "@/behavioral-checker/components/Step2";
 import { Question, questions } from "@/behavioral-checker/data/questions";
 import { PreppingData } from "@/lib/utils";
-import { useState } from "react";
 import posthog from "posthog-js";
+import { useState } from "react";
 
 export function Home() {
   const [result, setResult] = useState<AssistanceResponse>();

@@ -1,7 +1,7 @@
 import { Description } from "@/components/description";
 import { Grid } from "@/components/grid";
 import { Heading } from "@/components/heading";
-import { Section } from "@/components/section";
+import { Container } from "@/components/container";
 import { Spacer, spacing } from "@/components/spacer";
 import { ToolCard, ToolCardProps } from "@/components/tool-card";
 import { cn } from "@/lib/utils";
@@ -108,8 +108,8 @@ const tools: {
 
 export default function Home() {
   return (
-    <Section>
-      <Heading size="lg" center>
+    <Container>
+      <Heading lvl={1} center>
         <span className="text-primary">Open</span> Silver
       </Heading>
       <Spacer />
@@ -119,17 +119,17 @@ export default function Home() {
       <Spacer size="lg" />
       <div className={cn("flex flex-col", spacing.lg.gap)}>
         {tools.map(({ slug, section, list }, index) => (
-          <Section key={index} id={slug}>
-            <Heading>{section}</Heading>
+          <Container key={index} id={slug}>
+            <Heading lvl={2}>{section}</Heading>
             <Spacer />
             <Grid>
               {list.map((props, i) => (
                 <ToolCard key={i} {...props} />
               ))}
             </Grid>
-          </Section>
+          </Container>
         ))}
       </div>
-    </Section>
+    </Container>
   );
 }

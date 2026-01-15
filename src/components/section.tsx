@@ -1,22 +1,9 @@
-import { spacing } from "./spacer";
+import { Container } from "@/components/container";
 
-export function Section({
-  children,
-  id,
-  className,
-}: {
-  children: React.ReactNode;
-  id?: string;
-  className?: string;
-}) {
+export function Section(props: React.ComponentProps<"section">) {
   return (
-    <div className={`${spacing.sm.px} xl:px-0`}>
-      <section
-        id={id}
-        className={`container mx-auto ${spacing.lg.scrollMt} ${className}`}
-      >
-        {children}
-      </section>
-    </div>
+    <Container asChild>
+      <section {...props} />
+    </Container>
   );
 }

@@ -7,9 +7,9 @@ import {
   roleOptions,
   valueOptions,
 } from "@/behavioral-checker/data/selects";
+import { Container } from "@/components/container";
 import { Description } from "@/components/description";
 import { Heading } from "@/components/heading";
-import { Section } from "@/components/section";
 import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import {
@@ -249,8 +249,8 @@ const Step1: React.FC<{
   };
 
   return (
-    <Section id="step-1">
-      <Heading size="lg" center>
+    <Container id="step-1">
+      <Heading lvl={1} center>
         <span className="text-primary">Behavioral</span> Checker
       </Heading>
       <Spacer />
@@ -612,7 +612,7 @@ const Step1: React.FC<{
           </div>
         </CardContent>
       </Card>
-    </Section>
+    </Container>
   );
 };
 

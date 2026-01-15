@@ -281,7 +281,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
 
   return (
     <Section className="flex flex-col">
-      <Heading center>
+      <Heading lvl={1} center>
         Agency Fees <span className="text-primary">Explained</span>
       </Heading>
       <Spacer />
@@ -290,7 +290,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
       </Description>
       <Spacer size="lg" />
       <div className="flex flex-col lg:flex-row gap-12 flex-grow p-4 sm:container sm:mx-auto">
-        <div className="flex flex-col gap-4 lg:max-w-xs">
+        <div className="flex flex-col gap-4 lg:max-w-xs w-full">
           {RADIO_FIELDS.map((field, i) => (
             <CardRadioGroup
               key={i}
@@ -444,20 +444,20 @@ function CardCheckbox({
     <Label htmlFor={name}>
       <Card
         className={cn(
-          "rounded-md border-border bg-transparent transition-colors",
+          "rounded-md border-border bg-transparent transition-colors w-full",
           checked ? "border-foreground" : "",
           disabled
             ? "cursor-not-allowed opacity-75"
             : "cursor-pointer hover:bg-accent",
         )}
       >
-        <CardHeader className="p-4">
+        <CardHeader>
           <CardTitle className="flex gap-1.5 text-base font-semibold items-center">
             <Checkbox
               id={name}
               onCheckedChange={onCheckedChange}
               checked={checked}
-              className="border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background"
+              className="data-[state=checked]:bg-foreground data-[state=checked]:text-background dark:data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               disabled={disabled}
             />
             <span>{label}</span>

@@ -1,16 +1,18 @@
 "use client";
 
+import { Container } from "@/components/container";
 import { Description } from "@/components/description";
 import { Grid } from "@/components/grid";
 import { Heading } from "@/components/heading";
-import { Section } from "@/components/section";
 import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { ErrorBadge } from "@/resume-checker/components/error-badge";
 import { useFormState } from "@/resume-checker/hooks/form-context";
+import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
 import { useMutationState } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import {
   ChangeEvent,
   FormEvent,
@@ -19,8 +21,6 @@ import {
   useState,
 } from "react";
 import { useDropzone } from "react-dropzone";
-import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
-import posthog from "posthog-js";
 
 function usePasteEvent(pasteListener: (event: ClipboardEvent) => void) {
   useEffect(() => {
@@ -134,8 +134,8 @@ export function Home() {
   return (
     <>
       <ErrorBadge error={error || mutationError} />
-      <Section>
-        <Heading size="lg" center>
+      <Container>
+        <Heading lvl={1} center>
           <span className="text-primary">Resume</span> Checker
         </Heading>
         <Spacer />
@@ -212,7 +212,7 @@ export function Home() {
             Privacy policy
           </Link>
         </div>
-      </Section>
+      </Container>
     </>
   );
 }

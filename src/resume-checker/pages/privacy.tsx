@@ -4,7 +4,7 @@ import { Spacer } from "@/components/spacer";
 export function Privacy() {
   return (
     <Section>
-      <Heading>Política de Privacidad</Heading>
+      <Heading lvl={1}>Política de Privacidad</Heading>
       <Spacer />
       <p className="mb-6">
         Gracias por utilizar Resume Checker. Su privacidad es muy importante
