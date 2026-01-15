@@ -1,18 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type {
   AnalyzeSetupRequest,
   AnalyzeSetupResponse,
-  CameraPreviewHandle,
+  CameraRef,
+  CameraStatus,
 } from "../types";
-import { CameraPreview } from "./camera-preview";
+import { Camera } from "./camera";
 
 export function RoastMySetup() {
-  const cameraRef = useRef<CameraPreviewHandle>(null);
+  const cameraRef = useRef<CameraRef>(null);
+  const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
@@ -37,23 +38,37 @@ export function RoastMySetup() {
   });
 
   return (
-    <div className="flex w-full flex-col gap-4 max-w-4xl mx-auto">
-      <CameraPreview ref={cameraRef} />
-      <Button
-        onClick={() => mutate()}
-        size="lg"
-        className="self-center"
-        disabled={isPending}
-      >
-        {isPending ? (
-          <>
-            <Loader2 className="animate-spin" />
-            Roasting...
-          </>
-        ) : (
-          "Roast me"
+    <div className="flex flex-col">
+      <div className="flex flex-col md:flex-row gap-6">
+        <Camera
+          className="w-2/3 mx-auto"
+          ref={cameraRef}
+          status={cameraStatus}
+          onStatusChange={setCameraStatus}
+        />
+        {cameraStatus === "active" && (
+          <Card className="w-1/3">
+            <CardContent className="flex flex-col gap-4">
+              <p className="text-2xl bg-muted p-2 rounded-xl rounded-tl-none text-nowrap w-min">
+                Hey! Say &quot;
+                <button
+                  onClick={() => mutate()}
+                  disabled={isPending}
+                  className="link cursor-pointer"
+                >
+                  Roast me
+                </button>
+                &quot; aloud.
+              </p>
+              {isPending && (
+                <p className="text-2xl bg-muted p-2 rounded-xl rounded-tr-none text-end w-min text-nowrap ms-auto">
+                  Roast me
+                </p>
+              )}
+            </CardContent>
+          </Card>
         )}
-      </Button>
+      </div>
     </div>
   );
 }

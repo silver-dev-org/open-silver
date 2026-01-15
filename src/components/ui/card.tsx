@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       className={cn(
         "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
-        hoverable ? "duration-300 hover:bg-accent" : "",
+        hoverable ? "duration-300 hover:bg-accent cursor-pointer" : "",
         className,
       )}
       {...props}
