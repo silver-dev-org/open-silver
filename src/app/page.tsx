@@ -3,7 +3,8 @@ import { Grid } from "@/components/grid";
 import { Heading } from "@/components/heading";
 import { Section } from "@/components/section";
 import { Spacer, spacing } from "@/components/spacer";
-import { ToolCard } from "@/components/tool-card";
+import { ToolCard, ToolCardProps } from "@/components/tool-card";
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -19,11 +20,7 @@ export const metadata: Metadata = {
 const tools: {
   section: React.ReactNode;
   slug: string;
-  list: {
-    title: string;
-    description: string;
-    href: string;
-  }[];
+  list: ToolCardProps[];
 }[] = [
   {
     slug: "for-talent",
@@ -115,20 +112,14 @@ export default function Home() {
         Open Source Software made by Silver.dev and its contributors.
       </Description>
       <Spacer size="lg" />
-      <div className={`flex flex-col ${spacing.lg.gap}`}>
+      <div className={cn("flex flex-col", spacing.lg.gap)}>
         {tools.map(({ slug, section, list }, index) => (
           <Section key={index} id={slug}>
             <Heading>{section}</Heading>
             <Spacer />
             <Grid>
-              {list.map(({ title, description, href }) => (
-                <ToolCard
-                  key={href}
-                  title={title}
-                  description={description}
-                  href={href}
-                  section={slug}
-                />
+              {list.map((props, i) => (
+                <ToolCard key={i} {...props} />
               ))}
             </Grid>
           </Section>
