@@ -1,24 +1,19 @@
 "use client";
 
-import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
 import { CameraPreview } from "./camera-preview";
-import { AudioIndicator } from "./audio-indicator";
-import { useAudioListener } from "../hooks/use-audio-listener";
 
 export function RoastMySetup() {
-  const { status, audioLevel, startListening } = useAudioListener();
-
-  const handleStreamReady = useCallback(
-    (stream: MediaStream) => {
-      startListening(stream);
-    },
-    [startListening],
-  );
+  const handleRoastMe = () => {
+    console.log("User clicked 'Roast me'!");
+  };
 
   return (
     <div className="flex w-full flex-col gap-4 max-w-4xl mx-auto">
-      <CameraPreview onStreamReady={handleStreamReady} />
-      <AudioIndicator level={audioLevel} isListening={status === "listening"} />
+      <CameraPreview />
+      <Button onClick={handleRoastMe} size="lg" className="self-center">
+        Roast me
+      </Button>
     </div>
   );
 }
