@@ -22,9 +22,7 @@ export default function Page() {
       <Spacer />
       <Description center>{METADATA.description}</Description>
       <Spacer size="lg" />
-      <div className="flex justify-center">
-        <RoastMySetup />
-      </div>
+      <RoastMySetup />
     </Section>
   );
 }
