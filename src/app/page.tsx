@@ -5,6 +5,7 @@ import { Section } from "@/components/section";
 import { Spacer, spacing } from "@/components/spacer";
 import { ToolCard, ToolCardProps } from "@/components/tool-card";
 import { cn } from "@/lib/utils";
+import { METADATA as ROAST_MY_SETUP_METADATA } from "@/roast-my-setup/constants";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -52,6 +53,10 @@ const tools: {
         title: "WPM Game",
         description: "Test your speed and practice typing code.",
         href: "https://wpm.silver.dev",
+      },
+      {
+        ...ROAST_MY_SETUP_METADATA,
+        href: "/roast-my-setup",
       },
       {
         title: "Practice Repo",
