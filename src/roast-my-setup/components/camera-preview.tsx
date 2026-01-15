@@ -1,16 +1,23 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { CameraStatus } from "../types";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import type { CameraPreviewHandle, CameraStatus } from "../types";
 
-export function CameraPreview({
-  onStreamReady,
-  className,
-}: {
-  onStreamReady?: (stream: MediaStream) => void;
-  className?: string;
-}) {
+export const CameraPreview = forwardRef<
+  CameraPreviewHandle,
+  {
+    onStreamReady?: (stream: MediaStream) => void;
+    className?: string;
+  }
+>(function CameraPreview({ onStreamReady, className }, ref) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraStatus>("idle");
@@ -60,6 +67,24 @@ export function CameraPreview({
     };
   }, []);
 
+  useImperativeHandle(ref, () => ({
+    captureSnapshot: () => {
+      const video = videoRef.current;
+      if (!video || status !== "active") {
+        return null;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        return null;
+      }
+      ctx.drawImage(video, 0, 0);
+      return canvas.toDataURL("image/jpeg", 0.8);
+    },
+  }));
+
   return (
     <div
       className={cn(
@@ -94,4 +119,4 @@ export function CameraPreview({
       />
     </div>
   );
-}
+});

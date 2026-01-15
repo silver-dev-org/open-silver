@@ -1,5 +1,6 @@
 import { Description } from "@/components/description";
 import { Heading } from "@/components/heading";
+import { QueryClientWrapper } from "@/components/query-client-wrapper";
 import { Section } from "@/components/section";
 import { Spacer } from "@/components/spacer";
 import { RoastMySetup } from "@/roast-my-setup";
@@ -22,7 +23,9 @@ export default function Page() {
       <Spacer />
       <Description center>{METADATA.description}</Description>
       <Spacer size="lg" />
-      <RoastMySetup />
+      <QueryClientWrapper>
+        <RoastMySetup />
+      </QueryClientWrapper>
     </Section>
   );
 }
