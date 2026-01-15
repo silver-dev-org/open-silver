@@ -9,19 +9,17 @@ import {
 import Link from "next/link";
 import posthog from "posthog-js";
 
-interface ToolCardProps {
+export interface ToolCardProps {
   title: string;
   description: string;
   href: string;
-  section: string;
 }
 
-export function ToolCard({ title, description, href, section }: ToolCardProps) {
+export function ToolCard({ title, description, href }: ToolCardProps) {
   const handleClick = () => {
     posthog.capture("tool_card_clicked", {
       tool_title: title,
       tool_href: href,
-      section: section,
     });
   };
 
