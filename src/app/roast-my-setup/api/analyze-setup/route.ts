@@ -12,6 +12,9 @@ export async function POST(request: NextRequest) {
 
   const mockData: AnalyzeSetupResponse = {
     score: "Fail",
+    greenFlags: ["Good headphones"],
+    yellowFlags: ["Inconsistent lighting", "Poor camera angle"],
+    redFlags: ["Untidy room", "Alcohol in the table"],
   };
 
   return NextResponse.json(mockData);

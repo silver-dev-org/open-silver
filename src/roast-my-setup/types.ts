@@ -12,4 +12,7 @@ export type AnalyzeSetupRequest = {
 
 export type AnalyzeSetupResponse = {
   score: SetupScore;
+  greenFlags: string[];
+  yellowFlags: string[];
+  redFlags: string[];
 };
