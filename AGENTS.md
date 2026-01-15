@@ -8,8 +8,11 @@ OpenSilver is a monorepo containing several independent tools.
 
 * Use App Router, not Pages Router.
 * Name files and directories in kebab-case.
+* Define types, constants, and utils in the corresponding `types.ts`, `constants.ts`, and `utils.ts` file based on the tool you're developing.
 * Use colors from `@src/app/globals.css`, not default Tailwind colors.
 * Combine classNames using the `cn` utility, not string interpolation.
+* Check for TypeScript errors before saying something is done.
+* Use `bun`, not `npm` or `node`.
 * If any of the guidelines above aren't followed in existing code, that's because it's old code; don't write yours based on it.
 
 ## Browser Automation
