@@ -1,17 +1,28 @@
-import { spacing } from "./spacer";
+import { cn } from "@/lib/utils";
+import { spacing } from "@/components/spacer";
 
-export function Grid({
-  children,
+function Grid({
+  flex,
+  spacingSize = "sm",
   className,
+  ...props
 }: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+  spacingSize?: keyof typeof spacing | null;
+  flex?: boolean;
+} & React.ComponentProps<"div">) {
   return (
     <div
-      className={`grid grid-cols-1 sm:grid-cols-2 mx-auto ${spacing.sm.gap} ${className}`}
-    >
-      {children}
-    </div>
+      className={cn(
+        "mx-auto",
+        flex
+          ? "flex flex-wrap justify-center"
+          : "grid grid-cols-1 md:grid-cols-2",
+        spacingSize && spacing[spacingSize].gap,
+        className,
+      )}
+      {...props}
+    />
   );
 }
+
+export { Grid };

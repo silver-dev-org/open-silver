@@ -1,7 +1,7 @@
+import { Spacer, spacing } from "@/components/spacer";
 import { cn } from "@/lib/utils";
-import { Spacer, spacing } from "./spacer";
 
-export function Divider({ className, ...props }: React.ComponentProps<"div">) {
+function Divider({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div className={cn(spacing.sm.px, "md:px-0")}>
       <Spacer size="lg" />
@@ -13,3 +13,5 @@ export function Divider({ className, ...props }: React.ComponentProps<"div">) {
     </div>
   );
 }
+
+export { Divider };

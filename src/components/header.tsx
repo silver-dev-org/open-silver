@@ -61,12 +61,9 @@ export function Header() {
         <div
           className={`flex items-center justify-between w-full xl:w-auto ${spacing.lg.h}`}
         >
-          <h1>
-            <span className="sr-only">Silver.dev</span>
-            <Link onClick={() => setOpen(false)} href={"/#"}>
-              <SilverDev className="fill-foreground w-48 hover:opacity-75 trasnition-all duration-300" />
-            </Link>
-          </h1>
+          <Link onClick={() => setOpen(false)} href={"/#"}>
+            <SilverDev className="fill-foreground w-48 hover:opacity-75 trasnition-all duration-300" />
+          </Link>
           <Button
             className="xl:hidden"
             variant="ghost"

@@ -114,7 +114,7 @@ export function ParamsDialog({
             <div className="flex justify-between items-center">
               <Label
                 htmlFor="monthlyPrivateHealth"
-                className="font-semibold flex flex-col"
+                className="font-semibold flex flex-col items-start"
               >
                 <span className="md:text-base">
                   Monthly Private Health Contribution
@@ -141,7 +141,7 @@ export function ParamsDialog({
             <div className="flex justify-between items-center">
               <Label
                 htmlFor="contractorTaxRate"
-                className="font-semibold flex flex-col"
+                className="font-semibold flex flex-col items-start"
               >
                 <span className="md:text-base">Contractor Tax Rate</span>
                 <span className="text-xs text-muted-foreground">
@@ -167,7 +167,7 @@ export function ParamsDialog({
             <div className="flex justify-between items-center">
               <Label
                 htmlFor="discretionaryBudget"
-                className="font-semibold flex flex-col"
+                className="font-semibold flex flex-col items-start"
               >
                 <span className="md:text-base">
                   Monthly Discretionary Budget
@@ -233,7 +233,7 @@ export function ParamsDialog({
                   <div className="flex justify-between items-center">
                     <Label
                       htmlFor="growthRate"
-                      className="font-semibold flex flex-col"
+                      className="font-semibold flex flex-col items-start"
                     >
                       <span>Yearly Growth Rate</span>
                       <span className="text-xs text-muted-foreground">
@@ -258,7 +258,7 @@ export function ParamsDialog({
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Label className="font-semibold w-12 text-center">
+                      <Label className="font-semibold w-12 justify-center">
                         Year
                       </Label>
                       <Label className="font-semibold flex-2">

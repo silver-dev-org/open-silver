@@ -1,5 +1,5 @@
 import { Heading } from "@/components/heading";
-import { Section } from "@/components/section";
+import { Container } from "@/components/container";
 import { Spacer } from "@/components/spacer";
 import { Description } from "@/components/description";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <Section>
-      <Heading center>
+    <Container>
+      <Heading lvl={1} center>
         Argentina <span className="text-primary">Salary</span> Calculator
       </Heading>
       <Spacer />
@@ -61,13 +61,13 @@ export default function Page() {
           <Button asChild size="lg" className="w-full">
             <Link
               target="_blank"
-              href="https://calendly.com/silver-dev/companies?utm_source=salarycalculator"
+              href="https://calendly.com/silver.dev/companies?utm_source=salarycalculator"
             >
               Book a Meeting
             </Link>
           </Button>
         </CardFooter>
       </Card>
-    </Section>
+    </Container>
   );
 }
