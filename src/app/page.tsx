@@ -54,10 +54,10 @@ const tools: {
         description: "Test your speed and practice typing code.",
         href: "https://wpm.silver.dev",
       },
-      {
-        ...ROAST_MY_SETUP_METADATA,
-        href: "/roast-my-setup",
-      },
+      // {
+      //   ...ROAST_MY_SETUP_METADATA,
+      //   href: "/roast-my-setup",
+      // },
       {
         title: "Practice Repo",
         description:
