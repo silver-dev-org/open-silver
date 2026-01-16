@@ -6,7 +6,7 @@ export const METADATA = {
     "How do other people see you? Get honest feedback from your setup.",
 };
 
-export const BORDER_BY_STATUS: Record<CameraStatus, string> = {
+export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
   idle: "border-dotted",
   error: "border-destructive",
   requesting: "border-dashed animate-pulse",
