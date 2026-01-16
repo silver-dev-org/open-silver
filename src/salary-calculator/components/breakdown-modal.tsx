@@ -53,7 +53,7 @@ export function BreakdownModal({
   const color = COLORS_BY_SCENARIO[scenario];
   const totalGross =
     breakdown.items[0].value +
-    (breakdown.items[1].label.includes("RSU") ? breakdown.items[1].value : 0);
+    (breakdown.items[1]?.label.includes("RSU") ? breakdown.items[1].value : 0);
 
   function handlePrevious() {
     if (hasPrevious) {
