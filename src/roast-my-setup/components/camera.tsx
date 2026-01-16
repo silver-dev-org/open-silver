@@ -18,6 +18,7 @@ type CameraProps = {
   ref?: Ref<CameraRef>;
   status: CameraStatus;
   onStatusChange: (status: CameraStatus) => void;
+  snapshot?: string | null;
 };
 
 export function Camera({
@@ -25,6 +26,7 @@ export function Camera({
   ref,
   status,
   onStatusChange,
+  snapshot,
 }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -114,6 +116,15 @@ export function Camera({
           status !== "active" && "hidden",
         )}
       />
+
+      {status === "frozen" && snapshot && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={snapshot}
+          alt="Frozen camera snapshot"
+          className="w-full h-full object-cover"
+        />
+      )}
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-export type CameraStatus = "idle" | "requesting" | "active" | "error";
+export type CameraStatus = "idle" | "requesting" | "active" | "frozen" | "error";
 
 export type CameraRef = {
   captureSnapshot: () => string | null;
