@@ -1,7 +1,6 @@
+import { Container } from "@/components/container";
 import { Description } from "@/components/description";
 import { Heading } from "@/components/heading";
-import { QueryClientWrapper } from "@/components/query-client-wrapper";
-import { Container } from "@/components/container";
 import { Spacer } from "@/components/spacer";
 import { RoastMySetup } from "@/roast-my-setup";
 import { METADATA } from "@/roast-my-setup/constants";
@@ -23,9 +22,7 @@ export default function Page() {
       <Spacer />
       <Description center>{METADATA.description}</Description>
       <Spacer size="lg" />
-      <QueryClientWrapper>
-        <RoastMySetup />
-      </QueryClientWrapper>
+      <RoastMySetup />
     </Container>
   );
 }
