@@ -1,6 +1,5 @@
 "use client";
 
-import { Layout } from "@/resume-checker/components/layout";
 import { FormProvider } from "@/resume-checker/hooks/form-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -13,9 +12,7 @@ export default function ResumeCheckerLayout({
 }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <FormProvider>
-        <Layout>{children}</Layout>
-      </FormProvider>
+      <FormProvider>{children}</FormProvider>
     </QueryClientProvider>
   );
 }
