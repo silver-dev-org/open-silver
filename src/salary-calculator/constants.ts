@@ -45,9 +45,9 @@ export const COLORS_BY_PERSONA: Record<Persona, Color> = {
     text: "text-primary",
   },
   worker: {
-    var: "var(--secondary)",
-    border: "border-secondary",
-    text: "text-secondary",
+    var: "var(--foreground)",
+    border: "border-foreground",
+    text: "text-foreground",
   },
 };
 export const COLORS_BY_SCENARIO: Record<Scenario, Color> = {
