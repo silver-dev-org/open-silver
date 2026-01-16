@@ -1,9 +1,8 @@
 "use client";
 
 import { Container } from "@/components/container";
-import { Description } from "@/components/description";
 import { Grid } from "@/components/grid";
-import { Heading } from "@/components/heading";
+import { Heading, Subheading } from "@/components/heading";
 import { Spacer, spacing } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import { ErrorBadge } from "@/resume-checker/components/error-badge";
@@ -133,13 +132,13 @@ export function Home() {
 
   return (
     <>
-      <ErrorBadge error={error || mutationError} />
+      {error && <ErrorBadge error={error || mutationError} />}
       <Container>
         <Heading lvl={1} center>
           <span className="text-primary">Resume</span> Checker
         </Heading>
         <Spacer />
-        <Description center>
+        <Subheading center>
           Build your resume with{" "}
           <Link
             href={TYPST_TEMPLATE_URL}
@@ -150,11 +149,12 @@ export function Home() {
             Silver&apos;s template
           </Link>
           . Upload it here and get instant feedback.
-        </Description>
-        <Description className="text-muted-foreground mt-2" center>
+        </Subheading>
+        <Spacer />
+        <Subheading className="text-muted-foreground" center>
           This is not uploaded to Silver.dev directly, feel free to iterate as
           much as you need!
-        </Description>
+        </Subheading>
         <Spacer size="lg" />
         <Grid className="grid-cols-1 md:grid-cols-4">
           <form
