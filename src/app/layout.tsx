@@ -1,5 +1,6 @@
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { QueryClientWrapper } from "@/components/query-client-wrapper";
 import { Spacer } from "@/components/spacer";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,14 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s • Open Silver",
+    default: "Open Silver",
+  },
+  description: "Open Source Software made by Silver.dev",
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,14 +27,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export const metadata: Metadata = {
-  title: {
-    template: "%s • Open Silver",
-    default: "Open Silver",
-  },
-  description: "Open Source Software made by Silver.dev",
-};
 
 export default async function RootLayout({
   children,
@@ -44,7 +45,9 @@ export default async function RootLayout({
           <Spacer size="lg" />
           <Spacer size="lg" />
           <Suspense>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              <QueryClientWrapper>{children}</QueryClientWrapper>
+            </TooltipProvider>
           </Suspense>
           <Spacer size="lg" />
         </main>

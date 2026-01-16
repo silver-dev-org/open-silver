@@ -1,7 +1,6 @@
 import { Container } from "@/components/container";
 import { Description } from "@/components/description";
 import { Heading } from "@/components/heading";
-import { QueryClientWrapper } from "@/components/query-client-wrapper";
 import { Spacer } from "@/components/spacer";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -15,7 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         Upload your take-home and get instant feedback on the project.
       </Description>
       <Spacer size="lg" />
-      <QueryClientWrapper>{children}</QueryClientWrapper>
+      {children}
     </Container>
   );
 }
