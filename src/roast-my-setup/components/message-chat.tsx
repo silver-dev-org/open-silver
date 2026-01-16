@@ -1,17 +1,21 @@
 import { cn } from "@/lib/utils";
 import { MessageBox } from "./message-box";
-import { AnalyzeSetupResponse, CameraStatus } from "../types";
+import { CameraStatus, SetupAnalysis } from "../types";
+import { DeepPartial } from "ai";
+import { SCORE_LABELS } from "../constants";
+import { FlagList } from "./flag-list";
+import { BouncingDots } from "./bouncing-dots";
 
 interface MessageChatProps {
   cameraStatus: CameraStatus;
-  isPending: boolean;
+  isLoading: boolean;
   onRoast?: () => void;
-  data?: AnalyzeSetupResponse;
+  data?: DeepPartial<SetupAnalysis>;
 }
 
 export function MessageChat({
   cameraStatus,
-  isPending,
+  isLoading,
   onRoast,
   data,
 }: MessageChatProps) {
@@ -33,80 +37,54 @@ export function MessageChat({
       {cameraStatus === "frozen" && (
         <>
           <MessageBox side="right">Roast me</MessageBox>
-          {isPending && (
+          {isLoading && (
             <MessageBox side="left">
-              <span className="inline-flex">
-                <span
-                  className="animate-bounce"
-                  style={{ animationDelay: "0s" }}
-                >
-                  .
-                </span>
-                <span
-                  className="animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                >
-                  .
-                </span>
-                <span
-                  className="animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                >
-                  .
-                </span>
-              </span>
+              <BouncingDots />
             </MessageBox>
           )}
           {data && (
             <>
               <MessageBox side="left">
-                <h2
-                  className={cn(
-                    "text-2xl font-extrabold my-1.5",
-                    data.score === "pass" ? "text-success" : "text-destructive",
-                  )}
-                >
-                  {data.score.toUpperCase()}
-                </h2>
-                {data.greenFlags.length > 0 && (
-                  <ul className="my-1.5 text-success">
-                    {data.greenFlags.map((flag, i) => (
-                      <li key={i}>+ {flag}</li>
-                    ))}
-                  </ul>
+                {data.score && (
+                  <h2
+                    className={cn(
+                      "text-2xl font-extrabold my-1.5",
+                      data.score === "pass"
+                        ? "text-success"
+                        : "text-destructive",
+                    )}
+                  >
+                    {SCORE_LABELS[data.score]}
+                  </h2>
                 )}
-                {data.yellowFlags.length > 0 && (
-                  <ul className="my-1.5 text-warning">
-                    {data.yellowFlags.map((flag, i) => (
-                      <li key={i}>~ {flag}</li>
-                    ))}
-                  </ul>
-                )}
-                {data.redFlags.length > 0 && (
-                  <ul className="my-1.5 text-destructive">
-                    {data.redFlags.map((flag, i) => (
-                      <li key={i}>- {flag}</li>
-                    ))}
-                  </ul>
+                {data.flags && (
+                  <>
+                    <FlagList items={data.flags.green} color="green" />
+                    <FlagList items={data.flags.yellow} color="yellow" />
+                    <FlagList items={data.flags.red} color="red" />
+                  </>
                 )}
               </MessageBox>
-              {data.actionPlanSteps.length > 0 && (
+              {data.actionPlanSteps && (
                 <MessageBox side="left">
                   <h2 className="text-2xl font-extrabold my-1.5">
                     Action plan
                   </h2>
-                  <ul className="my-1.5 list-decimal pl-6">
-                    {data.actionPlanSteps.map((step, i) => (
-                      <li key={i}>{step}</li>
-                    ))}
-                  </ul>
+                  {data.actionPlanSteps.length > 0 ? (
+                    <ul className="my-1.5 list-decimal pl-6">
+                      {data.actionPlanSteps.map((step, i) => (
+                        <li key={i}>{step}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "Nothing required; you're ready!"
+                  )}
                 </MessageBox>
               )}
             </>
           )}
         </>
       )}
-      <div className="mb-3" />
     </>
   );
 }

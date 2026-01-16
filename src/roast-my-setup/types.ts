@@ -1,3 +1,6 @@
+import z from "zod";
+import { setupAnalysisSchema } from "./schemas";
+
 export type CameraStatus =
   | "idle"
   | "requesting"
@@ -9,16 +12,12 @@ export type CameraRef = {
   captureSnapshot: () => string | null;
 };
 
-export type SetupScore = "pass" | "roasted";
-
-export type AnalyzeSetupRequest = {
+export type SetupAnalysisRequest = {
   snapshot: string;
 };
 
-export type AnalyzeSetupResponse = {
-  score: SetupScore;
-  greenFlags: string[];
-  yellowFlags: string[];
-  redFlags: string[];
-  actionPlanSteps: string[];
-};
+export type SetupAnalysis = z.infer<typeof setupAnalysisSchema>;
+
+export type Score = SetupAnalysis["score"];
+
+export type FlagColor = keyof SetupAnalysis["flags"];

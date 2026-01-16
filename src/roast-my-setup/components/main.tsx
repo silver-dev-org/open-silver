@@ -3,53 +3,42 @@
 import { XCorp } from "@/components/logos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { useMutation } from "@tanstack/react-query";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import type {
-  AnalyzeSetupRequest,
-  AnalyzeSetupResponse,
-  CameraRef,
-  CameraStatus,
-} from "../types";
+import { SHARE_URL } from "../constants";
+import { setupAnalysisSchema } from "../schemas";
+import { CameraRef, CameraStatus, SetupAnalysisRequest } from "../types";
 import { Camera } from "./camera";
 import { MessageChat } from "./message-chat";
-import { SHARE_URL } from "../constants";
 
 export function RoastMySetup() {
   const cameraRef = useRef<CameraRef>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   const [snapshot, setSnapshot] = useState<string | null>(null);
 
-  const { mutate, isPending, data } = useMutation({
-    mutationFn: async () => {
-      const capturedSnapshot = cameraRef.current?.captureSnapshot();
-      if (!capturedSnapshot) {
-        throw new Error("Failed to capture snapshot");
-      }
-
-      setSnapshot(capturedSnapshot);
-      setCameraStatus("frozen");
-
-      const body: AnalyzeSetupRequest = { snapshot: capturedSnapshot };
-      const response = await fetch("/roast-my-setup/api/analyze-setup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to analyze setup");
-      }
-      return response.json() as Promise<AnalyzeSetupResponse>;
-    },
+  const { object, submit, isLoading } = useObject({
+    api: "/roast-my-setup/api/analyze",
+    schema: setupAnalysisSchema,
   });
 
   function tryAgain() {
     setCameraStatus("active");
     setSnapshot(null);
+  }
+
+  function analyzeSetup() {
+    const capturedSnapshot = cameraRef.current?.captureSnapshot();
+    if (!capturedSnapshot) {
+      throw new Error("Failed to capture snapshot");
+    }
+
+    const input: SetupAnalysisRequest = { snapshot: capturedSnapshot };
+
+    setSnapshot(capturedSnapshot);
+    setCameraStatus("frozen");
+    submit(input);
   }
 
   return (
@@ -62,14 +51,15 @@ export function RoastMySetup() {
         snapshot={snapshot}
       />
       {(cameraStatus === "active" || cameraStatus === "frozen") && (
-        <Card className="md:w-1/3 h-[720px] gap-0">
+        <Card className="md:w-1/3 h-[720px] max-h-[75vh] gap-0">
           <CardContent className="flex flex-col gap-4 h-full overflow-auto">
             <MessageChat
-              isPending={isPending}
+              isLoading={isLoading}
               cameraStatus={cameraStatus}
-              data={data}
-              onRoast={mutate}
+              data={object}
+              onRoast={analyzeSetup}
             />
+            <div className="mb-2" />
           </CardContent>
           {cameraStatus === "frozen" && (
             <CardFooter className="flex gap-3 border-t">
