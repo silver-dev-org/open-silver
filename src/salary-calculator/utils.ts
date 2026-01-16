@@ -1,6 +1,4 @@
 import {
-  ARRAY_ITEM_SEP,
-  ARRAY_SEP,
   DEFAULT_PARAMS,
   FEES,
   MAX_SALARY,
@@ -8,21 +6,15 @@ import {
   MIN_SALARY,
   SHORTENED_PARAM_KEYS,
 } from "./constants";
-import type { Params, Scenario, Breakdown, RSUGrant } from "./types";
+import type { Params, Scenario, Breakdown } from "./types";
 
-function getBreakdownsByScenario(
-  params: Params,
-  rsuValue: number = 0,
-): Record<Scenario, Breakdown> {
-  const {
-    salary,
-    monthlyPrivateHealth,
-    contractorTaxRate,
-    discretionaryBudget = 0,
-  } = params;
+function getBreakdownsByScenario(params: Params): Record<Scenario, Breakdown> {
+  const { salary, monthlyPrivateHealth, rsuTotalGrant, rsuVestingPeriod } =
+    params;
 
   const thirteenthSalary = salary / 12;
-  const salaryWithRSUs = salary + rsuValue;
+  const annualRsuValue = rsuTotalGrant / rsuVestingPeriod;
+  const salaryWithRSUs = salary + annualRsuValue;
   const totalGross = salaryWithRSUs + thirteenthSalary;
   const roundedTotalGross = Math.round(totalGross / 5000) * 5000;
   const clampedSalary = Math.max(
@@ -40,7 +32,6 @@ function getBreakdownsByScenario(
   const taxableGrossEmployee = Math.min(MAX_TAXABLE_GROSS, totalGross);
 
   const privateHealth = monthlyPrivateHealth * 12;
-  const discretionaryBudgetAnnual = discretionaryBudget * 12;
   const pensionEmployer = totalGross * (FEES.eor.employer.pension / 100);
   const socialServicesEmployer =
     totalGross * (FEES.eor.employer.socialServices / 100);
@@ -53,7 +44,6 @@ function getBreakdownsByScenario(
   const totalEmployerCost =
     totalGross +
     privateHealth +
-    discretionaryBudgetAnnual +
     pensionEmployer +
     socialServicesEmployer +
     publicHealth +
@@ -69,29 +59,18 @@ function getBreakdownsByScenario(
 
   const totalWorkerNet =
     totalGross +
-    privateHealth +
-    discretionaryBudgetAnnual -
+    privateHealth -
     pensionWorker -
     healthWorker -
     socialServicesWorker -
     incomeTax;
 
   const rsuItem =
-    rsuValue > 0
+    annualRsuValue > 0
       ? [
           {
-            label: "Vested RSUs Value",
-            value: rsuValue,
-          },
-        ]
-      : [];
-
-  const discretionaryBudgetItem =
-    discretionaryBudgetAnnual > 0
-      ? [
-          {
-            label: "Discretionary Budget (not cash)",
-            value: discretionaryBudgetAnnual,
+            label: `RSU Grant ($${rsuTotalGrant.toLocaleString()} / ${rsuVestingPeriod}yr)`,
+            value: annualRsuValue,
           },
         ]
       : [];
@@ -116,7 +95,6 @@ function getBreakdownsByScenario(
           label: "Private Health Insurance",
           value: privateHealth,
         },
-        ...discretionaryBudgetItem,
         {
           label: `Pension (+${FEES.eor.employer.pension}%)`,
           value: pensionEmployer,
@@ -163,7 +141,6 @@ function getBreakdownsByScenario(
           label: "Private Health Insurance (not cash)",
           value: privateHealth,
         },
-        ...discretionaryBudgetItem,
         {
           label: `Pension (-${FEES.eor.worker.pension}%*)`,
           value: -pensionWorker,
@@ -198,7 +175,6 @@ function getBreakdownsByScenario(
           label: "Silver.dev AOR Fee (+$300/mo)",
           value: FEES.aor.employer.aorMonthlyFee * 12,
         },
-        ...discretionaryBudgetItem,
       ],
       total: salaryWithRSUs + FEES.aor.employer.aorMonthlyFee * 12,
     },
@@ -213,151 +189,27 @@ function getBreakdownsByScenario(
           value: salary,
         },
         ...rsuItem,
-        {
-          label: `Simplified Tax Regime (-${contractorTaxRate}%)`,
-          value: salaryWithRSUs * -(contractorTaxRate / 100),
-        },
-        ...discretionaryBudgetItem,
       ],
-      total: salaryWithRSUs * (1 - contractorTaxRate / 100),
+      total: salaryWithRSUs,
     },
   };
 }
 
-/**
- * Normalize RSU grants to unit-based format for calculation
- * Converts dollar-based grants to units using current FMV
- */
-function normalizeRSUGrants(
-  grants: RSUGrant[],
-  shareFMV: number,
-): [number, number][] {
-  return grants
-    .filter((grant) => {
-      if (grant.mode === "units") {
-        return grant.amount !== undefined && grant.vestingPeriod !== undefined;
-      } else {
-        return (
-          grant.dollarValue !== undefined && grant.vestingPeriod !== undefined
-        );
-      }
-    })
-    .map((grant) => {
-      if (grant.mode === "units") {
-        return [grant.amount!, grant.vestingPeriod!];
-      } else {
-        const numberOfRSUs = grant.dollarValue! / shareFMV;
-        return [numberOfRSUs, grant.vestingPeriod!];
-      }
-    });
+export function getBreakdowns(params: Params): Record<Scenario, Breakdown> {
+  return getBreakdownsByScenario(params);
 }
 
-export function getYearlyBreakdowns(
-  params: Params,
-): Record<Scenario, Breakdown>[] {
-  const { shareFMV, growthRate, grantedRSUs } = params;
-
-  if (
-    shareFMV == null ||
-    growthRate == null ||
-    !grantedRSUs ||
-    grantedRSUs.length === 0
-  ) {
-    return [getBreakdownsByScenario(params)];
-  }
-
-  const normalizedGrants = normalizeRSUGrants(grantedRSUs, shareFMV);
-
-  const maxYear = Math.max(
-    ...normalizedGrants.map(([_, vesting], idx) => idx + vesting + 1),
-  );
-  const yearlyBreakdowns: Record<Scenario, Breakdown>[] = [];
-
-  for (let year = 0; year < Math.ceil(maxYear); year++) {
-    let rsuValueThisYear = 0;
-    for (let grantYear = 0; grantYear < normalizedGrants.length; grantYear++) {
-      const [amount, vestingPeriod] = normalizedGrants[grantYear];
-      const vestingYear = grantYear + vestingPeriod;
-      const yearsSinceGrant = year - grantYear;
-
-      // For immediate vesting (vestingPeriod = 0), vest all in grant year
-      if (vestingPeriod === 0) {
-        if (year === grantYear) {
-          const fmvAtVesting = shareFMV;
-          rsuValueThisYear += amount * fmvAtVesting;
-        }
-        continue;
-      }
-
-      if (
-        year < grantYear ||
-        year >= vestingYear ||
-        yearsSinceGrant >= vestingPeriod
-      ) {
-        continue;
-      }
-
-      const fmvAtVesting =
-        shareFMV * Math.pow(1 + growthRate / 100, yearsSinceGrant);
-      const annualVest = amount / vestingPeriod;
-
-      rsuValueThisYear += annualVest * fmvAtVesting;
-    }
-    const breakdowns = getBreakdownsByScenario(params, rsuValueThisYear);
-    yearlyBreakdowns.push(breakdowns);
-  }
-
-  return yearlyBreakdowns;
-}
-
-export function parseParams(searchParams?: URLSearchParams | null) {
-  const params = DEFAULT_PARAMS;
-  for (const key of Object.keys(params)) {
-    const shortenedKey = SHORTENED_PARAM_KEYS[key as keyof Params];
+export function parseParams(searchParams?: URLSearchParams | null): Params {
+  const params = { ...DEFAULT_PARAMS };
+  for (const key of Object.keys(params) as (keyof Params)[]) {
+    const shortenedKey = SHORTENED_PARAM_KEYS[key];
     const strValue = searchParams?.get(shortenedKey);
     if (strValue) {
-      if (key === "grantedRSUs") {
-        params.grantedRSUs = strValue.split(ARRAY_SEP).map((item) => {
-          const dotIndex = item.indexOf(".");
-
-          if (dotIndex === -1) {
-            // Backward compatibility: no prefix = units
-            const [amountStr, vestingStr] = item.split(ARRAY_ITEM_SEP);
-            return {
-              mode: "units" as const,
-              amount: Number(amountStr),
-              vestingPeriod: Number(vestingStr),
-            };
-          }
-
-          const prefix = item.substring(0, dotIndex);
-          const rest = item.substring(dotIndex + 1);
-          const [valueStr, vestingStr] = rest.split(ARRAY_ITEM_SEP);
-          const vestingPeriod = Number(vestingStr);
-
-          if (prefix === "u") {
-            return {
-              mode: "units" as const,
-              amount: Number(valueStr),
-              vestingPeriod,
-            };
-          } else if (prefix === "d") {
-            return {
-              mode: "dollars" as const,
-              dollarValue: Number(valueStr),
-              vestingPeriod,
-            };
-          }
-
-          // Fallback to units
-          return {
-            mode: "units" as const,
-            amount: Number(valueStr),
-            vestingPeriod,
-          };
-        });
+      if (key === "rsuVestingPeriod") {
+        const parsed = parseInt(strValue);
+        params.rsuVestingPeriod = parsed === 1 ? 1 : 4;
       } else {
-        (params[key as keyof Params] as number) = parseFloat(strValue);
+        (params[key] as number) = parseFloat(strValue);
       }
     }
   }
@@ -367,23 +219,9 @@ export function parseParams(searchParams?: URLSearchParams | null) {
 export function saveParams(params: Params) {
   const newSearchParams = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
-    if (!value) continue;
+    if (value === undefined || value === null) continue;
     const shortenedKey = SHORTENED_PARAM_KEYS[key as keyof Params];
-    let strValue;
-    if (key === "grantedRSUs") {
-      strValue = (value as RSUGrant[])
-        .map((grant) => {
-          if (grant.mode === "units") {
-            return `u.${grant.amount}${ARRAY_ITEM_SEP}${grant.vestingPeriod}`;
-          } else {
-            return `d.${grant.dollarValue}${ARRAY_ITEM_SEP}${grant.vestingPeriod}`;
-          }
-        })
-        .join(ARRAY_SEP);
-    } else {
-      strValue = value.toString();
-    }
-    newSearchParams.set(shortenedKey, strValue);
+    newSearchParams.set(shortenedKey, value.toString());
   }
   window.history.pushState(null, "", `?${newSearchParams.toString()}`);
 }

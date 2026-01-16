@@ -7,14 +7,13 @@ import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { COLORS_BY_SCENARIO, MAX_SALARY } from "../constants";
+import { COLORS_BY_SCENARIO } from "../constants";
 import type { Breakdown, Params, SalaryModel, Scenario } from "../types";
-import { getYearlyBreakdowns, parseParams, saveParams } from "../utils";
+import { getBreakdowns, parseParams, saveParams } from "../utils";
 import { BreakdownCard } from "./breakdown-card";
 import { BreakdownModal } from "./breakdown-modal";
 import { ParamsDialog } from "./params-dialog";
 import { SalarySlider } from "./salary-slider";
-import { YearlyCompensationChart } from "./yearly-compensation-chart";
 import posthog from "posthog-js";
 
 export function SalaryCalculator() {
@@ -23,9 +22,8 @@ export function SalaryCalculator() {
   const [params, setParams] = useState<Params>(() => parseParams(searchParams));
   const [breakdownProps, setBreakdownProps] = useState<{
     scenario: Scenario;
-    year: number;
   }>();
-  const yearlyBreakdowns = getYearlyBreakdowns(params);
+  const breakdowns = getBreakdowns(params);
   const dialog = useAnimatedDialog();
   const buttonRefs = useRef<Record<Scenario, HTMLButtonElement | null>>({
     "eor-employer": null,
@@ -37,27 +35,14 @@ export function SalaryCalculator() {
     salary: params.salary,
     setSalary,
     buttonRefs,
-    yearlyBreakdowns,
-    yDomain: [
-      0,
-      Math.max(
-        MAX_SALARY * 2,
-        ...yearlyBreakdowns.flatMap((breakdowns) => [
-          breakdowns["eor-employer"].total,
-          breakdowns["eor-worker"].total,
-          breakdowns["aor-employer"].total,
-          breakdowns["aor-worker"].total,
-        ]),
-      ),
-    ],
-    onViewBreakdown(year, scenario: Scenario) {
+    breakdowns,
+    onViewBreakdown(scenario: Scenario) {
       const button = buttonRefs.current[scenario];
       dialog.open(button);
-      setBreakdownProps({ scenario, year });
+      setBreakdownProps({ scenario });
 
       posthog.capture("salary_breakdown_viewed", {
         scenario,
-        year,
         salary: params.salary,
       });
     },
@@ -72,10 +57,10 @@ export function SalaryCalculator() {
     }, 1000);
   }, [params, searchParams]);
 
-  function handleNavigate(year: number, scenario: Scenario) {
+  function handleNavigate(scenario: Scenario) {
     const button = buttonRefs.current[scenario];
     dialog.updateOrigin(button);
-    setBreakdownProps({ scenario, year });
+    setBreakdownProps({ scenario });
   }
 
   function setSalary(salary: number) {
@@ -106,7 +91,7 @@ export function SalaryCalculator() {
         <SalaryModelSection {...sharedSectionProps} salaryModel="aor" />
       </div>
       <BreakdownModal
-        yearlyBreakdowns={yearlyBreakdowns}
+        breakdowns={breakdowns}
         onNavigate={handleNavigate}
         originRect={dialog.originRect}
         {...breakdownProps}
@@ -120,10 +105,9 @@ interface SalaryModelSectionProps {
   salaryModel: SalaryModel;
   salary: number;
   setSalary: (value: number) => void;
-  onViewBreakdown: (year: number, scenario: Scenario) => void;
+  onViewBreakdown: (scenario: Scenario) => void;
   buttonRefs: React.RefObject<Record<Scenario, HTMLButtonElement | null>>;
-  yDomain?: [number, number];
-  yearlyBreakdowns: Record<Scenario, Breakdown>[];
+  breakdowns: Record<Scenario, Breakdown>;
 }
 
 function SalaryModelSection({
@@ -132,13 +116,12 @@ function SalaryModelSection({
   setSalary,
   onViewBreakdown,
   buttonRefs,
-  yDomain,
-  yearlyBreakdowns,
+  breakdowns,
 }: SalaryModelSectionProps) {
   const heading =
     salaryModel === "eor" ? "Employer of Record (EOR)" : "Contractor";
-  const firstYearBreakdowns = Object.entries(yearlyBreakdowns[0]).filter(
-    ([key]) => key.startsWith(salaryModel),
+  const filteredBreakdowns = Object.entries(breakdowns).filter(([key]) =>
+    key.startsWith(salaryModel),
   );
   return (
     <div className={cn("flex flex-col", spacing.sm.gap)}>
@@ -150,42 +133,26 @@ function SalaryModelSection({
           <SalarySlider value={salary} onChange={setSalary} />
         </CardContent>
       </Card>
-      {yearlyBreakdowns && yearlyBreakdowns.length > 1 ? (
-        <YearlyCompensationChart
-          salaryModel={salaryModel}
-          heading={heading}
-          yearlyBreakdowns={yearlyBreakdowns}
-          salary={salary}
-          yDomain={yDomain}
-          onBarClick={onViewBreakdown}
-        />
-      ) : (
-        <>
-          <div className="hidden md:block">
-            <h3 className="text-2xl font-semibold text-center">{heading}</h3>
-          </div>
-          <div
-            className={cn(
-              "flex flex-col md:flex-row size-full",
-              spacing.sm.gap,
-            )}
-          >
-            {firstYearBreakdowns.map(([scenario, breakdown]) => {
-              return (
-                <BreakdownCard
-                  key={scenario}
-                  breakdown={breakdown}
-                  onView={() => onViewBreakdown(0, scenario as Scenario)}
-                  buttonRef={(el) => {
-                    buttonRefs.current[scenario as Scenario] = el;
-                  }}
-                  color={COLORS_BY_SCENARIO[scenario as Scenario]}
-                />
-              );
-            })}
-          </div>
-        </>
-      )}
+      <div className="hidden md:block">
+        <h3 className="text-2xl font-semibold text-center">{heading}</h3>
+      </div>
+      <div
+        className={cn("flex flex-col md:flex-row size-full", spacing.sm.gap)}
+      >
+        {filteredBreakdowns.map(([scenario, breakdown]) => {
+          return (
+            <BreakdownCard
+              key={scenario}
+              breakdown={breakdown}
+              onView={() => onViewBreakdown(scenario as Scenario)}
+              buttonRef={(el) => {
+                buttonRefs.current[scenario as Scenario] = el;
+              }}
+              color={COLORS_BY_SCENARIO[scenario as Scenario]}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn, getOrdinal } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Fragment, HTMLAttributes, useEffect, useState } from "react";
@@ -28,27 +28,25 @@ import {
 import type { Breakdown, BreakdownItem, Scenario } from "../types";
 
 export function BreakdownModal({
-  yearlyBreakdowns,
+  breakdowns,
   open,
   onOpenChange,
   onNavigate,
   originRect,
-  year = 0,
   scenarios = SCENARIOS,
   scenario = SCENARIOS[0],
 }: {
-  yearlyBreakdowns: Record<Scenario, Breakdown>[];
+  breakdowns: Record<Scenario, Breakdown>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onNavigate: (year: number, scenario: Scenario) => void;
+  onNavigate: (scenario: Scenario) => void;
   originRect: DOMRect | null;
-  year?: number;
   scenarios?: Scenario[];
   scenario?: Scenario;
 }) {
   const [direction, setDirection] = useState<"left" | "right" | null>(null);
   const [hasUsedArrowKeys, setHasUsedKeys] = useState(false);
-  const breakdown = yearlyBreakdowns[year ?? 0][scenario];
+  const breakdown = breakdowns[scenario];
   const currentIndex = scenario ? scenarios.indexOf(scenario) : -1;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < scenarios.length - 1;
@@ -60,14 +58,14 @@ export function BreakdownModal({
   function handlePrevious() {
     if (hasPrevious) {
       setDirection("left");
-      onNavigate(year, scenarios[currentIndex - 1]);
+      onNavigate(scenarios[currentIndex - 1]);
     }
   }
 
   function handleNext() {
     if (hasNext) {
       setDirection("right");
-      onNavigate(year, scenarios[currentIndex + 1]);
+      onNavigate(scenarios[currentIndex + 1]);
     }
   }
 
@@ -109,11 +107,7 @@ export function BreakdownModal({
             )}
           >
             <DialogHeader>
-              <DialogTitle className="text-left">
-                {yearlyBreakdowns.length > 1 &&
-                  `${getOrdinal(year + 1)} year • `}
-                {breakdown.title}
-              </DialogTitle>
+              <DialogTitle className="text-left">{breakdown.title}</DialogTitle>
               <DialogDescription className="text-left">
                 Sources:{" "}
                 {breakdown.sources.map((source, i) => (
