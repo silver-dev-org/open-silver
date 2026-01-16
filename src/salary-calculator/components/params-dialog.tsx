@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
 import { Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -103,20 +103,40 @@ export function ParamsDialog({
                     name="rsuVestingPeriod"
                     control={control}
                     render={({ field }) => (
-                      <RadioGroup
-                        value={field.value.toString()}
-                        onValueChange={(value) => field.onChange(Number(value))}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem value="1" id="vesting-1" />
-                          <Label htmlFor="vesting-1">1 year</Label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem value="4" id="vesting-4" />
-                          <Label htmlFor="vesting-4">4 years</Label>
-                        </div>
-                      </RadioGroup>
+                      <div className="flex border rounded-md">
+                        <label
+                          className={cn(
+                            "px-3 py-1.5 text-sm cursor-pointer rounded-l transition-colors",
+                            field.value === 1
+                              ? "bg-accent"
+                              : "hover:bg-accent/50",
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            className="sr-only"
+                            checked={field.value === 1}
+                            onChange={() => field.onChange(1)}
+                          />
+                          1 year
+                        </label>
+                        <label
+                          className={cn(
+                            "px-3 py-1.5 text-sm cursor-pointer rounded-r transition-colors",
+                            field.value === 4
+                              ? "bg-accent"
+                              : "hover:bg-accent/50",
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            className="sr-only"
+                            checked={field.value === 4}
+                            onChange={() => field.onChange(4)}
+                          />
+                          4 years
+                        </label>
+                      </div>
                     )}
                   />
                 </div>
