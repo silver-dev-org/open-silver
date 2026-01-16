@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { BORDER_BY_STATUS } from "../constants";
+import { CLASSNAME_BY_STATUS } from "../constants";
 import type { CameraRef, CameraStatus } from "../types";
 
 type CameraProps = {
@@ -73,7 +73,7 @@ export function Camera({
     <Card
       className={cn(
         "aspect-video overflow-hidden p-0 border-4",
-        BORDER_BY_STATUS[status],
+        CLASSNAME_BY_STATUS[status],
         className,
       )}
       hoverable={status === "idle"}
