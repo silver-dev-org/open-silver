@@ -152,7 +152,7 @@ export function ParamsDialog({
                       type="number"
                       className="w-min max-w-32"
                       min={0}
-                      step="0.01"
+                      step="100"
                       {...register("rsuTotalGrant", {
                         valueAsNumber: true,
                       })}
