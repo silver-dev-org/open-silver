@@ -9,7 +9,7 @@ export type CameraRef = {
   captureSnapshot: () => string | null;
 };
 
-export type SetupScore = "pass" | "fail";
+export type SetupScore = "pass" | "roasted";
 
 export type AnalyzeSetupRequest = {
   snapshot: string;
