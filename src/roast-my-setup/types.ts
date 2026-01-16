@@ -1,10 +1,15 @@
-export type CameraStatus = "idle" | "requesting" | "active" | "frozen" | "error";
+export type CameraStatus =
+  | "idle"
+  | "requesting"
+  | "active"
+  | "frozen"
+  | "error";
 
 export type CameraRef = {
   captureSnapshot: () => string | null;
 };
 
-export type SetupScore = "Pass" | "Fail";
+export type SetupScore = "pass" | "fail";
 
 export type AnalyzeSetupRequest = {
   snapshot: string;

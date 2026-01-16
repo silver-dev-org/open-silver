@@ -11,6 +11,7 @@ import type {
 } from "../types";
 import { Camera } from "./camera";
 import { MessageBox } from "./message-box";
+import { cn } from "@/lib/utils";
 
 export function RoastMySetup() {
   const cameraRef = useRef<CameraRef>(null);
@@ -97,23 +98,32 @@ export function RoastMySetup() {
                   )}
                   {data && (
                     <MessageBox side="left">
-                      <p className="text-2xl font-bold">{data.score}</p>
+                      <p
+                        className={cn(
+                          "text-2xl font-extrabold my-1.5",
+                          data.score === "pass"
+                            ? "text-success"
+                            : "text-destructive",
+                        )}
+                      >
+                        {data.score.toUpperCase()}
+                      </p>
                       {data.greenFlags.length > 0 && (
-                        <ul className="text-success">
+                        <ul className="my-1.5 text-success">
                           {data.greenFlags.map((flag, i) => (
                             <li key={i}>+ {flag}</li>
                           ))}
                         </ul>
                       )}
                       {data.yellowFlags.length > 0 && (
-                        <ul className="text-warning">
+                        <ul className="my-1.5 text-warning">
                           {data.yellowFlags.map((flag, i) => (
                             <li key={i}>~ {flag}</li>
                           ))}
                         </ul>
                       )}
                       {data.redFlags.length > 0 && (
-                        <ul className="text-destructive">
+                        <ul className="my-1.5 text-destructive">
                           {data.redFlags.map((flag, i) => (
                             <li key={i}>- {flag}</li>
                           ))}

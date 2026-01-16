@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
   const mockData: AnalyzeSetupResponse = {
-    score: "Fail",
+    score: "fail",
     greenFlags: ["Good headphones"],
     yellowFlags: ["Inconsistent lighting", "Poor camera angle"],
     redFlags: ["Untidy room", "Alcohol in the table"],
