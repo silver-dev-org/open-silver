@@ -189,8 +189,12 @@ function getBreakdownsByScenario(params: Params): Record<Scenario, Breakdown> {
           value: salary,
         },
         ...rsuItem,
+        {
+          label: "Simplified Tax Regime (-15%)",
+          value: -salaryWithRSUs * 0.15,
+        },
       ],
-      total: salaryWithRSUs,
+      total: salaryWithRSUs * 0.85,
     },
   };
 }
