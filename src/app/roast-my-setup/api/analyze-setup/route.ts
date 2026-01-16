@@ -10,6 +10,8 @@ export async function POST(request: NextRequest) {
   // TODO: Use the snapshot for analysis
   console.log("Received snapshot:", snapshot.slice(0, 50) + "...");
 
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   const mockData: AnalyzeSetupResponse = {
     score: "Fail",
     greenFlags: ["Good headphones"],

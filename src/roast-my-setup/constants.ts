@@ -11,4 +11,5 @@ export const BORDER_BY_STATUS: Record<CameraStatus, string> = {
   error: "border-destructive",
   requesting: "border-dashed animate-pulse",
   active: "border-accent",
+  frozen: "border-primary",
 };
