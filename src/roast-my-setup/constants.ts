@@ -13,3 +13,6 @@ export const BORDER_BY_STATUS: Record<CameraStatus, string> = {
   active: "border-accent",
   frozen: "border-primary",
 };
+
+export const SHARE_URL =
+  "https://x.com/intent/post?hashtags=RoastMySetup%2C&text=Roasted%20https://open.silver.dev/roast-my-setup?id=whatever%0A";
