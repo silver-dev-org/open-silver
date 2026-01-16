@@ -21,23 +21,15 @@ export const SCENARIOS: Scenario[] = [
 export const DEFAULT_PARAMS: Params = {
   salary: 100000,
   monthlyPrivateHealth: 100,
-  contractorTaxRate: 15,
-  discretionaryBudget: 0,
-  shareFMV: undefined,
-  growthRate: undefined,
-  grantedRSUs: undefined,
+  rsuTotalGrant: 0,
+  rsuVestingPeriod: 4,
 };
 export const SHORTENED_PARAM_KEYS: Record<keyof Params, string> = {
   salary: "s",
   monthlyPrivateHealth: "h",
-  contractorTaxRate: "c",
-  discretionaryBudget: "d",
-  shareFMV: "fmv",
-  growthRate: "gr",
-  grantedRSUs: "rsu",
+  rsuTotalGrant: "rsu",
+  rsuVestingPeriod: "vp",
 };
-export const ARRAY_SEP = "_";
-export const ARRAY_ITEM_SEP = "-";
 export const COLORS_BY_PERSONA: Record<Persona, Color> = {
   employer: {
     var: "var(--primary)",
