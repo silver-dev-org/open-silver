@@ -10,10 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Settings2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { DEFAULT_PARAMS } from "../constants";
 import type { Params } from "../types";
 
@@ -25,10 +25,7 @@ export function ParamsDialog({
   setParams: (params: Params) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [rsuVestingPeriod, setRsuVestingPeriod] = useState<1 | 4>(
-    params.rsuVestingPeriod,
-  );
-  const { register, handleSubmit, reset } = useForm<Params>({
+  const { register, handleSubmit, reset, control } = useForm<Params>({
     defaultValues: params,
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -37,12 +34,11 @@ export function ParamsDialog({
   useEffect(() => {
     if (isOpen) {
       reset(params);
-      setRsuVestingPeriod(params.rsuVestingPeriod);
     }
   }, [isOpen, params, reset]);
 
   function onSubmit(data: Params) {
-    setParams({ ...data, rsuVestingPeriod });
+    setParams(data);
     setIsOpen(false);
   }
 
@@ -53,7 +49,6 @@ export function ParamsDialog({
 
   function handleReset() {
     reset(DEFAULT_PARAMS);
-    setRsuVestingPeriod(DEFAULT_PARAMS.rsuVestingPeriod);
   }
 
   return (
@@ -103,35 +98,27 @@ export function ParamsDialog({
 
               <div className="space-y-4 pl-4 border-l-2">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="rsuVestingPeriod" className="font-semibold">
-                    Vesting Period
-                  </Label>
-                  <div className="flex border rounded-md">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setRsuVestingPeriod(1)}
-                      className={cn(
-                        "rounded-r-none",
-                        rsuVestingPeriod === 1 && "bg-accent",
-                      )}
-                    >
-                      1 year
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setRsuVestingPeriod(4)}
-                      className={cn(
-                        "rounded-l-none",
-                        rsuVestingPeriod === 4 && "bg-accent",
-                      )}
-                    >
-                      4 years
-                    </Button>
-                  </div>
+                  <Label className="font-semibold">Vesting Period</Label>
+                  <Controller
+                    name="rsuVestingPeriod"
+                    control={control}
+                    render={({ field }) => (
+                      <RadioGroup
+                        value={field.value.toString()}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="1" id="vesting-1" />
+                          <Label htmlFor="vesting-1">1 year</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="4" id="vesting-4" />
+                          <Label htmlFor="vesting-4">4 years</Label>
+                        </div>
+                      </RadioGroup>
+                    )}
+                  />
                 </div>
 
                 <div className="flex justify-between items-center">
