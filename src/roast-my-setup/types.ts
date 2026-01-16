@@ -20,4 +20,5 @@ export type AnalyzeSetupResponse = {
   greenFlags: string[];
   yellowFlags: string[];
   redFlags: string[];
+  actionPlanSteps: string[];
 };

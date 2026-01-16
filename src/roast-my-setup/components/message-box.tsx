@@ -11,7 +11,7 @@ export function MessageBox({ children, side, className }: MessageBoxProps) {
   return (
     <div
       className={cn(
-        "text-lg bg-muted p-2 rounded-xl w-min text-nowrap",
+        "text-lg bg-muted p-2 rounded-xl",
         side === "left"
           ? "rounded-tl-none text-start me-auto"
           : "rounded-tr-none text-end ms-auto",

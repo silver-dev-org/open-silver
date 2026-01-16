@@ -1,7 +1,11 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { XCorp } from "@/components/logos";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
+import { RefreshCcw } from "lucide-react";
+import Link from "next/link";
 import { useRef, useState } from "react";
 import type {
   AnalyzeSetupRequest,
@@ -10,8 +14,8 @@ import type {
   CameraStatus,
 } from "../types";
 import { Camera } from "./camera";
-import { MessageBox } from "./message-box";
-import { cn } from "@/lib/utils";
+import { MessageChat } from "./message-chat";
+import { SHARE_URL } from "../constants";
 
 export function RoastMySetup() {
   const cameraRef = useRef<CameraRef>(null);
@@ -43,100 +47,46 @@ export function RoastMySetup() {
     },
   });
 
+  function tryAgain() {
+    setCameraStatus("active");
+    setSnapshot(null);
+  }
+
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-col md:flex-row gap-6">
-        <Camera
-          className="w-2/3 mx-auto"
-          ref={cameraRef}
-          status={cameraStatus}
-          onStatusChange={setCameraStatus}
-          snapshot={snapshot}
-        />
-        {(cameraStatus === "active" || cameraStatus === "frozen") && (
-          <Card className="w-1/3">
-            <CardContent className="flex flex-col gap-4 overflow-auto">
-              {(cameraStatus === "active" || cameraStatus === "frozen") && (
-                <MessageBox side="left">
-                  Hey! Say &quot;
-                  <button
-                    onClick={() => mutate()}
-                    disabled={cameraStatus === "frozen"}
-                    className="link cursor-pointer"
-                  >
-                    Roast me
-                  </button>
-                  &quot; aloud.
-                </MessageBox>
-              )}
-              {cameraStatus === "frozen" && (
-                <>
-                  <MessageBox side="right">Roast me</MessageBox>
-                  {isPending && (
-                    <MessageBox side="left">
-                      <span className="inline-flex">
-                        <span
-                          className="animate-bounce"
-                          style={{ animationDelay: "0s" }}
-                        >
-                          .
-                        </span>
-                        <span
-                          className="animate-bounce"
-                          style={{ animationDelay: "0.1s" }}
-                        >
-                          .
-                        </span>
-                        <span
-                          className="animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        >
-                          .
-                        </span>
-                      </span>
-                    </MessageBox>
-                  )}
-                  {data && (
-                    <MessageBox side="left">
-                      <p
-                        className={cn(
-                          "text-2xl font-extrabold my-1.5",
-                          data.score === "pass"
-                            ? "text-success"
-                            : "text-destructive",
-                        )}
-                      >
-                        {data.score.toUpperCase()}
-                      </p>
-                      {data.greenFlags.length > 0 && (
-                        <ul className="my-1.5 text-success">
-                          {data.greenFlags.map((flag, i) => (
-                            <li key={i}>+ {flag}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {data.yellowFlags.length > 0 && (
-                        <ul className="my-1.5 text-warning">
-                          {data.yellowFlags.map((flag, i) => (
-                            <li key={i}>~ {flag}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {data.redFlags.length > 0 && (
-                        <ul className="my-1.5 text-destructive">
-                          {data.redFlags.map((flag, i) => (
-                            <li key={i}>- {flag}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </MessageBox>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
+    <div className="flex flex-col md:flex-row gap-6">
+      <Camera
+        className="md:w-2/3 mx-auto"
+        ref={cameraRef}
+        status={cameraStatus}
+        onStatusChange={setCameraStatus}
+        snapshot={snapshot}
+      />
+      {(cameraStatus === "active" || cameraStatus === "frozen") && (
+        <Card className="md:w-1/3 h-[720px] gap-0">
+          <CardContent className="flex flex-col gap-4 h-full overflow-auto">
+            <MessageChat
+              isPending={isPending}
+              cameraStatus={cameraStatus}
+              data={data}
+              onRoast={mutate}
+            />
+          </CardContent>
+          {cameraStatus === "frozen" && (
+            <CardFooter className="flex gap-3 border-t">
+              <Button variant="outline" className="flex-1" onClick={tryAgain}>
+                <RefreshCcw />
+                Try Again
+              </Button>
+              <Button variant="secondary" className="flex-1" asChild>
+                <Link href={SHARE_URL} target="_blank">
+                  <XCorp className="fill-secondary-foreground" />
+                  Share
+                </Link>
+              </Button>
+            </CardFooter>
+          )}
+        </Card>
+      )}
     </div>
   );
 }
