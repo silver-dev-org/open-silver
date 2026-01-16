@@ -12,6 +12,8 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.17",
     "@ai-sdk/openai": "^2.0.44",
+    "@ai-sdk/react": "^3.0.41",
+    "@ai-sdk/xai": "^2.0.53",
     "@hookform/resolvers": "^5.2.2",
     "@next/third-parties": "^15.5.4",
     "@notionhq/client": "^2.3.0",
