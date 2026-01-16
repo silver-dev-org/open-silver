@@ -51,18 +51,19 @@ export function RoastMySetup() {
         snapshot={snapshot}
       />
       {(cameraStatus === "active" || cameraStatus === "frozen") && (
-        <Card className="md:w-1/3 h-[720px] max-h-[75vh] gap-0">
-          <CardContent className="flex flex-col gap-4 h-full overflow-auto">
+        <Card className="md:w-1/3 h-[720px] max-h-[75vh] gap-0 pt-0">
+          <CardContent className="flex flex-col gap-6 h-full overflow-y-scroll">
+            <div />
             <MessageChat
               isLoading={isLoading}
               cameraStatus={cameraStatus}
               data={object}
               onRoast={analyzeSetup}
             />
-            <div className="mb-2" />
+            <div />
           </CardContent>
           {cameraStatus === "frozen" && (
-            <CardFooter className="flex gap-3 border-t">
+            <CardFooter className="flex gap-6 border-t">
               <Button variant="outline" className="flex-1" onClick={tryAgain}>
                 <RefreshCcw />
                 Try Again
