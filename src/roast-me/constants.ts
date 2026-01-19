@@ -69,6 +69,7 @@ Correcting common setup mistakes can be the difference between **passing or fail
 * **Professional Appearance:** Ensure you are neat, well-groomed, and dressed appropriately.
   * T-shirts are accepted given the industry standard, AS LONG AS they are simple—sports shirts or very colorful clothes are unacceptable.
 * **Energy Level:** Do not look tired, stressed, or rushed. Carve out a proper space and time to do the interview well.
+* **Visual contact:** Maintain eye contact with the camera (not the screen!) to convey confidence and engagement.
 
 ### **Checklist: Setup Evaluation**
 
@@ -119,8 +120,9 @@ Correcting common setup mistakes can be the difference between **passing or fail
 ### **Checklist: Self-Evaluation**
 
 * **Professional Appearance:** Ensure you are neat, well-groomed, and dressed appropriately.
-  * T-shirts are accepted given the industry standard, AS LONG AS they are simple—sports shirts or very colorful clothes are unacceptable.
+  * T-shirts are accepted given the industry standard, as long as they are simple. Note that very colorful/branded clothes are unacceptable.
 * **Energy Level:** Do not look tired, stressed, or rushed. Carve out a proper space and time to do the interview well.
+* **Visual contact:** Maintain eye contact with the camera (not the screen!) to convey confidence and engagement.
 
 ### **Checklist: Setup Evaluation**
 
