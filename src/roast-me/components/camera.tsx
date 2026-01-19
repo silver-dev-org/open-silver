@@ -2,7 +2,13 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { AlertCircle, Camera as CameraIcon, Loader2, Mic } from "lucide-react";
+import {
+  AlertCircle,
+  BatteryMedium,
+  Camera as CameraIcon,
+  Loader2,
+  Mic,
+} from "lucide-react";
 import {
   type Ref,
   useEffect,
@@ -33,6 +39,7 @@ export function Camera({
   overlay,
 }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -40,6 +47,27 @@ export function Camera({
       videoRef.current.srcObject = stream;
     }
   }, [stream]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (status === "active") {
+      setElapsedTime(0);
+      interval = setInterval(() => {
+        setElapsedTime((prevTime) => prevTime + 1);
+      }, 1000);
+    }
+    return () => {
+      clearInterval(interval);
+    };
+  }, [status]);
+
+  const formatTime = (timeInSeconds: number) => {
+    const minutes = Math.floor(timeInSeconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = (timeInSeconds % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+  };
 
   useImperativeHandle(ref, () => ({
     captureSnapshot: () => {
@@ -110,16 +138,51 @@ export function Camera({
         </CardContent>
       )}
 
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className={cn(
-          "w-full h-full object-cover",
-          status !== "active" && "hidden",
-        )}
-      />
+      {status === "active" && (
+        <div className="relative w-full h-full">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+            style={{
+              filter: [
+                grayscale ? "grayscale(1)" : "",
+                "sepia(0.05) saturate(0.8) contrast(1.05) brightness(0.95) blur(0.5px)",
+              ]
+                .join(" ")
+                .trim(),
+            }}
+          />
+          {/* Vignette */}
+          <div className="pointer-events-none absolute inset-0 shadow-vignette" />
+
+          {/* Rectangular Corners */}
+          <div className="absolute left-4 top-4 h-4 w-4 border-l-2 border-t-2 border-white" />
+          <div className="absolute right-4 top-4 h-4 w-4 border-r-2 border-t-2 border-white" />
+          <div className="absolute bottom-4 left-4 h-4 w-4 border-b-2 border-l-2 border-white" />
+          <div className="absolute bottom-4 right-4 h-4 w-4 border-b-2 border-r-2 border-white" />
+
+          {/* Live Indicator */}
+          <div className="absolute left-9 top-9 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
+            <div className="h-2 w-2 animate-caret-blink rounded-full bg-red-600" />
+            Rec
+          </div>
+
+          {/* Live Indicator */}
+          <div className="absolute right-8 top-8">
+            <BatteryMedium className="size-8 text-white" />
+          </div>
+
+          {/* Timer */}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md bg-black/50 px-2 py-1 text-xs font-semibold text-white">
+            {formatTime(elapsedTime)}
+          </div>
+
+          {overlay}
+        </div>
+      )}
 
       {status === "frozen" && snapshot && (
         <div className="relative w-full h-full">
@@ -129,7 +192,7 @@ export function Camera({
             alt="Frozen camera snapshot"
             className={cn(
               "w-full h-full object-cover transition-all duration-1000",
-              grayscale && "grayscale"
+              grayscale && "grayscale",
             )}
           />
           {overlay}
