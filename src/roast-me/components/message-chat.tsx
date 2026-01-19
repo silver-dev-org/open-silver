@@ -12,8 +12,7 @@ const MESSAGE_DELAY = 1000;
 
 interface MessageChatProps {
   cameraStatus: CameraStatus;
-  isLoading: boolean;
-  isUnleashed?: boolean;
+  isUnhinged?: boolean;
   onRoast?: () => void;
   data?: DeepPartial<SetupAnalysis>;
   showResults?: boolean;
@@ -21,8 +20,7 @@ interface MessageChatProps {
 
 export function MessageChat({
   cameraStatus,
-  isLoading,
-  isUnleashed,
+  isUnhinged,
   onRoast,
   data,
   showResults,
@@ -99,26 +97,19 @@ export function MessageChat({
                 </MessageBox>
               )}
               {visibleMessages >= 3 &&
-                (isUnleashed ? (
+                (isUnhinged ? (
                   <MessageBox side="left">
-                    Demasiado para vos? Entonces volvé al <s>baby-level</s>{" "}
-                    politicamente correcto{" "}
+                    Too much for you? Then go back to the politically correct{" "}
                     <Link className="link" href="/roast-me">
                       Roast Me
                     </Link>
                     .
-                    {/*Too much for you? Then go back to the <s>baby-level</s>{" "}
-                  politically correct{" "}
-                  <Link className="link" href="/roast-me">
-                    Roast Me
-                  </Link>
-                  .*/}
                   </MessageBox>
                 ) : (
                   <MessageBox side="left">
                     Do you think it&apos;s over? Try{" "}
-                    <Link className="link" href="/roast-me/unleashed">
-                      Roast Me <i>Unleashed</i>
+                    <Link className="link" href="/roast-me/unhinged">
+                      Roast Me <i>Unhinged</i>
                     </Link>{" "}
                     to get brutally roasted.
                   </MessageBox>
