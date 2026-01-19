@@ -5,7 +5,7 @@ import { Container } from "@/components/container";
 import { Spacer, spacing } from "@/components/spacer";
 import { ToolCard, ToolCardProps } from "@/components/tool-card";
 import { cn } from "@/lib/utils";
-import { METADATA as ROAST_MY_SETUP_METADATA } from "@/roast-my-setup/constants";
+import { METADATA as ROAST_MY_SETUP_METADATA } from "@/roast-me/constants";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -56,7 +56,7 @@ const tools: {
       },
       // {
       //   ...ROAST_MY_SETUP_METADATA,
-      //   href: "/roast-my-setup",
+      //   href: "/roast-me",
       // },
       {
         title: "Practice Repo",

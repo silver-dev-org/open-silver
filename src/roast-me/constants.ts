@@ -1,7 +1,7 @@
 import type { CameraStatus, FlagColor, Score } from "./types";
 
 export const METADATA = {
-  title: "Roast my Setup",
+  title: "Roast me",
   description:
     "How do other people see you? Get honest feedback from your setup.",
 };
@@ -15,7 +15,7 @@ export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
 };
 
 export const SHARE_URL =
-  "https://x.com/intent/post?hashtags=RoastMySetup%2C&text=Roasted%20https://open.silver.dev/roast-my-setup?id=whatever%0A";
+  "https://x.com/intent/post?hashtags=RoastMe%2C&text=Roasted%20https://open.silver.dev/roast-me?id=whatever%0A";
 
 export const SCORE_LABELS: Record<Score, string> = {
   pass: "PASS",
