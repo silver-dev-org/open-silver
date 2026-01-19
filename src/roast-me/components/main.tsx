@@ -13,13 +13,13 @@ import { CameraRef, CameraStatus, SetupAnalysisRequest } from "../types";
 import { Camera } from "./camera";
 import { MessageChat } from "./message-chat";
 
-export function RoastMySetup() {
+export function RoastMe() {
   const cameraRef = useRef<CameraRef>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   const [snapshot, setSnapshot] = useState<string | null>(null);
 
   const { object, submit, isLoading } = useObject({
-    api: "/roast-my-setup/api/analyze",
+    api: "/roast-me/api/analyze",
     schema: setupAnalysisSchema,
   });
 

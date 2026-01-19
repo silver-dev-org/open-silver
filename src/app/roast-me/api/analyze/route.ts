@@ -1,6 +1,6 @@
-import { SYSTEM_PROMPT } from "@/roast-my-setup/constants";
-import { setupAnalysisSchema } from "@/roast-my-setup/schemas";
-import { SetupAnalysisRequest } from "@/roast-my-setup/types";
+import { SYSTEM_PROMPT } from "@/roast-me/constants";
+import { setupAnalysisSchema } from "@/roast-me/schemas";
+import { SetupAnalysisRequest } from "@/roast-me/types";
 import { streamObject } from "ai";
 import { NextRequest } from "next/server";
 import { xai } from "@ai-sdk/xai";
