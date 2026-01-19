@@ -52,7 +52,7 @@ export function GtaOverlay({ score, onAnimationComplete }: GtaOverlayProps) {
       {showText && (
         <div
           className={cn(
-            "relative z-10 font-gta text-center animate-in zoom-in-50 fade-in duration-500",
+            "relative z-10 font-gta text-center animate-in zoom-in-80 fade-in duration-1000",
             score === "pass" ? "text-amber-400" : "text-red-600",
           )}
           style={{
@@ -68,7 +68,7 @@ export function GtaOverlay({ score, onAnimationComplete }: GtaOverlayProps) {
             <>
               MISSION PASSED
               <br />
-              <span className="text-[0.6em]">RESPECT+</span>
+              <span className="text-[0.6em] text-white">RESPECT+</span>
             </>
           ) : (
             "ROASTED"
