@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const { snapshot, isUnleashed } = (await req.json()) as SetupAnalysisRequest;
 
   const result = streamObject({
-    model: xai("grok-4-1-fast"),
+    model: xai("grok-4-1-fast-non-reasoning"),
     schema: setupAnalysisSchema,
     temperature: 0,
     messages: [
