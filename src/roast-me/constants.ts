@@ -1,4 +1,4 @@
-import type { CameraStatus, FlagColor, Score } from "./types";
+import type { CameraStatus, FlagColor } from "./types";
 
 export const METADATA = {
   title: "Roast me",
