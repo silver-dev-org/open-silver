@@ -42,7 +42,7 @@ export function MessageChat({
       {cameraStatus === "frozen" && (
         <>
           <MessageBox side="right">Roast me</MessageBox>
-          {isLoading && !showResults && (
+          {(isLoading || !showResults) && (
             <MessageBox side="left">
               <BouncingDots />
             </MessageBox>

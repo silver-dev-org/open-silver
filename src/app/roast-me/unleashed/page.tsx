@@ -17,8 +17,7 @@ export default function Page() {
   return (
     <Container>
       <Heading lvl={1} center>
-        <span className="text-primary">Roast</span> me{" "}
-        <i className="text-primary">Unleashed</i>
+        <span className="text-primary">Roast</span> me <i>Unleashed</i>
       </Heading>
       <Spacer />
       <Description center>{METADATA.description}</Description>
