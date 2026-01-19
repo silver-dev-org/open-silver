@@ -23,6 +23,7 @@ export function RoastMe() {
   const [snapshot, setSnapshot] = useState<string | null>(null);
   const [showGtaAnimation, setShowGtaAnimation] = useState(false);
   const [gtaAnimationComplete, setGtaAnimationComplete] = useState(false);
+  const [gtaTextShown, setGtaTextShown] = useState(false);
   const isUnleashed = pathname?.endsWith("unleashed");
 
   const { object, submit, isLoading } = useObject({
@@ -30,15 +31,28 @@ export function RoastMe() {
     schema: setupAnalysisSchema,
   });
 
+  const [analysisResult, setAnalysisResult] =
+    useState<typeof object>(undefined);
+
   useEffect(() => {
-    if (object?.score && !showGtaAnimation && !gtaAnimationComplete) {
+    if (object) {
+      setAnalysisResult(object);
+    }
+  }, [object]);
+
+  useEffect(() => {
+    if (analysisResult?.score && !showGtaAnimation && !gtaAnimationComplete) {
       setShowGtaAnimation(true);
     }
-  }, [object?.score, showGtaAnimation, gtaAnimationComplete]);
+  }, [analysisResult?.score, showGtaAnimation, gtaAnimationComplete]);
 
   const handleGtaAnimationComplete = useCallback(() => {
     setShowGtaAnimation(false);
     setGtaAnimationComplete(true);
+  }, []);
+
+  const handleGtaTextShow = useCallback(() => {
+    setGtaTextShown(true);
   }, []);
 
   function tryAgain() {
@@ -46,6 +60,8 @@ export function RoastMe() {
     setSnapshot(null);
     setShowGtaAnimation(false);
     setGtaAnimationComplete(false);
+    setGtaTextShown(false);
+    setAnalysisResult(undefined);
   }
 
   function analyzeSetup() {
@@ -73,7 +89,9 @@ export function RoastMe() {
       >
         <CardContent className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
           <Volume2 className="size-12" />
-          <p className="text-center">Turn your volume up for the best experience</p>
+          <p className="text-center">
+            Turn your volume up for the best experience
+          </p>
           <p className="text-center text-sm">Click to continue</p>
         </CardContent>
       </Card>
@@ -88,12 +106,13 @@ export function RoastMe() {
         status={cameraStatus}
         onStatusChange={setCameraStatus}
         snapshot={snapshot}
-        grayscale={object?.score === "fail"}
+        grayscale={analysisResult?.score === "fail"}
         overlay={
-          object?.score ? (
+          analysisResult?.score ? (
             <GtaOverlay
-              score={object.score}
+              score={analysisResult.score}
               onAnimationComplete={handleGtaAnimationComplete}
+              onTextShow={handleGtaTextShow}
             />
           ) : null
         }
@@ -106,9 +125,9 @@ export function RoastMe() {
               isLoading={isLoading}
               isUnleashed={isUnleashed}
               cameraStatus={cameraStatus}
-              data={object}
+              data={analysisResult}
               onRoast={analyzeSetup}
-              showResults={gtaAnimationComplete}
+              showResults={gtaTextShown}
             />
             <div />
           </CardContent>

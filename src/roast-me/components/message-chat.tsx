@@ -64,8 +64,8 @@ export function MessageChat({
       {cameraStatus === "frozen" && (
         <>
           <MessageBox side="right">Roast me</MessageBox>
-          {(isLoading || !showResults) && (
-            <MessageBox side="left">
+          {!showResults && (
+            <MessageBox side="left" disabledSound>
               <BouncingDots />
             </MessageBox>
           )}
@@ -98,30 +98,31 @@ export function MessageChat({
                   )}
                 </MessageBox>
               )}
-              {isUnleashed ? (
-                <MessageBox side="left">
-                  Demasiado para vos? Entonces volvé al <s>baby-level</s>{" "}
-                  politicamente correcto{" "}
-                  <Link className="link" href="/roast-me">
-                    Roast Me
-                  </Link>
-                  .
-                  {/*Too much for you? Then go back to the <s>baby-level</s>{" "}
+              {visibleMessages >= 3 &&
+                (isUnleashed ? (
+                  <MessageBox side="left">
+                    Demasiado para vos? Entonces volvé al <s>baby-level</s>{" "}
+                    politicamente correcto{" "}
+                    <Link className="link" href="/roast-me">
+                      Roast Me
+                    </Link>
+                    .
+                    {/*Too much for you? Then go back to the <s>baby-level</s>{" "}
                   politically correct{" "}
                   <Link className="link" href="/roast-me">
                     Roast Me
                   </Link>
                   .*/}
-                </MessageBox>
-              ) : (
-                <MessageBox side="left">
-                  Do you think it&apos;s over? Try{" "}
-                  <Link className="link" href="/roast-me/unleashed">
-                    Roast Me <i>Unleashed</i>
-                  </Link>{" "}
-                  to get brutally roasted.
-                </MessageBox>
-              )}
+                  </MessageBox>
+                ) : (
+                  <MessageBox side="left">
+                    Do you think it&apos;s over? Try{" "}
+                    <Link className="link" href="/roast-me/unleashed">
+                      Roast Me <i>Unleashed</i>
+                    </Link>{" "}
+                    to get brutally roasted.
+                  </MessageBox>
+                ))}
             </>
           )}
         </>

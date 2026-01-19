@@ -7,9 +7,14 @@ import type { Score } from "../types";
 interface GtaOverlayProps {
   score: Score;
   onAnimationComplete: () => void;
+  onTextShow?: () => void;
 }
 
-export function GtaOverlay({ score, onAnimationComplete }: GtaOverlayProps) {
+export function GtaOverlay({
+  score,
+  onAnimationComplete,
+  onTextShow,
+}: GtaOverlayProps) {
   const [showText, setShowText] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -18,6 +23,7 @@ export function GtaOverlay({ score, onAnimationComplete }: GtaOverlayProps) {
 
     const textTimer = setTimeout(() => {
       setShowText(true);
+      onTextShow?.();
 
       const soundFile =
         score === "pass"
