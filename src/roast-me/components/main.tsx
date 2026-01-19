@@ -24,7 +24,7 @@ export function RoastMe() {
   const [showGtaAnimation, setShowGtaAnimation] = useState(false);
   const [gtaAnimationComplete, setGtaAnimationComplete] = useState(false);
   const [gtaTextShown, setGtaTextShown] = useState(false);
-  const isUnleashed = pathname?.endsWith("unleashed");
+  const isUnhinged = pathname?.endsWith("unhinged");
 
   const { object, submit, isLoading } = useObject({
     api: "/roast-me/api/analyze",
@@ -72,13 +72,13 @@ export function RoastMe() {
 
     const input: SetupAnalysisRequest = {
       snapshot: capturedSnapshot,
-      isUnleashed,
+      isUnhinged,
     };
 
     setSnapshot(capturedSnapshot);
     setCameraStatus("frozen");
     submit(input);
-  }, [cameraRef, isUnleashed]);
+  }, [cameraRef, isUnhinged]);
 
   if (!volumeAcknowledged) {
     return (
@@ -122,8 +122,7 @@ export function RoastMe() {
           <CardContent className="flex flex-col gap-6 h-full overflow-y-scroll">
             <div />
             <MessageChat
-              isLoading={isLoading}
-              isUnleashed={isUnleashed}
+              isUnhinged={isUnhinged}
               cameraStatus={cameraStatus}
               data={analysisResult}
               onRoast={analyzeSetup}

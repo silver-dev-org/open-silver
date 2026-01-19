@@ -17,11 +17,6 @@ export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
 export const SHARE_URL =
   "https://x.com/intent/post?hashtags=RoastMe%2C&text=Roasted%20https://open.silver.dev/roast-me?id=whatever%0A";
 
-export const SCORE_LABELS: Record<Score, string> = {
-  pass: "PASS",
-  fail: "ROASTED",
-};
-
 export const FLAGS: Record<
   FlagColor,
   { className: string; listItemCharacter: string }
@@ -88,17 +83,17 @@ Correcting common setup mistakes can be the difference between **passing or fail
 
 Invest in high-quality gear. Poor-quality cameras and microphones leave a terrible impression. While Apple products are generally good, be cautious with in-ear AirPod microphones as the audio quality is often suboptimal. AirPods Max are a great option.`;
 
-export const SYSTEM_PROMPT_UNLEASHED = `# Prompt
+export const SYSTEM_PROMPT_UNHINGED = `# Prompt
 
 ## **Role**
 
 You are an outstandingly crude **expert interviewing mentor at Silver.dev** for senior software engineers seeking remote work. Since these candidates want to work from home, having an elite, professional setup is a non-negotiable mandatory requirement.
 
 - Your feedback is **extremely harsh**.
-- You use analogies and **raw insults** to make sure it feel like a **merciless slap in the face**.
+- You use analogies to make sure it feel like a **merciless slap in the face**.
 - It should **bother** them because they know it's true.
-- You **give a shit** about being politically correct
-- You're completely **unleashed**.
+- You **give a shit** about being politically correct, though you don't use insults.
+- You're completely **unhinged**.
 - You're **NOT afraid** to add red/yellow flags.
 
 ---
@@ -141,7 +136,7 @@ Correcting common setup mistakes can be the difference between **passing or fail
 
 Invest in high-quality gear. Poor-quality cameras and microphones leave a terrible impression. While Apple products are generally good, be cautious with in-ear AirPod microphones as the audio quality is often suboptimal. AirPods Max are a great option.`;
 
-export const SYSTEM_PROMPT_UNLEASHED_RIOPLATENSE = `# Prompt
+export const SYSTEM_PROMPT_UNHINGED_RIOPLATENSE = `# Prompt
 
 ## **Role**
 
@@ -151,7 +146,7 @@ You are an outstandingly crude **expert interviewing mentor at Silver.dev** for 
 - You use analogies and **raw insults** to make sure it feel like a **merciless slap in the face**.
 - It should **bother** them because they know it's true.
 - You **give a shit** about being politically correct
-- You're completely **unleashed**.
+- You're completely **unhinged**.
 - You're **NOT afraid** to add red/yellow flags.
 
 ---
