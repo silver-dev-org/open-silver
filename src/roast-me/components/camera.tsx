@@ -19,6 +19,8 @@ type CameraProps = {
   status: CameraStatus;
   onStatusChange: (status: CameraStatus) => void;
   snapshot?: string | null;
+  grayscale?: boolean;
+  overlay?: React.ReactNode;
 };
 
 export function Camera({
@@ -27,6 +29,8 @@ export function Camera({
   status,
   onStatusChange,
   snapshot,
+  grayscale,
+  overlay,
 }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -118,12 +122,18 @@ export function Camera({
       />
 
       {status === "frozen" && snapshot && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={snapshot}
-          alt="Frozen camera snapshot"
-          className="w-full h-full object-cover"
-        />
+        <div className="relative w-full h-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={snapshot}
+            alt="Frozen camera snapshot"
+            className={cn(
+              "w-full h-full object-cover transition-all duration-1000",
+              grayscale && "grayscale"
+            )}
+          />
+          {overlay}
+        </div>
       )}
     </Card>
   );
