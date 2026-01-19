@@ -14,6 +14,7 @@ export type CameraRef = {
 
 export type SetupAnalysisRequest = {
   snapshot: string;
+  isUnleashed?: boolean;
 };
 
 export type SetupAnalysis = z.infer<typeof setupAnalysisSchema>;
