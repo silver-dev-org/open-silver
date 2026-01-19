@@ -98,35 +98,33 @@ export function RoastMe() {
           ) : null
         }
       />
-      {(cameraStatus === "active" || cameraStatus === "frozen") && (
-        <Card className="md:w-1/3 h-[720px] max-h-[75vh] gap-0 pt-0">
-          <CardContent className="flex flex-col gap-6 h-full overflow-y-scroll">
-            <div />
-            <MessageChat
-              isUnhinged={isUnhinged}
-              cameraStatus={cameraStatus}
-              data={analysisResult}
-              onRoast={analyzeSetup}
-              showResults={gtaTextShown}
-            />
-            <div />
-          </CardContent>
-          {cameraStatus === "frozen" && (
-            <CardFooter className="flex gap-6 border-t">
-              <Button variant="outline" className="flex-1" onClick={tryAgain}>
-                <RefreshCcw />
-                Try Again
-              </Button>
-              <Button variant="secondary" className="flex-1" asChild>
-                <Link href={SHARE_URL} target="_blank">
-                  <XCorp className="fill-secondary-foreground" />
-                  Share
-                </Link>
-              </Button>
-            </CardFooter>
-          )}
-        </Card>
-      )}
+      <Card className="md:w-1/3 h-[720px] max-h-[75vh] gap-0 pt-0">
+        <CardContent className="flex flex-col gap-6 h-full overflow-y-scroll">
+          <div />
+          <MessageChat
+            isUnhinged={isUnhinged}
+            cameraStatus={cameraStatus}
+            data={analysisResult}
+            onRoast={analyzeSetup}
+            showResults={gtaTextShown}
+          />
+          <div />
+        </CardContent>
+        {cameraStatus === "frozen" && (
+          <CardFooter className="flex gap-6 border-t">
+            <Button variant="outline" className="flex-1" onClick={tryAgain}>
+              <RefreshCcw />
+              Try Again
+            </Button>
+            <Button variant="secondary" className="flex-1" asChild>
+              <Link href={SHARE_URL} target="_blank">
+                <XCorp className="fill-secondary-foreground" />
+                Share
+              </Link>
+            </Button>
+          </CardFooter>
+        )}
+      </Card>
     </div>
   );
 }
