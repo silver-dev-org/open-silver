@@ -4,7 +4,7 @@ import { XCorp } from "@/components/logos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Volume2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SHARE_URL } from "../constants";
@@ -18,6 +18,7 @@ import { usePathname } from "next/dist/client/components/navigation";
 export function RoastMe() {
   const pathname = usePathname();
   const cameraRef = useRef<CameraRef>(null);
+  const [volumeAcknowledged, setVolumeAcknowledged] = useState(false);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   const [snapshot, setSnapshot] = useState<string | null>(null);
   const [showGtaAnimation, setShowGtaAnimation] = useState(false);
@@ -61,6 +62,22 @@ export function RoastMe() {
     setSnapshot(capturedSnapshot);
     setCameraStatus("frozen");
     submit(input);
+  }
+
+  if (!volumeAcknowledged) {
+    return (
+      <Card
+        className="aspect-video md:w-2/3 mx-auto border-4 border-dotted"
+        hoverable
+        onClick={() => setVolumeAcknowledged(true)}
+      >
+        <CardContent className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+          <Volume2 className="size-12" />
+          <p className="text-center">Turn your volume up for the best experience</p>
+          <p className="text-center text-sm">Click to continue</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
