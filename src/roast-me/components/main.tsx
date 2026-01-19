@@ -12,11 +12,14 @@ import { setupAnalysisSchema } from "../schemas";
 import { CameraRef, CameraStatus, SetupAnalysisRequest } from "../types";
 import { Camera } from "./camera";
 import { MessageChat } from "./message-chat";
+import { usePathname } from "next/dist/client/components/navigation";
 
 export function RoastMe() {
+  const pathname = usePathname();
   const cameraRef = useRef<CameraRef>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   const [snapshot, setSnapshot] = useState<string | null>(null);
+  const isUnleashed = pathname?.endsWith("unleashed");
 
   const { object, submit, isLoading } = useObject({
     api: "/roast-me/api/analyze",
@@ -34,7 +37,10 @@ export function RoastMe() {
       throw new Error("Failed to capture snapshot");
     }
 
-    const input: SetupAnalysisRequest = { snapshot: capturedSnapshot };
+    const input: SetupAnalysisRequest = {
+      snapshot: capturedSnapshot,
+      isUnleashed,
+    };
 
     setSnapshot(capturedSnapshot);
     setCameraStatus("frozen");
@@ -56,6 +62,7 @@ export function RoastMe() {
             <div />
             <MessageChat
               isLoading={isLoading}
+              isUnleashed={isUnleashed}
               cameraStatus={cameraStatus}
               data={object}
               onRoast={analyzeSetup}

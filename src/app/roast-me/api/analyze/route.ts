@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT } from "@/roast-me/constants";
+import { SYSTEM_PROMPT, SYSTEM_PROMPT_UNLEASHED } from "@/roast-me/constants";
 import { setupAnalysisSchema } from "@/roast-me/schemas";
 import { SetupAnalysisRequest } from "@/roast-me/types";
 import { streamObject } from "ai";
@@ -8,14 +8,19 @@ import { xai } from "@ai-sdk/xai";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
-  const { snapshot } = (await req.json()) as SetupAnalysisRequest;
+  const { snapshot, isUnleashed } = (await req.json()) as SetupAnalysisRequest;
+
+  console.log("isUnleashed:", isUnleashed);
 
   const result = streamObject({
-    model: xai("grok-4-1-fast-reasoning"),
+    model: xai("grok-4-1-fast"),
     schema: setupAnalysisSchema,
     temperature: 0,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      {
+        role: "system",
+        content: isUnleashed ? SYSTEM_PROMPT_UNLEASHED : SYSTEM_PROMPT,
+      },
       { role: "user", content: [{ type: "image", image: snapshot }] },
     ],
   });

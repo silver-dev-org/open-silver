@@ -5,10 +5,12 @@ import { DeepPartial } from "ai";
 import { SCORE_LABELS } from "../constants";
 import { FlagList } from "./flag-list";
 import { BouncingDots } from "./bouncing-dots";
+import Link from "next/link";
 
 interface MessageChatProps {
   cameraStatus: CameraStatus;
   isLoading: boolean;
+  isUnleashed?: boolean;
   onRoast?: () => void;
   data?: DeepPartial<SetupAnalysis>;
 }
@@ -16,6 +18,7 @@ interface MessageChatProps {
 export function MessageChat({
   cameraStatus,
   isLoading,
+  isUnleashed,
   onRoast,
   data,
 }: MessageChatProps) {
@@ -79,6 +82,24 @@ export function MessageChat({
                   ) : (
                     "Nothing required; you're ready!"
                   )}
+                </MessageBox>
+              )}
+              {isUnleashed ? (
+                <MessageBox side="left">
+                  Too much for you? Then go back to the <s>baby-level</s>{" "}
+                  politically correct{" "}
+                  <Link className="link" href="/roast-me">
+                    Roast Me
+                  </Link>
+                  .
+                </MessageBox>
+              ) : (
+                <MessageBox side="left">
+                  Do you think it&apos;s over? Try{" "}
+                  <Link className="link" href="/roast-me/unleashed">
+                    Roast Me <i>Unleashed</i>
+                  </Link>{" "}
+                  to get brutally roasted.
                 </MessageBox>
               )}
             </>
