@@ -55,16 +55,16 @@ export function RoastMe() {
     setGtaTextShown(true);
   }, []);
 
-  function tryAgain() {
+  const tryAgain = useCallback(() => {
     setCameraStatus("active");
     setSnapshot(null);
     setShowGtaAnimation(false);
     setGtaAnimationComplete(false);
     setGtaTextShown(false);
     setAnalysisResult(undefined);
-  }
+  }, []);
 
-  function analyzeSetup() {
+  const analyzeSetup = useCallback(() => {
     const capturedSnapshot = cameraRef.current?.captureSnapshot();
     if (!capturedSnapshot) {
       throw new Error("Failed to capture snapshot");
@@ -78,7 +78,7 @@ export function RoastMe() {
     setSnapshot(capturedSnapshot);
     setCameraStatus("frozen");
     submit(input);
-  }
+  }, [cameraRef, isUnleashed]);
 
   if (!volumeAcknowledged) {
     return (
