@@ -43,10 +43,11 @@ export function Camera({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
+    if (videoRef.current && stream && status === "active") {
       videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
     }
-  }, [stream]);
+  }, [stream, status]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;

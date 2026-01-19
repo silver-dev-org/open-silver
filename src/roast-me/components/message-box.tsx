@@ -7,10 +7,17 @@ interface MessageBoxProps {
   children: ReactNode;
   side: "left" | "right";
   className?: string;
+  disabledSound?: boolean;
 }
 
-export function MessageBox({ children, side, className }: MessageBoxProps) {
+export function MessageBox({
+  children,
+  side,
+  className,
+  disabledSound,
+}: MessageBoxProps) {
   useEffect(() => {
+    if (disabledSound) return;
     const audio = new Audio("/sfx/message.mp3");
     audio.play().catch(() => {});
   }, []);
