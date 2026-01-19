@@ -8,6 +8,7 @@ import {
   Camera as CameraIcon,
   Loader2,
   Mic,
+  Volume2,
 } from "lucide-react";
 import {
   type Ref,
@@ -40,6 +41,7 @@ export function Camera({
 }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isVolumeAcknowledged, setIsVolumeAcknowledged] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -110,17 +112,31 @@ export function Camera({
         className,
       )}
       hoverable={status === "idle"}
-      onClick={status === "idle" ? requestPermissions : undefined}
+      onClick={
+        status === "idle"
+          ? isVolumeAcknowledged
+            ? requestPermissions
+            : () => setIsVolumeAcknowledged(true)
+          : undefined
+      }
     >
-      {status === "idle" && (
-        <CardContent className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-          <div className="flex gap-3">
-            <CameraIcon className="size-12" />
-            <Mic className="size-12" />
-          </div>
-          <p className="text-center">Click to enable camera and microphone</p>
-        </CardContent>
-      )}
+      {status === "idle" &&
+        (isVolumeAcknowledged ? (
+          <CardContent className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+            <div className="flex gap-3">
+              <CameraIcon className="size-12" />
+              <Mic className="size-12" />
+            </div>
+            <p className="text-center">Click to enable camera and microphone</p>
+          </CardContent>
+        ) : (
+          <CardContent className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+            <Volume2 className="size-12" />
+            <p className="text-center">
+              Turn your volume up for the best experience. Click to continue.
+            </p>
+          </CardContent>
+        ))}
 
       {status === "requesting" && (
         <CardContent className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
