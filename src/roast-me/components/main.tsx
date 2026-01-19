@@ -6,11 +6,12 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { RefreshCcw } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SHARE_URL } from "../constants";
 import { setupAnalysisSchema } from "../schemas";
 import { CameraRef, CameraStatus, SetupAnalysisRequest } from "../types";
 import { Camera } from "./camera";
+import { GtaOverlay } from "./gta-overlay";
 import { MessageChat } from "./message-chat";
 import { usePathname } from "next/dist/client/components/navigation";
 
@@ -19,6 +20,8 @@ export function RoastMe() {
   const cameraRef = useRef<CameraRef>(null);
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>("idle");
   const [snapshot, setSnapshot] = useState<string | null>(null);
+  const [showGtaAnimation, setShowGtaAnimation] = useState(false);
+  const [gtaAnimationComplete, setGtaAnimationComplete] = useState(false);
   const isUnleashed = pathname?.endsWith("unleashed");
 
   const { object, submit, isLoading } = useObject({
@@ -26,9 +29,22 @@ export function RoastMe() {
     schema: setupAnalysisSchema,
   });
 
+  useEffect(() => {
+    if (object?.score && !showGtaAnimation && !gtaAnimationComplete) {
+      setShowGtaAnimation(true);
+    }
+  }, [object?.score, showGtaAnimation, gtaAnimationComplete]);
+
+  const handleGtaAnimationComplete = useCallback(() => {
+    setShowGtaAnimation(false);
+    setGtaAnimationComplete(true);
+  }, []);
+
   function tryAgain() {
     setCameraStatus("active");
     setSnapshot(null);
+    setShowGtaAnimation(false);
+    setGtaAnimationComplete(false);
   }
 
   function analyzeSetup() {
@@ -55,6 +71,15 @@ export function RoastMe() {
         status={cameraStatus}
         onStatusChange={setCameraStatus}
         snapshot={snapshot}
+        grayscale={object?.score === "fail"}
+        overlay={
+          object?.score ? (
+            <GtaOverlay
+              score={object.score}
+              onAnimationComplete={handleGtaAnimationComplete}
+            />
+          ) : null
+        }
       />
       {(cameraStatus === "active" || cameraStatus === "frozen") && (
         <Card className="md:w-1/3 h-[720px] max-h-[75vh] gap-0 pt-0">
@@ -66,6 +91,7 @@ export function RoastMe() {
               cameraStatus={cameraStatus}
               data={object}
               onRoast={analyzeSetup}
+              showResults={gtaAnimationComplete}
             />
             <div />
           </CardContent>

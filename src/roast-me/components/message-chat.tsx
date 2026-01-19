@@ -13,6 +13,7 @@ interface MessageChatProps {
   isUnleashed?: boolean;
   onRoast?: () => void;
   data?: DeepPartial<SetupAnalysis>;
+  showResults?: boolean;
 }
 
 export function MessageChat({
@@ -21,6 +22,7 @@ export function MessageChat({
   isUnleashed,
   onRoast,
   data,
+  showResults,
 }: MessageChatProps) {
   return (
     <>
@@ -40,26 +42,14 @@ export function MessageChat({
       {cameraStatus === "frozen" && (
         <>
           <MessageBox side="right">Roast me</MessageBox>
-          {isLoading && (
+          {isLoading && !showResults && (
             <MessageBox side="left">
               <BouncingDots />
             </MessageBox>
           )}
-          {data && (
+          {showResults && data && (
             <>
               <MessageBox side="left">
-                {data.score && (
-                  <h2
-                    className={cn(
-                      "text-2xl font-extrabold my-1.5",
-                      data.score === "pass"
-                        ? "text-success"
-                        : "text-destructive",
-                    )}
-                  >
-                    {SCORE_LABELS[data.score]}
-                  </h2>
-                )}
                 {data.flags && (
                   <>
                     <FlagList items={data.flags.green} color="green" />
