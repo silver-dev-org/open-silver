@@ -51,6 +51,13 @@ export function Header() {
       external: true,
       button: true,
     });
+  } else if (pathname?.startsWith("/roast-me")) {
+    links[1].push({
+      href: "https://docs.silver.dev/interview-ready/soft-fundamentals/pasando-entrevistas/guia-de-screening#screening-call-checklist",
+      label: "Screening Call Checklist",
+      external: true,
+      button: true,
+    });
   }
 
   return (
