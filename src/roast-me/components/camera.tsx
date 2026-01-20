@@ -19,6 +19,8 @@ import {
 } from "react";
 import { CLASSNAME_BY_STATUS } from "../constants";
 import type { CameraRef, CameraStatus } from "../types";
+import type { TranscriptionStatus } from "../hooks/use-realtime-transcription";
+import { ListeningOverlay } from "./listening-overlay";
 
 type CameraProps = {
   className?: string;
@@ -28,6 +30,9 @@ type CameraProps = {
   snapshot?: string | null;
   grayscale?: boolean;
   overlay?: React.ReactNode;
+  transcriptionStatus?: TranscriptionStatus;
+  isListening?: boolean;
+  onToggleListening?: () => void;
 };
 
 export function Camera({
@@ -38,6 +43,9 @@ export function Camera({
   snapshot,
   grayscale,
   overlay,
+  transcriptionStatus,
+  isListening,
+  onToggleListening,
 }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -182,20 +190,23 @@ export function Camera({
           <div className="absolute bottom-4 right-4 h-4 w-4 border-b-2 border-r-2 border-white" />
 
           {/* Live Indicator */}
-          <div className="absolute left-9 top-9 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
+          <div className="absolute bg-black/70 left-8 top-8 px-3 py-2 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
             <div className="h-2 w-2 animate-caret-blink rounded-full bg-red-600" />
             Rec
-          </div>
-
-          {/* Live Indicator */}
-          <div className="absolute right-8 top-8">
-            <BatteryMedium className="size-8 text-white" />
           </div>
 
           {/* Timer */}
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md bg-black/50 px-2 py-1 text-xs font-semibold text-white">
             {formatTime(elapsedTime)}
           </div>
+
+          {transcriptionStatus && (
+            <ListeningOverlay
+              status={transcriptionStatus}
+              isListening={isListening ?? true}
+              onToggle={onToggleListening}
+            />
+          )}
 
           {overlay}
         </div>

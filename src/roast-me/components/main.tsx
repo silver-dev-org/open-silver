@@ -14,6 +14,7 @@ import { Camera } from "./camera";
 import { GtaOverlay } from "./gta-overlay";
 import { MessageChat } from "./message-chat";
 import { usePathname } from "next/dist/client/components/navigation";
+import { useRealtimeTranscription } from "../hooks/use-realtime-transcription";
 
 export function RoastMe() {
   const pathname = usePathname();
@@ -77,7 +78,22 @@ export function RoastMe() {
     setSnapshot(capturedSnapshot);
     setCameraStatus("frozen");
     submit(input);
-  }, [cameraRef, isUnhinged]);
+  }, [cameraRef, isUnhinged, submit]);
+
+  const {
+    status: transcriptionStatus,
+    isListening,
+    toggleListening,
+  } = useRealtimeTranscription({
+    onTriggerPhrase: (transcript) => {
+      console.log("Trigger phrase detected:", transcript);
+      if (cameraStatus === "active") {
+        analyzeSetup();
+      }
+    },
+    triggerPhrases: ["roast me"],
+    enabled: cameraStatus === "active",
+  });
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
@@ -88,6 +104,9 @@ export function RoastMe() {
         onStatusChange={setCameraStatus}
         snapshot={snapshot}
         grayscale={analysisResult?.score === "fail"}
+        transcriptionStatus={transcriptionStatus}
+        isListening={isListening}
+        onToggleListening={toggleListening}
         overlay={
           analysisResult?.score ? (
             <GtaOverlay
