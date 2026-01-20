@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const result = streamObject({
     model: xai("grok-4-1-fast-non-reasoning"),
     schema: setupAnalysisSchema,
-    temperature: 0,
+    temperature: isUnhinged ? 0.2 : 0,
     messages: [
       {
         role: "system",
