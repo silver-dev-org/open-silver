@@ -21,7 +21,7 @@ function GtaOverlayText({
       className={cn(
         "relative z-10 font-gta text-center",
         animated && "animate-in zoom-in-80 fade-in duration-1000",
-        score === "pass" ? "text-amber-400" : "text-red-600"
+        score === "pass" ? "text-amber-400" : "text-red-600",
       )}
       style={{
         fontSize: "clamp(2rem, 10vw, 6rem)",
@@ -56,6 +56,15 @@ export function GtaOverlay({
   const [showText, setShowText] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Preload the Pricedown font to prevent FOUT
+  useEffect(() => {
+    if (typeof window !== "undefined" && document.fonts) {
+      document.fonts.load('400 1em "Pricedown"').catch(() => {
+        // Font loading failed, continue anyway
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const textDelay = score === "fail" ? 1500 : 500;
 
@@ -75,7 +84,7 @@ export function GtaOverlay({
       () => {
         onAnimationComplete();
       },
-      score === "pass" ? 4000 : 4500
+      score === "pass" ? 4000 : 4500,
     );
 
     return () => {
