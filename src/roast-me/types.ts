@@ -39,3 +39,10 @@ export type ShareRequest = {
 export type ShareResponse = {
   id: string;
 };
+
+export type FeedbackRequest = {
+  snapshot: string;
+  analysis: SetupAnalysis;
+  isUnhinged: boolean;
+  description: string;
+};

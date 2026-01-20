@@ -18,6 +18,7 @@ import {
   ShareResponse,
 } from "../types";
 import { Camera } from "./camera";
+import { FeedbackDialog } from "./feedback-dialog";
 import { GtaOverlay } from "./gta-overlay";
 import { MessageChat } from "./message-chat";
 import { usePathname } from "next/dist/client/components/navigation";
@@ -81,7 +82,7 @@ export function RoastMe() {
   }, []);
 
   const isAnalysisComplete = (
-    data: typeof analysisResult
+    data: typeof analysisResult,
   ): data is SetupAnalysis => {
     return !!(
       data?.score &&
@@ -209,25 +210,34 @@ export function RoastMe() {
           />
           <div />
         </CardContent>
-        {cameraStatus === "frozen" && (
-          <CardFooter className="flex gap-6 border-t">
-            <Button variant="outline" className="flex-1" onClick={tryAgain}>
-              <RefreshCcw />
-              Try Again
-            </Button>
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={share}
-              disabled={isSharing}
-            >
-              {isSharing ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <XCorp className="fill-secondary-foreground" />
-              )}
-              {isSharing ? "Sharing..." : "Share"}
-            </Button>
+        {analysisResult && cameraStatus === "frozen" && (
+          <CardFooter className="flex flex-col gap-6 border-t">
+            <div className="flex gap-6 w-full">
+              <Button variant="default" className="flex-1" onClick={tryAgain}>
+                <RefreshCcw />
+                Try Again
+              </Button>
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={share}
+                disabled={isSharing}
+              >
+                {isSharing ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <XCorp className="fill-secondary-foreground" />
+                )}
+                {isSharing ? "Sharing..." : "Share"}
+              </Button>
+            </div>
+            {snapshot && isAnalysisComplete(analysisResult) && (
+              <FeedbackDialog
+                snapshot={snapshot}
+                analysis={analysisResult}
+                isUnhinged={!!isUnhinged}
+              />
+            )}
           </CardFooter>
         )}
       </Card>
