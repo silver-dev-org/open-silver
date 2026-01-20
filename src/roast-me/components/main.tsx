@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import { RefreshCcw, Volume2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SHARE_URL } from "../constants";
 import { setupAnalysisSchema } from "../schemas";
@@ -29,6 +30,14 @@ export function RoastMe() {
   const { object, submit } = useObject({
     api: "/roast-me/api/analyze",
     schema: setupAnalysisSchema,
+    onError: (error) => {
+      console.error("Analysis error:", error);
+      toast.error("Failed to analyze setup", {
+        description: "Please try again or check your connection.",
+      });
+      setCameraStatus("active");
+      setSnapshot(null);
+    },
   });
 
   const [analysisResult, setAnalysisResult] =
@@ -65,19 +74,29 @@ export function RoastMe() {
   }, []);
 
   const analyzeSetup = useCallback(() => {
-    const capturedSnapshot = cameraRef.current?.captureSnapshot();
-    if (!capturedSnapshot) {
-      throw new Error("Failed to capture snapshot");
+    try {
+      const capturedSnapshot = cameraRef.current?.captureSnapshot();
+      if (!capturedSnapshot) {
+        toast.error("Failed to capture snapshot", {
+          description: "Please make sure your camera is working properly.",
+        });
+        return;
+      }
+
+      const input: SetupAnalysisRequest = {
+        snapshot: capturedSnapshot,
+        isUnhinged,
+      };
+
+      setSnapshot(capturedSnapshot);
+      setCameraStatus("frozen");
+      submit(input);
+    } catch (error) {
+      console.error("Error analyzing setup:", error);
+      toast.error("Failed to start analysis", {
+        description: "An unexpected error occurred. Please try again.",
+      });
     }
-
-    const input: SetupAnalysisRequest = {
-      snapshot: capturedSnapshot,
-      isUnhinged,
-    };
-
-    setSnapshot(capturedSnapshot);
-    setCameraStatus("frozen");
-    submit(input);
   }, [cameraRef, isUnhinged, submit]);
 
   const {
