@@ -29,9 +29,7 @@ async function getMetadata(id: string): Promise<RoastMetadata | null> {
 function StaticGtaOverlay({ score }: { score: Score }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-      {score === "pass" && (
-        <div className="absolute inset-0 bg-black/30" />
-      )}
+      {score === "pass" && <div className="absolute inset-0 bg-black/30" />}
       <div
         className={`relative z-10 font-gta text-center ${
           score === "pass" ? "text-amber-400" : "text-red-600"
