@@ -8,7 +8,7 @@ import { NextRequest } from "next/server";
 export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
-  const { snapshot, isUnhinged } = (await req.json()) as SetupAnalysisRequest;
+  const { snapshot, isUnhinged }: SetupAnalysisRequest = await req.json();
 
   const result = streamObject({
     model: xai("grok-4-1-fast-non-reasoning"),
