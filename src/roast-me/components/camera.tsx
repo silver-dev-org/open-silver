@@ -21,6 +21,7 @@ import { CLASSNAME_BY_STATUS } from "../constants";
 import type { CameraRef, CameraStatus } from "../types";
 import type { TranscriptionStatus } from "../hooks/use-realtime-transcription";
 import { ListeningOverlay } from "./listening-overlay";
+import { TimerOverlay } from "./timer-overlay";
 
 type CameraProps = {
   className?: string;
@@ -48,7 +49,6 @@ export function Camera({
   onToggleListening,
 }: CameraProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
   const [isVolumeAcknowledged, setIsVolumeAcknowledged] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -58,27 +58,6 @@ export function Camera({
       videoRef.current.play().catch(() => {});
     }
   }, [stream, status]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (status === "active") {
-      setElapsedTime(0);
-      interval = setInterval(() => {
-        setElapsedTime((prevTime) => prevTime + 1);
-      }, 1000);
-    }
-    return () => {
-      clearInterval(interval);
-    };
-  }, [status]);
-
-  const formatTime = (timeInSeconds: number) => {
-    const minutes = Math.floor(timeInSeconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = (timeInSeconds % 60).toString().padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  };
 
   useImperativeHandle(ref, () => ({
     captureSnapshot: () => {
@@ -195,10 +174,7 @@ export function Camera({
             Rec
           </div>
 
-          {/* Timer */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md bg-black/50 px-2 py-1 text-xs font-semibold text-white">
-            {formatTime(elapsedTime)}
-          </div>
+          <TimerOverlay isRunning={status === "active"} />
 
           {transcriptionStatus && (
             <ListeningOverlay
