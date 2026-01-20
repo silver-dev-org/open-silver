@@ -18,7 +18,7 @@ export function ListeningOverlay({
     <button
       onClick={onToggle}
       disabled={status === "connecting"}
-      className="absolute right-8 text-base top-8 flex items-center gap-2 rounded-md bg-black/70 px-3 py-2 font-medium text-white backdrop-blur-sm transition-all hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-70"
+      className="absolute right-8 text-base top-8 flex items-center gap-2 rounded-md bg-black/50 cursor-pointer font-semibold px-3 py-2 text-white backdrop-blur-sm transition-all hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-70"
     >
       {status === "connecting" && (
         <>

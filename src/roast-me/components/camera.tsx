@@ -169,7 +169,7 @@ export function Camera({
           <div className="absolute bottom-4 right-4 h-4 w-4 border-b-2 border-r-2 border-white" />
 
           {/* Live Indicator */}
-          <div className="absolute bg-black/70 left-8 top-8 px-3 py-2 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
+          <div className="absolute bg-black/50 left-8 top-8 px-3 py-2 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
             <div className="h-2 w-2 animate-caret-blink rounded-full bg-red-600" />
             Rec
           </div>
