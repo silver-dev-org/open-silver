@@ -114,6 +114,16 @@ export function RoastMe() {
     enabled: cameraStatus === "active",
   });
 
+  useEffect(() => {
+    if (!isListening || cameraStatus !== "active") return;
+
+    const timer = setTimeout(() => {
+      toggleListening();
+    }, 30000);
+
+    return () => clearTimeout(timer);
+  }, [isListening, cameraStatus, toggleListening]);
+
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <Camera
