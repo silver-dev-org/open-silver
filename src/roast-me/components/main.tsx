@@ -4,13 +4,18 @@ import { XCorp } from "@/components/logos";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { RefreshCcw, Volume2 } from "lucide-react";
-import Link from "next/link";
+import { Loader2, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SHARE_URL } from "../constants";
+import { getShareUrl } from "../constants";
 import { setupAnalysisSchema } from "../schemas";
-import { CameraRef, CameraStatus, SetupAnalysisRequest } from "../types";
+import {
+  CameraRef,
+  CameraStatus,
+  SetupAnalysisRequest,
+  ShareRequest,
+  ShareResponse,
+} from "../types";
 import { Camera } from "./camera";
 import { GtaOverlay } from "./gta-overlay";
 import { MessageChat } from "./message-chat";
@@ -25,6 +30,7 @@ export function RoastMe() {
   const [showGtaAnimation, setShowGtaAnimation] = useState(false);
   const [gtaAnimationComplete, setGtaAnimationComplete] = useState(false);
   const [gtaTextShown, setGtaTextShown] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const isUnhinged = pathname?.endsWith("unhinged");
 
   const { object, submit } = useObject({
@@ -72,6 +78,37 @@ export function RoastMe() {
     setGtaTextShown(false);
     setAnalysisResult(undefined);
   }, []);
+
+  const share = useCallback(async () => {
+    if (!snapshot || !analysisResult?.score) return;
+
+    setIsSharing(true);
+    try {
+      const response = await fetch("/roast-me/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          snapshot,
+          score: analysisResult.score,
+        } satisfies ShareRequest),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save roast");
+      }
+
+      const { id } = (await response.json()) as ShareResponse;
+      const shareUrl = getShareUrl(id, analysisResult.score);
+      window.open(shareUrl, "_blank");
+    } catch (error) {
+      console.error("Error sharing roast:", error);
+      toast.error("Failed to share", {
+        description: "Please try again or check your connection.",
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  }, [snapshot, analysisResult?.score]);
 
   const analyzeSetup = useCallback(() => {
     try {
@@ -164,11 +201,18 @@ export function RoastMe() {
               <RefreshCcw />
               Try Again
             </Button>
-            <Button variant="secondary" className="flex-1" asChild>
-              <Link href={SHARE_URL} target="_blank">
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={share}
+              disabled={isSharing}
+            >
+              {isSharing ? (
+                <Loader2 className="animate-spin" />
+              ) : (
                 <XCorp className="fill-secondary-foreground" />
-                Share
-              </Link>
+              )}
+              {isSharing ? "Sharing..." : "Share"}
             </Button>
           </CardFooter>
         )}
