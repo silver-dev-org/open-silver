@@ -12,6 +12,7 @@ import { setupAnalysisSchema } from "../schemas";
 import {
   CameraRef,
   CameraStatus,
+  SetupAnalysis,
   SetupAnalysisRequest,
   ShareRequest,
   ShareResponse,
@@ -79,8 +80,20 @@ export function RoastMe() {
     setAnalysisResult(undefined);
   }, []);
 
+  const isAnalysisComplete = (
+    data: typeof analysisResult
+  ): data is SetupAnalysis => {
+    return !!(
+      data?.score &&
+      data?.flags?.green &&
+      data?.flags?.yellow &&
+      data?.flags?.red &&
+      data?.actionPlanSteps
+    );
+  };
+
   const share = useCallback(async () => {
-    if (!snapshot || !analysisResult?.score) return;
+    if (!snapshot || !isAnalysisComplete(analysisResult)) return;
 
     setIsSharing(true);
     try {
@@ -89,7 +102,8 @@ export function RoastMe() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           snapshot,
-          score: analysisResult.score,
+          analysis: analysisResult,
+          isUnhinged: !!isUnhinged,
         } satisfies ShareRequest),
       });
 
@@ -98,7 +112,7 @@ export function RoastMe() {
       }
 
       const { id } = (await response.json()) as ShareResponse;
-      const shareUrl = getShareUrl(id, analysisResult.score);
+      const shareUrl = getShareUrl(id, analysisResult.score, !!isUnhinged);
       window.open(shareUrl, "_blank");
     } catch (error) {
       console.error("Error sharing roast:", error);
@@ -108,7 +122,7 @@ export function RoastMe() {
     } finally {
       setIsSharing(false);
     }
-  }, [snapshot, analysisResult?.score]);
+  }, [snapshot, analysisResult, isUnhinged]);
 
   const analyzeSetup = useCallback(() => {
     try {

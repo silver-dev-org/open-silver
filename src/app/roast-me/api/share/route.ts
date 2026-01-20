@@ -4,7 +4,7 @@ import type { ShareRequest, ShareResponse, RoastMetadata } from "@/roast-me/type
 
 export async function POST(req: NextRequest) {
   try {
-    const { snapshot, score }: ShareRequest = await req.json();
+    const { snapshot, analysis, isUnhinged }: ShareRequest = await req.json();
 
     const id = crypto.randomUUID();
 
@@ -17,8 +17,9 @@ export async function POST(req: NextRequest) {
     });
 
     const metadata: RoastMetadata = {
-      score,
       snapshotUrl: snapshotBlob.url,
+      analysis,
+      isUnhinged,
       createdAt: new Date().toISOString(),
     };
 
