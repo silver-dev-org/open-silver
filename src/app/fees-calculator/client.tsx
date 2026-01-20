@@ -49,7 +49,7 @@ const SERVICE_MODEL = "sm";
 const CONTINGENCY = "c";
 const STAFFING = "s";
 
-const BASE_FEE = 25;
+const BASE_FEE = 20;
 const FAST_PROCESSING_FEE = 20;
 const PAYROLL_COST = 500;
 const CONTINGENCY_MONTHS_DURATION = 3;
@@ -108,11 +108,11 @@ const CHECKBOX_FIELDS: CardCheckboxProps[] = [
     label: `Pay over ${MONTHS_PER_YEAR} months`,
     description: `Spread payments over ${MONTHS_PER_YEAR} months for smoother cash flow. ${MONTHLY_PAYMENT_MARKUP}% markup applies.`,
   },
-  {
-    name: FAST_PROCESSING,
-    label: "Fast processing",
-    description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
-  },
+  // {
+  //   name: FAST_PROCESSING,
+  //   label: "Fast processing",
+  //   description: `If you process the candidates in less than 3 weeks, ${FAST_PROCESSING_FEE}%. Otherwise, ${BASE_FEE}%.`,
+  // },
 ];
 
 function calculateTotalCost(data: ContractProps) {
