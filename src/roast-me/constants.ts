@@ -14,8 +14,10 @@ export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
   frozen: "border-primary",
 };
 
-export const SHARE_URL =
-  "https://x.com/intent/post?hashtags=RoastMe%2C&text=Roasted%20https://open.silver.dev/roast-me?id=whatever%0A";
+export function getShareUrl(id: string, score: "pass" | "fail"): string {
+  const text = score === "pass" ? "Mission Passed" : "Roasted";
+  return `https://x.com/intent/post?hashtags=RoastMe%2C&text=${encodeURIComponent(text)}%20https://open.silver.dev/roast-me/${id}%0A`;
+}
 
 export const FLAGS: Record<
   FlagColor,

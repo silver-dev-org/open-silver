@@ -36,6 +36,7 @@
     "@tanstack/react-query": "^5.90.2",
     "@types/formidable": "^3.4.5",
     "@types/pdf-parse": "^1.1.5",
+    "@vercel/blob": "^2.0.0",
     "adm-zip": "^0.5.16",
     "ai": "^5.0.61",
     "autoprefixer": "^10.4.21",
