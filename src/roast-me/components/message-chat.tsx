@@ -16,6 +16,7 @@ interface MessageChatProps {
   onRoast?: () => void;
   data?: DeepPartial<SetupAnalysis>;
   showResults?: boolean;
+  static?: boolean;
 }
 
 export function MessageChat({
@@ -24,10 +25,12 @@ export function MessageChat({
   onRoast,
   data,
   showResults,
+  static: isStatic,
 }: MessageChatProps) {
-  const [visibleMessages, setVisibleMessages] = useState(0);
+  const [visibleMessages, setVisibleMessages] = useState(isStatic ? 3 : 0);
 
   useEffect(() => {
+    if (isStatic) return;
     if (!showResults || !data) {
       setVisibleMessages(0);
       return;
@@ -42,35 +45,43 @@ export function MessageChat({
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [showResults, data]);
+  }, [showResults, data, isStatic]);
+
+  const shouldShowResults = isStatic || showResults;
 
   return (
     <>
       {(cameraStatus === "active" || cameraStatus === "frozen") && (
-        <MessageBox side="left">
+        <MessageBox side="left" disabledSound={isStatic}>
           Hey! Say &quot;
-          <button
-            onClick={onRoast}
-            disabled={cameraStatus === "frozen"}
-            className="link cursor-pointer"
-          >
-            Roast me
-          </button>
+          {isStatic ? (
+            "Roast me"
+          ) : (
+            <button
+              onClick={onRoast}
+              disabled={cameraStatus === "frozen"}
+              className="link cursor-pointer"
+            >
+              Roast me
+            </button>
+          )}
           &quot; aloud.
         </MessageBox>
       )}
-      {cameraStatus === "frozen" && (
+      {(isStatic || cameraStatus === "frozen") && (
         <>
-          <MessageBox side="right">Roast me</MessageBox>
-          {!showResults && (
+          <MessageBox side="right" disabledSound={isStatic}>
+            Roast me
+          </MessageBox>
+          {!isStatic && !showResults && (
             <MessageBox side="left" disabledSound>
               <BouncingDots />
             </MessageBox>
           )}
-          {showResults && data && (
+          {shouldShowResults && data && (
             <>
               {visibleMessages >= 1 && (
-                <MessageBox side="left">
+                <MessageBox side="left" disabledSound={isStatic}>
                   {data.flags && (
                     <>
                       <FlagList items={data.flags.green} color="green" />
@@ -81,7 +92,7 @@ export function MessageChat({
                 </MessageBox>
               )}
               {visibleMessages >= 2 && data.actionPlanSteps && (
-                <MessageBox side="left">
+                <MessageBox side="left" disabledSound={isStatic}>
                   <h2 className="text-2xl font-extrabold my-1.5">
                     Action plan
                   </h2>
@@ -96,9 +107,10 @@ export function MessageChat({
                   )}
                 </MessageBox>
               )}
-              {visibleMessages >= 3 &&
+              {!isStatic &&
+                visibleMessages >= 3 &&
                 (isUnhinged ? (
-                  <MessageBox side="left">
+                  <MessageBox side="left" disabledSound={isStatic}>
                     Too much for you? Then go back to the politically correct{" "}
                     <Link className="link" href="/roast-me">
                       Roast Me
@@ -106,7 +118,7 @@ export function MessageChat({
                     .
                   </MessageBox>
                 ) : (
-                  <MessageBox side="left">
+                  <MessageBox side="left" disabledSound={isStatic}>
                     Do you think it&apos;s over? Try{" "}
                     <Link className="link" href="/roast-me/unhinged">
                       Roast Me <i>Unhinged</i>

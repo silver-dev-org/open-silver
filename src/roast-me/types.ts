@@ -24,14 +24,16 @@ export type Score = SetupAnalysis["score"];
 export type FlagColor = keyof SetupAnalysis["flags"];
 
 export type RoastMetadata = {
-  score: Score;
   snapshotUrl: string;
+  analysis: SetupAnalysis;
+  isUnhinged: boolean;
   createdAt: string;
 };
 
 export type ShareRequest = {
   snapshot: string;
-  score: Score;
+  analysis: SetupAnalysis;
+  isUnhinged: boolean;
 };
 
 export type ShareResponse = {

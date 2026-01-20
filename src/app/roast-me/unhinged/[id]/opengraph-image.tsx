@@ -47,12 +47,12 @@ export default async function Image({
           Roast not found
         </div>
       ),
-      size
+      size,
     );
   }
 
   const fontData = await fetch(
-    new URL("../../../../public/fonts/pricedown.ttf", import.meta.url)
+    new URL("./../../../../../public/fonts/pricedown.ttf", import.meta.url),
   ).then((res) => res.arrayBuffer());
 
   const isPass = metadata.analysis.score === "pass";
@@ -213,6 +213,6 @@ export default async function Image({
           weight: 400,
         },
       ],
-    }
+    },
   );
 }

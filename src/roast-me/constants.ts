@@ -14,9 +14,14 @@ export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
   frozen: "border-primary",
 };
 
-export function getShareUrl(id: string, score: "pass" | "fail"): string {
+export function getShareUrl(
+  id: string,
+  score: "pass" | "fail",
+  isUnhinged: boolean
+): string {
   const text = score === "pass" ? "Mission Passed" : "Roasted";
-  return `https://x.com/intent/post?hashtags=RoastMe%2C&text=${encodeURIComponent(text)}%20https://open.silver.dev/roast-me/${id}%0A`;
+  const path = isUnhinged ? `roast-me/unhinged/${id}` : `roast-me/${id}`;
+  return `https://x.com/intent/post?hashtags=RoastMe%2C&text=${encodeURIComponent(text)}%20https://open.silver.dev/${path}%0A`;
 }
 
 export const FLAGS: Record<
