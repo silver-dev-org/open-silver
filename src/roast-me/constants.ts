@@ -17,7 +17,7 @@ export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
 export function getShareUrl(
   id: string,
   score: "pass" | "fail",
-  isUnhinged: boolean
+  isUnhinged: boolean,
 ): string {
   const text = score === "pass" ? "Mission Passed" : "Roasted";
   const path = isUnhinged ? `roast-me/unhinged/${id}` : `roast-me/${id}`;
@@ -84,11 +84,19 @@ Correcting common setup mistakes can be the difference between **passing or fail
 * **Distractions:** Eliminate pets, device alerts, doorbells, or deliveries.
 * **Backgrounds:** **Do not use virtual or blurred backgrounds.** Using these implies you are hiding a messy or unprofessional environment.
 
----
-
 ## **Hardware Standards**
 
-Invest in high-quality gear. Poor-quality cameras and microphones leave a terrible impression. While Apple products are generally good, be cautious with in-ear AirPod microphones as the audio quality is often suboptimal. AirPods Max are a great option.`;
+Poor-quality microphones leave a terrible impression. Invest in high-quality gear.
+
+- Visible headphone **microphones**, and in-ear AirPods have suboptimal microphone quality.
+- AirPods Max are a great alternative
+
+---
+
+IMPORTANT:
+- If you can't clearly distinguish the microphone from the headphone, do NOT mention that.
+- If you can't clearly distinguish where the eyes are looking to, do NOT mention that.
+`;
 
 export const SYSTEM_PROMPT_UNHINGED = `# Prompt
 
@@ -137,11 +145,19 @@ Correcting common setup mistakes can be the difference between **passing or fail
 * **Distractions:** Eliminate pets, device alerts, doorbells, or deliveries.
 * **Backgrounds:** **Do not use virtual or blurred backgrounds.** Using these implies you are hiding a messy or unprofessional environment.
 
----
-
 ## **Hardware Standards**
 
-Invest in high-quality gear. Poor-quality cameras and microphones leave a terrible impression. While Apple products are generally good, be cautious with in-ear AirPod microphones as the audio quality is often suboptimal. AirPods Max are a great option.`;
+Poor-quality microphones leave a terrible impression. Invest in high-quality gear.
+
+- Visible headphone **microphones**, and in-ear AirPods have suboptimal microphone quality.
+- AirPods Max are a great alternative
+
+---
+
+IMPORTANT:
+- If you can't clearly distinguish the microphone from the headphone, do NOT mention that.
+- If you can't clearly distinguish where the eyes are looking to, do NOT mention that.
+`;
 
 export const SYSTEM_PROMPT_UNHINGED_RIOPLATENSE = `# Prompt
 
@@ -192,9 +208,18 @@ Correcting common setup mistakes can be the difference between **passing or fail
 * **Distractions:** Eliminate pets, device alerts, doorbells, or deliveries.
 * **Backgrounds:** **Do not use virtual or blurred backgrounds.** Using these implies you are hiding a messy or unprofessional environment.
 
-### **Hardware Standards**
+## **Hardware Standards**
 
-Invest in high-quality gear. Poor-quality cameras and microphones leave a terrible impression. While Apple products are generally good, be cautious with in-ear AirPod microphones as the audio quality is often suboptimal. AirPods Max are a great option.
+Poor-quality microphones leave a terrible impression. Invest in high-quality gear.
+
+- Visible headphone **microphones**, and in-ear AirPods have suboptimal microphone quality.
+- AirPods Max are a great alternative
+
+---
+
+IMPORTANT:
+- If you can't clearly distinguish the microphone from the headphone, assume they're using a good one.
+- If you can't clearly distinguish where the eyes are looking to, assume they're doing it well.
 
 ---
 
