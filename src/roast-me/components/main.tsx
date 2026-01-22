@@ -38,6 +38,10 @@ export function RoastMe() {
     null,
   );
   const [captureStartTime, setCaptureStartTime] = useState<number | null>(null);
+  const [mispronunciationState, setMispronunciationState] = useState<{
+    detectedPhrase: string;
+    attemptCount: number;
+  } | null>(null);
   const hasTrackedCompletion = useRef(false);
   const isUnhinged = pathname?.endsWith("unhinged");
 
@@ -129,6 +133,7 @@ export function RoastMe() {
     setAnalysisResult(undefined);
     setTriggerMethod(null);
     setCaptureStartTime(null);
+    setMispronunciationState(null);
     hasTrackedCompletion.current = false;
   }, [analysisResult, isUnhinged]);
 
@@ -250,6 +255,27 @@ export function RoastMe() {
     [cameraRef, isUnhinged, submit, triggerMethod],
   );
 
+  const handleMispronunciation = useCallback(
+    (transcript: string, detectedPhrase: string) => {
+      setMispronunciationState((prev) => {
+        const newAttemptCount = prev ? prev.attemptCount + 1 : 1;
+
+        posthog.capture("roast_me_mispronunciation_detected", {
+          mode: isUnhinged ? "unhinged" : "standard",
+          transcript,
+          detected_phrase: detectedPhrase,
+          attempt_count: newAttemptCount,
+        });
+
+        return {
+          detectedPhrase,
+          attemptCount: newAttemptCount,
+        };
+      });
+    },
+    [isUnhinged],
+  );
+
   const {
     status: transcriptionStatus,
     isListening,
@@ -259,9 +285,11 @@ export function RoastMe() {
       console.log("Trigger phrase detected:", transcript);
       if (cameraStatus === "active") {
         setTriggerMethod("voice");
+        setMispronunciationState(null); // Clear mispronunciation on success
         analyzeSetup("voice");
       }
     },
+    onMispronunciation: handleMispronunciation,
     triggerPhrases: ["roast me"],
     enabled: cameraStatus === "active",
     mode: isUnhinged ? "unhinged" : "standard",
@@ -359,6 +387,7 @@ export function RoastMe() {
             data={analysisResult}
             onRoast={() => analyzeSetup("button")}
             showResults={gtaTextShown}
+            mispronunciation={mispronunciationState}
           />
           <div />
         </CardContent>
