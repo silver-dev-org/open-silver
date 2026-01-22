@@ -7,6 +7,7 @@ import { FlagList } from "./flag-list";
 import { BouncingDots } from "./bouncing-dots";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import posthog from "posthog-js";
 
 const MESSAGE_DELAY = 1000;
 
@@ -17,7 +18,36 @@ interface MessageChatProps {
   data?: DeepPartial<SetupAnalysis>;
   showResults?: boolean;
   static?: boolean;
+  mispronunciation?: {
+    detectedPhrase: string;
+    attemptCount: number;
+  } | null;
 }
+
+const getMispronunciationMessage = (
+  detectedPhrase: string,
+  attemptCount: number,
+) => {
+  if (attemptCount === 1) {
+    return {
+      text: `Did you say "${detectedPhrase}"? That's not quite right. It's "roast me".`,
+      linkText: 'Learn how to say "Roast" ↗',
+      linkUrl: "https://dictionary.cambridge.org/pronunciation/english/roast",
+    };
+  }
+  if (attemptCount === 2) {
+    return {
+      text: `Hmm, not there yet. I understood "${detectedPhrase}". The correct phonetics are /rəʊst/ /miː/.`,
+      linkText: "Fix your pronunciation with a vetted English coach ↗",
+      linkUrl: "https://silver.dev/english",
+    };
+  }
+  return {
+    text: `Seriously?! "${detectedPhrase}"?!. You know what, I'm tired. Try clicking the "Roast me" button above instead.`,
+    linkText: null,
+    linkUrl: null,
+  };
+};
 
 export function MessageChat({
   cameraStatus,
@@ -26,6 +56,7 @@ export function MessageChat({
   data,
   showResults,
   static: isStatic,
+  mispronunciation,
 }: MessageChatProps) {
   const [visibleMessages, setVisibleMessages] = useState(isStatic ? 3 : 0);
 
@@ -67,6 +98,41 @@ export function MessageChat({
           )}
           &quot; aloud.
         </MessageBox>
+      )}
+      {mispronunciation && cameraStatus === "active" && !isStatic && (
+        <>
+          {Array.from({ length: mispronunciation.attemptCount }, (_, i) => {
+            const attemptNumber = i + 1;
+            const msg = getMispronunciationMessage(
+              mispronunciation.detectedPhrase,
+              attemptNumber,
+            );
+            return (
+              <MessageBox key={`mispronunciation-${attemptNumber}`} side="left">
+                {msg.text}
+                {msg.linkUrl && (
+                  <Link
+                    href={msg.linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link"
+                    onClick={() => {
+                      posthog.capture("roast_me_pronunciation_link_clicked", {
+                        mode: isUnhinged ? "unhinged" : "standard",
+                        detected_phrase: mispronunciation.detectedPhrase,
+                        attempt_count: attemptNumber,
+                        link_type: attemptNumber === 1 ? "google" : "silver",
+                      });
+                    }}
+                  >
+                    {" "}
+                    {msg.linkText}
+                  </Link>
+                )}
+              </MessageBox>
+            );
+          })}
+        </>
       )}
       {(isStatic || cameraStatus === "frozen") && (
         <>

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import posthog from "posthog-js";
+import { SIMILAR_PHRASES } from "../constants";
 
 export type TranscriptionStatus = "idle" | "connecting" | "listening" | "error";
 
 interface UseRealtimeTranscriptionProps {
   onTriggerPhrase?: (transcript: string) => void;
+  onMispronunciation?: (transcript: string, detectedPhrase: string) => void;
   triggerPhrases?: string[];
   enabled?: boolean;
   mode?: "standard" | "unhinged";
@@ -12,6 +14,7 @@ interface UseRealtimeTranscriptionProps {
 
 export function useRealtimeTranscription({
   onTriggerPhrase,
+  onMispronunciation,
   triggerPhrases = ["roast me"],
   enabled = true,
   mode = "standard",
@@ -65,6 +68,8 @@ export function useRealtimeTranscription({
     (text: string) => {
       console.log("Transcription:", text);
       const lowerText = text.toLowerCase();
+
+      // Check for exact match first
       const matchedPhrase = triggerPhrases.find((phrase) =>
         lowerText.includes(phrase.toLowerCase()),
       );
@@ -77,9 +82,18 @@ export function useRealtimeTranscription({
         });
 
         onTriggerPhrase(text);
+        return;
+      }
+
+      const similarPhrase = SIMILAR_PHRASES.find((phrase) =>
+        lowerText.includes(phrase.toLowerCase()),
+      );
+
+      if (similarPhrase && onMispronunciation) {
+        onMispronunciation(text, similarPhrase);
       }
     },
-    [triggerPhrases, onTriggerPhrase, mode],
+    [triggerPhrases, onTriggerPhrase, onMispronunciation, mode],
   );
 
   const setupAudio = useCallback(

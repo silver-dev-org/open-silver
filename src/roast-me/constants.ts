@@ -6,6 +6,11 @@ export const METADATA = {
     "How do other people see you? Get honest feedback from your setup.",
 };
 
+export const PRONUNCIATION_URLS = {
+  google: "https://www.google.com/search?q=roast+pronunciation+in+english",
+  silver: "https://silver.dev/english",
+};
+
 export const CLASSNAME_BY_STATUS: Record<CameraStatus, string> = {
   idle: "border-dotted",
   error: "border-destructive",
@@ -114,3 +119,278 @@ You are an **outstandingly crude** expert interviewing mentor at Silver.dev for 
 ---
 
 ${SYSTEM_PROMPT_INSTRUCTIONS}`;
+
+export const SIMILAR_PHRASES = [
+  // Standard variations
+  "roast",
+  "rost",
+
+  // Phonetic variations - 'roast' mishearings
+  "rose",
+  "rows",
+  "row",
+  "roas",
+
+  // 'Ghost' sound confusion (ro-st)
+  "ghost",
+
+  // R pronunciation issues
+  "oast",
+  "hoast",
+  "woast",
+
+  // Vowel confusion (oa/o/ou/oe)
+  "roust",
+  "roist",
+  "roest",
+  "rosed",
+
+  // T dropping or softening
+  "roash",
+  "roass",
+
+  // Extra syllables or sounds
+  "roaste",
+  "roasty",
+  "roastme",
+  "rostme",
+  "ro ast",
+  "ro st",
+
+  // Common transcription errors
+  "roast ma",
+  "rost ma",
+  "roast my",
+  "rost my",
+  "roast mean",
+  "roast meat",
+  "roast meet",
+
+  // Soft consonants
+  "roadst",
+  "roazed",
+  "roased",
+
+  // Initial consonant issues
+  "broast",
+  "groast",
+  "croast",
+
+  // Toast confusion
+  "toast",
+  "tost",
+  "toste",
+  "toasty",
+  "toasted",
+
+  // Coast/boast confusion
+  "coast",
+  "boast",
+  "most",
+  "post",
+  "host",
+  "hosted",
+
+  // Double letters
+  "rroast",
+  "roasst",
+  "roastt",
+  "roost",
+
+  // Merged words
+  "roasme",
+
+  // Spanish speaker specific
+  "rostea",
+  "rostia",
+  "roastea",
+  "el roast",
+  "un roast",
+
+  // Emphasis or filler words caught
+  "a roast",
+  "the roast",
+  "just roast",
+  "please roast",
+  "roast please",
+
+  // Voice recognition common errors
+  "roasted",
+  "roasting",
+  "roasts",
+  "row stme",
+  "row st",
+
+  // Accented pronunciation
+  "rohst",
+  "rohast",
+  "ro-ast",
+
+  // Fast speech blending
+  "rosme",
+  "rosmee",
+  "roasmi",
+
+  // MORE SIMILAR SOUNDING WORDS
+
+  // Roost/rooster variations
+  "rooster",
+  "ruste",
+  "rusty",
+
+  // Beast/feast/least sounds
+  "beast",
+  "feast",
+  "least",
+  "yeast",
+
+  // Rope/robe/road sounds
+  "rope",
+  "robe",
+  "road",
+  "rode",
+  "roped",
+
+  // Dose/close sounds
+  "dose",
+  "dosed",
+  "close",
+  "closed",
+
+  // Waste/paste/haste sounds
+  "waste",
+  "paste",
+  "haste",
+  "taste",
+  "baste",
+  "chaste",
+
+  // Moist/foist/hoist sounds
+  "moist",
+  "foist",
+  "hoist",
+  "joist",
+
+  // Rust/must/just sounds
+  "rust",
+  "must",
+  "bust",
+  "just",
+  "gust",
+  "dust",
+
+  // Gross/ross sounds
+  "gross",
+  "ross",
+  "dross",
+
+  // Roach sounds
+  "roach",
+  "coach",
+  "poach",
+
+  // Boost/joust sounds
+  "boost",
+  "joust",
+
+  // Rest/best/test sounds
+  "rest",
+  "best",
+  "test",
+  "vest",
+  "nest",
+  "pest",
+  "zest",
+  "fest",
+
+  // Race/raise/raze sounds
+  "race",
+  "raise",
+  "raze",
+  "rays",
+  "raes",
+
+  // Reach sounds
+  "reach",
+  "breach",
+  "preach",
+
+  // Roam/rome sounds
+  "roam",
+  "rome",
+  "foam",
+  "home",
+
+  // Roll/role sounds
+  "roll",
+  "role",
+  "bowl",
+  "toll",
+  "poll",
+
+  // Rush/brush/crush sounds
+  "rush",
+  "brush",
+  "crush",
+  "flush",
+  "blush",
+
+  // Roar sounds
+  "roar",
+  "roaring",
+
+  // Route/root sounds
+  "route",
+  "root",
+  "rout",
+
+  // Rhose/those sounds
+  "those",
+  "hose",
+  "nose",
+  "pose",
+  "prose",
+
+  // Rotisserie-like mishearings
+  "rotis",
+  "roti",
+  "roddy",
+
+  // Voice assistant mishearings
+  "rosie",
+  "rosey",
+
+  // Lost/cost sounds
+  "lost",
+  "cost",
+  "frost",
+
+  // Voiced/unvoiced confusion
+  "roads",
+  "robes",
+  "ropes",
+  "rogues",
+
+  // With prepositions caught
+  "roast to",
+  "roast for",
+  "roast at",
+
+  // Regional pronunciations
+  "rawst",
+  "rowst",
+
+  // Aspirated sounds
+  "roasht",
+  "rosht",
+  "roshte",
+
+  // Nasal sounds
+  "roan",
+  "roans",
+  "rones",
+
+  // Other
+  "trust",
+  "aust",
+];
