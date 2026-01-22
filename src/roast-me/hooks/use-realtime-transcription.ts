@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 
 export type TranscriptionStatus = "idle" | "connecting" | "listening" | "error";
 
@@ -6,12 +7,14 @@ interface UseRealtimeTranscriptionProps {
   onTriggerPhrase?: (transcript: string) => void;
   triggerPhrases?: string[];
   enabled?: boolean;
+  mode?: "standard" | "unhinged";
 }
 
 export function useRealtimeTranscription({
   onTriggerPhrase,
   triggerPhrases = ["roast me"],
   enabled = true,
+  mode = "standard",
 }: UseRealtimeTranscriptionProps = {}) {
   const [status, setStatus] = useState<TranscriptionStatus>("idle");
   const [transcript, setTranscript] = useState<string>("");
@@ -62,15 +65,21 @@ export function useRealtimeTranscription({
     (text: string) => {
       console.log("Transcription:", text);
       const lowerText = text.toLowerCase();
-      const matched = triggerPhrases.some((phrase) =>
+      const matchedPhrase = triggerPhrases.find((phrase) =>
         lowerText.includes(phrase.toLowerCase()),
       );
 
-      if (matched && onTriggerPhrase) {
+      if (matchedPhrase && onTriggerPhrase) {
+        posthog.capture("roast_me_voice_trigger_detected", {
+          mode,
+          transcript: text,
+          matched_phrase: matchedPhrase,
+        });
+
         onTriggerPhrase(text);
       }
     },
-    [triggerPhrases, onTriggerPhrase],
+    [triggerPhrases, onTriggerPhrase, mode],
   );
 
   const setupAudio = useCallback(
@@ -124,6 +133,9 @@ export function useRealtimeTranscription({
         processor.connect(audioContext.destination);
 
         setStatus("listening");
+        posthog.capture("roast_me_voice_listening_started", {
+          mode,
+        });
         console.log("Audio stream setup complete");
       } catch (error) {
         console.error("Failed to setup audio:", error);
@@ -131,7 +143,7 @@ export function useRealtimeTranscription({
         cleanup();
       }
     },
-    [convertFloat32ToInt16, cleanup],
+    [convertFloat32ToInt16, cleanup, mode],
   );
 
   const connect = useCallback(async () => {
@@ -200,6 +212,10 @@ export function useRealtimeTranscription({
       ws.onerror = (error) => {
         console.error("WebSocket error:", error);
         console.error("WebSocket readyState:", ws.readyState);
+        posthog.capture("roast_me_voice_connection_error", {
+          mode,
+          ready_state: ws.readyState,
+        });
         setStatus("error");
       };
 

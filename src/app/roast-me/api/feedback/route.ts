@@ -1,6 +1,7 @@
 import { FeedbackRequest } from "@/roast-me/types";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const resend = new Resend(process.env.RESEND_KEY);
 
@@ -33,6 +34,20 @@ export async function POST(req: NextRequest) {
     if (error) {
       throw new Error(error.message);
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: "anonymous",
+      event: "roast_me_api_feedback_received",
+      properties: {
+        mode: data.isUnhinged ? "unhinged" : "standard",
+        score: data.analysis.score,
+        feedback_length: data.description.length,
+        green_flags_count: data.analysis.flags.green.length,
+        yellow_flags_count: data.analysis.flags.yellow.length,
+        red_flags_count: data.analysis.flags.red.length,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -21,6 +21,8 @@ import { CLASSNAME_BY_STATUS } from "../constants";
 import type { CameraRef, CameraStatus } from "../types";
 import type { TranscriptionStatus } from "../hooks/use-realtime-transcription";
 import { AudioOverlay } from "./audio-overlay";
+import posthog from "posthog-js";
+import { usePathname } from "next/navigation";
 
 type CameraProps = {
   className?: string;
@@ -47,6 +49,8 @@ export function Camera({
   isListening,
   onToggleListening,
 }: CameraProps) {
+  const pathname = usePathname();
+  const isUnhinged = pathname?.endsWith("unhinged");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isVolumeAcknowledged, setIsVolumeAcknowledged] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -84,8 +88,23 @@ export function Camera({
         audio: true,
       });
       setStream(mediaStream);
+
+      const hasVideo = mediaStream.getVideoTracks().length > 0;
+      const hasAudio = mediaStream.getAudioTracks().length > 0;
+
+      posthog.capture("roast_me_permissions_granted", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        has_video: hasVideo,
+        has_audio: hasAudio,
+      });
+
       onStatusChange("active");
-    } catch {
+    } catch (error) {
+      posthog.capture("roast_me_permissions_denied", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        error_message: error instanceof Error ? error.message : "Unknown error",
+      });
+
       onStatusChange("error");
     }
   }
@@ -102,7 +121,12 @@ export function Camera({
         status === "idle"
           ? isVolumeAcknowledged
             ? requestPermissions
-            : () => setIsVolumeAcknowledged(true)
+            : () => {
+                posthog.capture("roast_me_volume_acknowledged", {
+                  mode: isUnhinged ? "unhinged" : "standard",
+                });
+                setIsVolumeAcknowledged(true);
+              }
           : undefined
       }
     >

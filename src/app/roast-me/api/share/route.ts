@@ -1,6 +1,7 @@
 import { put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
 import type { ShareRequest, ShareResponse, RoastMetadata } from "@/roast-me/types";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,6 +27,20 @@ export async function POST(req: NextRequest) {
     await put(`roast-me/${id}/metadata.json`, JSON.stringify(metadata), {
       access: "public",
       contentType: "application/json",
+    });
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: "anonymous",
+      event: "roast_me_api_share_created",
+      properties: {
+        mode: isUnhinged ? "unhinged" : "standard",
+        roast_id: id,
+        score: analysis.score,
+        green_flags_count: analysis.flags.green.length,
+        yellow_flags_count: analysis.flags.yellow.length,
+        red_flags_count: analysis.flags.red.length,
+      },
     });
 
     return NextResponse.json({ id } satisfies ShareResponse);

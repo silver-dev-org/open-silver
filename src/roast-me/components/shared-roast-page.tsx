@@ -1,3 +1,5 @@
+"use client";
+
 import { Container } from "@/components/container";
 import { Heading } from "@/components/heading";
 import { Spacer } from "@/components/spacer";
@@ -8,6 +10,8 @@ import Link from "next/link";
 import type { RoastMetadata } from "../types";
 import { MessageChat } from "./message-chat";
 import { SnapshotDisplay } from "./snapshot-display";
+import posthog from "posthog-js";
+import { useEffect } from "react";
 
 interface SharedRoastPageProps {
   metadata: RoastMetadata;
@@ -17,6 +21,24 @@ export function SharedRoastPage({ metadata }: SharedRoastPageProps) {
   const tryItYourselfUrl = metadata.isUnhinged
     ? "/roast-me/unhinged"
     : "/roast-me";
+
+  useEffect(() => {
+    const ageDays = metadata.createdAt
+      ? Math.floor(
+          (Date.now() - new Date(metadata.createdAt).getTime()) /
+            (1000 * 60 * 60 * 24),
+        )
+      : undefined;
+
+    posthog.capture("roast_me_shared_page_viewed", {
+      mode: metadata.isUnhinged ? "unhinged" : "standard",
+      score: metadata.analysis.score,
+      green_flags_count: metadata.analysis.flags.green.length,
+      yellow_flags_count: metadata.analysis.flags.yellow.length,
+      red_flags_count: metadata.analysis.flags.red.length,
+      age_days: ageDays,
+    });
+  }, [metadata]);
 
   return (
     <Container>
