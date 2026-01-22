@@ -306,6 +306,20 @@ abbr {
   animation: messageBubble 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+@keyframes micPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.animate-micPulse {
+  animation: micPulse 0.5s ease-in-out;
+}
+
 .shadow-vignette {
   background: radial-gradient(
     ellipse at center,
