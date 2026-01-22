@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { Loader2, Mic, MicOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import posthog from "posthog-js";
 import type { TranscriptionStatus } from "../hooks/use-realtime-transcription";
 
@@ -12,6 +11,7 @@ type AudioOverlayProps = {
   status: TranscriptionStatus;
   isListening: boolean;
   onToggle?: () => void;
+  onMutedSpeaking?: () => void;
 };
 
 const BAR_COUNT = 8;
@@ -21,6 +21,7 @@ export function AudioOverlay({
   status,
   isListening,
   onToggle,
+  onMutedSpeaking,
 }: AudioOverlayProps) {
   const [activeBars, setActiveBars] = useState(0);
   const [isPulsing, setIsPulsing] = useState(false);
@@ -73,7 +74,7 @@ export function AudioOverlay({
   // Detect speaking while muted
   useEffect(() => {
     // Only detect when muted (not listening) and have significant audio activity
-    if (isListening || activeBars < 4 || status !== "listening") return;
+    if (isListening || activeBars < 3 || status !== "listening") return;
 
     const now = Date.now();
     // Debounce: only alert once every 3 seconds
@@ -83,13 +84,13 @@ export function AudioOverlay({
     detectionCount.current += 1;
 
     if (!hasShownMutedToast.current) {
-      // First detection - show toast
-      toast.warning("You're muted! Click to unmute");
+      // First detection - show message box
+      onMutedSpeaking?.();
       hasShownMutedToast.current = true;
 
       posthog.capture("roast_me_muted_speaking_detected", {
         detection_count: detectionCount.current,
-        alert_type: "toast",
+        alert_type: "message_box",
       });
     } else {
       // Subsequent detections - pulse button

@@ -35,6 +35,7 @@ type CameraProps = {
   transcriptionStatus?: TranscriptionStatus;
   isListening?: boolean;
   onToggleListening?: () => void;
+  onMutedSpeaking?: () => void;
 };
 
 export function Camera({
@@ -48,6 +49,7 @@ export function Camera({
   transcriptionStatus,
   isListening,
   onToggleListening,
+  onMutedSpeaking,
 }: CameraProps) {
   const pathname = usePathname();
   const isUnhinged = pathname?.endsWith("unhinged");
@@ -205,6 +207,7 @@ export function Camera({
               status={transcriptionStatus}
               isListening={isListening ?? true}
               onToggle={onToggleListening}
+              onMutedSpeaking={onMutedSpeaking}
             />
           )}
 

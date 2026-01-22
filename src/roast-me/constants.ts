@@ -272,6 +272,7 @@ export const SIMILAR_PHRASES = [
   "joist",
 
   // Rust/must/just sounds
+  "trust",
   "rust",
   "must",
   "bust",
@@ -391,6 +392,7 @@ export const SIMILAR_PHRASES = [
   "rones",
 
   // Other
-  "trust",
   "aust",
+  "fuck",
+  "call",
 ];
