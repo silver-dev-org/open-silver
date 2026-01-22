@@ -8,6 +8,7 @@ import { BouncingDots } from "./bouncing-dots";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
+import { ExternalLink } from "lucide-react";
 
 const MESSAGE_DELAY = 1000;
 
@@ -22,6 +23,7 @@ interface MessageChatProps {
     detectedPhrase: string;
     attemptCount: number;
   } | null;
+  showMutedWarning?: boolean;
 }
 
 const getMispronunciationMessage = (
@@ -31,22 +33,24 @@ const getMispronunciationMessage = (
   if (attemptCount === 1) {
     return {
       text: `Did you say "${detectedPhrase}"? That's not quite right. It's "roast me".`,
-      linkText: 'Learn how to say "Roast" ↗',
+      linkText: 'Learn how to say "Roast" properly',
       linkUrl: "https://dictionary.cambridge.org/pronunciation/english/roast",
     };
   }
   if (attemptCount === 2) {
     return {
       text: `Hmm, not there yet. I understood "${detectedPhrase}". The correct phonetics are /rəʊst/ /miː/.`,
-      linkText: "Fix your pronunciation with a vetted English coach ↗",
+      linkText: "Consider improving your pronunciation with a coach",
       linkUrl: "https://silver.dev/english",
     };
   }
-  return {
-    text: `Seriously?! "${detectedPhrase}"?!. You know what, I'm tired. Try clicking the "Roast me" button above instead.`,
-    linkText: null,
-    linkUrl: null,
-  };
+  if (attemptCount === 3) {
+    return {
+      text: `Seriously?! "${detectedPhrase}"?!. You know what, I'm tired. Try clicking the "Roast me" button above instead.`,
+      linkText: null,
+      linkUrl: null,
+    };
+  }
 };
 
 export function MessageChat({
@@ -57,6 +61,7 @@ export function MessageChat({
   showResults,
   static: isStatic,
   mispronunciation,
+  showMutedWarning,
 }: MessageChatProps) {
   const [visibleMessages, setVisibleMessages] = useState(isStatic ? 3 : 0);
 
@@ -107,32 +112,41 @@ export function MessageChat({
               mispronunciation.detectedPhrase,
               attemptNumber,
             );
+            if (!msg) return null;
             return (
               <MessageBox key={`mispronunciation-${attemptNumber}`} side="left">
                 {msg.text}
                 {msg.linkUrl && (
-                  <Link
-                    href={msg.linkUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link"
-                    onClick={() => {
-                      posthog.capture("roast_me_pronunciation_link_clicked", {
-                        mode: isUnhinged ? "unhinged" : "standard",
-                        detected_phrase: mispronunciation.detectedPhrase,
-                        attempt_count: attemptNumber,
-                        link_type: attemptNumber === 1 ? "google" : "silver",
-                      });
-                    }}
-                  >
+                  <>
                     {" "}
-                    {msg.linkText}
-                  </Link>
+                    <Link
+                      href={msg.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link"
+                      onClick={() => {
+                        posthog.capture("roast_me_pronunciation_link_clicked", {
+                          mode: isUnhinged ? "unhinged" : "standard",
+                          detected_phrase: mispronunciation.detectedPhrase,
+                          attempt_count: attemptNumber,
+                          link_type: attemptNumber === 1 ? "google" : "silver",
+                        });
+                      }}
+                    >
+                      {msg.linkText}
+                      <ExternalLink className="inline size-4 ms-1" />
+                    </Link>
+                  </>
                 )}
               </MessageBox>
             );
           })}
         </>
+      )}
+      {showMutedWarning && cameraStatus === "active" && !isStatic && (
+        <MessageBox side="left">
+          You&apos;re muted! Click the microphone icon to unmute.
+        </MessageBox>
       )}
       {(isStatic || cameraStatus === "frozen") && (
         <>

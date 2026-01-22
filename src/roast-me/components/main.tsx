@@ -42,6 +42,7 @@ export function RoastMe() {
     detectedPhrase: string;
     attemptCount: number;
   } | null>(null);
+  const [showMutedWarning, setShowMutedWarning] = useState(false);
   const hasTrackedCompletion = useRef(false);
   const isUnhinged = pathname?.endsWith("unhinged");
 
@@ -276,6 +277,10 @@ export function RoastMe() {
     [isUnhinged],
   );
 
+  const handleMutedSpeaking = useCallback(() => {
+    setShowMutedWarning(true);
+  }, []);
+
   const {
     status: transcriptionStatus,
     isListening,
@@ -304,6 +309,13 @@ export function RoastMe() {
 
     return () => clearTimeout(timer);
   }, [isListening, cameraStatus, toggleListening]);
+
+  // Clear muted warning when user unmutes
+  useEffect(() => {
+    if (isListening) {
+      setShowMutedWarning(false);
+    }
+  }, [isListening]);
 
   // Handle paste event for clipboard images
   useEffect(() => {
@@ -368,6 +380,7 @@ export function RoastMe() {
         transcriptionStatus={transcriptionStatus}
         isListening={isListening}
         onToggleListening={toggleListening}
+        onMutedSpeaking={handleMutedSpeaking}
         overlay={
           analysisResult?.score ? (
             <GtaOverlay
@@ -388,6 +401,7 @@ export function RoastMe() {
             onRoast={() => analyzeSetup("button")}
             showResults={gtaTextShown}
             mispronunciation={mispronunciationState}
+            showMutedWarning={showMutedWarning}
           />
           <div />
         </CardContent>
