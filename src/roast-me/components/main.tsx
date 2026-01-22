@@ -402,6 +402,7 @@ export function RoastMe() {
             showResults={gtaTextShown}
             mispronunciation={mispronunciationState}
             showMutedWarning={showMutedWarning}
+            transcriptionStatus={transcriptionStatus}
           />
           <div />
         </CardContent>
