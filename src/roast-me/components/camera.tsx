@@ -21,7 +21,6 @@ import { CLASSNAME_BY_STATUS } from "../constants";
 import type { CameraRef, CameraStatus } from "../types";
 import type { TranscriptionStatus } from "../hooks/use-realtime-transcription";
 import { ListeningOverlay } from "./listening-overlay";
-import { TimerOverlay } from "./timer-overlay";
 
 type CameraProps = {
   className?: string;
@@ -169,12 +168,12 @@ export function Camera({
           <div className="absolute bottom-4 right-4 h-4 w-4 border-b-2 border-r-2 border-white" />
 
           {/* Live Indicator */}
-          <div className="absolute bg-black/50 left-8 top-8 px-3 py-2 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
-            <div className="h-2 w-2 animate-caret-blink rounded-full bg-red-600" />
-            Rec
+          <div className="absolute left-8 top-8 flex flex-col gap-1">
+            <div className="bg-black/50 px-3 py-2 flex items-center gap-1 rounded-md text-base font-semibold uppercase">
+              <div className="h-2 w-2 animate-caret-blink rounded-full bg-red-600" />
+              Live
+            </div>
           </div>
-
-          <TimerOverlay isRunning={status === "active"} />
 
           {transcriptionStatus && (
             <ListeningOverlay
