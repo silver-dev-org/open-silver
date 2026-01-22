@@ -20,10 +20,10 @@ interface MessageChatProps {
   data?: DeepPartial<SetupAnalysis>;
   showResults?: boolean;
   static?: boolean;
-  mispronunciation?: {
+  mispronunciation?: Array<{
     detectedPhrase: string;
-    attemptCount: number;
-  } | null;
+    attemptNumber: number;
+  }>;
   showMutedWarning?: boolean;
   transcriptionStatus?: TranscriptionStatus;
 }
@@ -98,6 +98,14 @@ export function MessageChat({
     }
   }, [transcriptionStatus, isStatic, showInitialMessage]);
 
+  // Reset initial message when camera is frozen (analysis started)
+  useEffect(() => {
+    if (isStatic) return;
+    if (cameraStatus === "frozen") {
+      setShowInitialMessage(false);
+    }
+  }, [cameraStatus, isStatic]);
+
   const shouldShowResults = isStatic || showResults;
 
   return (
@@ -119,45 +127,56 @@ export function MessageChat({
           &quot; aloud.
         </MessageBox>
       )}
-      {mispronunciation && cameraStatus === "active" && !isStatic && (
-        <>
-          {Array.from({ length: mispronunciation.attemptCount }, (_, i) => {
-            const attemptNumber = i + 1;
-            const msg = getMispronunciationMessage(
-              mispronunciation.detectedPhrase,
-              attemptNumber,
-            );
-            if (!msg) return null;
-            return (
-              <MessageBox key={`mispronunciation-${attemptNumber}`} side="left">
-                {msg.text}
-                {msg.linkUrl && (
-                  <>
-                    {" "}
-                    <Link
-                      href={msg.linkUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link"
-                      onClick={() => {
-                        posthog.capture("roast_me_pronunciation_link_clicked", {
-                          mode: isUnhinged ? "unhinged" : "standard",
-                          detected_phrase: mispronunciation.detectedPhrase,
-                          attempt_count: attemptNumber,
-                          link_type: attemptNumber === 1 ? "google" : "silver",
-                        });
-                      }}
-                    >
-                      {msg.linkText}
-                      <ExternalLink className="inline size-4 ms-1" />
-                    </Link>
-                  </>
-                )}
-              </MessageBox>
-            );
-          })}
-        </>
-      )}
+      {mispronunciation &&
+        mispronunciation.length > 0 &&
+        cameraStatus === "active" &&
+        !isStatic && (
+          <>
+            {mispronunciation.map((attempt) => {
+              const msg = getMispronunciationMessage(
+                attempt.detectedPhrase,
+                attempt.attemptNumber,
+              );
+              if (!msg) return null;
+              return (
+                <MessageBox
+                  key={`mispronunciation-${attempt.attemptNumber}`}
+                  side="left"
+                >
+                  {msg.text}
+                  {msg.linkUrl && (
+                    <>
+                      {" "}
+                      <Link
+                        href={msg.linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link"
+                        onClick={() => {
+                          posthog.capture(
+                            "roast_me_pronunciation_link_clicked",
+                            {
+                              mode: isUnhinged ? "unhinged" : "standard",
+                              detected_phrase: attempt.detectedPhrase,
+                              attempt_count: attempt.attemptNumber,
+                              link_type:
+                                attempt.attemptNumber === 1
+                                  ? "google"
+                                  : "silver",
+                            },
+                          );
+                        }}
+                      >
+                        {msg.linkText}
+                        <ExternalLink className="inline size-4 ms-1" />
+                      </Link>
+                    </>
+                  )}
+                </MessageBox>
+              );
+            })}
+          </>
+        )}
       {showMutedWarning && cameraStatus === "active" && !isStatic && (
         <MessageBox side="left">
           You&apos;re muted! Click the microphone icon to unmute.

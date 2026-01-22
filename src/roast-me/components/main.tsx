@@ -38,10 +38,12 @@ export function RoastMe() {
     null,
   );
   const [captureStartTime, setCaptureStartTime] = useState<number | null>(null);
-  const [mispronunciationState, setMispronunciationState] = useState<{
-    detectedPhrase: string;
-    attemptCount: number;
-  } | null>(null);
+  const [mispronunciationState, setMispronunciationState] = useState<
+    Array<{
+      detectedPhrase: string;
+      attemptNumber: number;
+    }>
+  >([]);
   const [showMutedWarning, setShowMutedWarning] = useState(false);
   const hasTrackedCompletion = useRef(false);
   const isUnhinged = pathname?.endsWith("unhinged");
@@ -134,7 +136,7 @@ export function RoastMe() {
     setAnalysisResult(undefined);
     setTriggerMethod(null);
     setCaptureStartTime(null);
-    setMispronunciationState(null);
+    setMispronunciationState([]);
     hasTrackedCompletion.current = false;
   }, [analysisResult, isUnhinged]);
 
@@ -259,19 +261,22 @@ export function RoastMe() {
   const handleMispronunciation = useCallback(
     (transcript: string, detectedPhrase: string) => {
       setMispronunciationState((prev) => {
-        const newAttemptCount = prev ? prev.attemptCount + 1 : 1;
+        const newAttemptNumber = prev.length + 1;
 
         posthog.capture("roast_me_mispronunciation_detected", {
           mode: isUnhinged ? "unhinged" : "standard",
           transcript,
           detected_phrase: detectedPhrase,
-          attempt_count: newAttemptCount,
+          attempt_count: newAttemptNumber,
         });
 
-        return {
-          detectedPhrase,
-          attemptCount: newAttemptCount,
-        };
+        return [
+          ...prev,
+          {
+            detectedPhrase,
+            attemptNumber: newAttemptNumber,
+          },
+        ];
       });
     },
     [isUnhinged],
@@ -290,7 +295,7 @@ export function RoastMe() {
       console.log("Trigger phrase detected:", transcript);
       if (cameraStatus === "active") {
         setTriggerMethod("voice");
-        setMispronunciationState(null); // Clear mispronunciation on success
+        setMispronunciationState([]); // Clear mispronunciation on success
         analyzeSetup("voice");
       }
     },
