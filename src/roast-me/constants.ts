@@ -395,4 +395,6 @@ export const SIMILAR_PHRASES = [
   "aust",
   "fuck",
   "call",
+  "rastmi",
+  "asked",
 ];
