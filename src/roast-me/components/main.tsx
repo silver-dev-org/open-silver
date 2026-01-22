@@ -277,6 +277,57 @@ export function RoastMe() {
     return () => clearTimeout(timer);
   }, [isListening, cameraStatus, toggleListening]);
 
+  // Handle paste event for clipboard images
+  useEffect(() => {
+    const handlePaste = (event: ClipboardEvent) => {
+      if (cameraStatus !== "active") return;
+
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.startsWith("image/")) {
+          event.preventDefault();
+          const file = item.getAsFile();
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target?.result as string;
+            if (dataUrl) {
+              setTriggerMethod("button");
+              setCaptureStartTime(Date.now());
+
+              posthog.capture("roast_me_capture_triggered", {
+                mode: isUnhinged ? "unhinged" : "standard",
+                trigger_method: "paste",
+              });
+
+              posthog.capture("roast_me_snapshot_captured", {
+                mode: isUnhinged ? "unhinged" : "standard",
+                trigger_method: "paste",
+              });
+
+              const input: SetupAnalysisRequest = {
+                snapshot: dataUrl,
+                isUnhinged,
+              };
+
+              setSnapshot(dataUrl);
+              setCameraStatus("frozen");
+              submit(input);
+            }
+          };
+          reader.readAsDataURL(file);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [cameraStatus, isUnhinged, submit]);
+
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <Camera
