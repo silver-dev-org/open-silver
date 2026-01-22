@@ -3,6 +3,8 @@
 import { cn } from "@/lib/utils";
 import { Loader2, Mic, MicOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import posthog from "posthog-js";
 import type { TranscriptionStatus } from "../hooks/use-realtime-transcription";
 
 type AudioOverlayProps = {
@@ -21,9 +23,13 @@ export function AudioOverlay({
   onToggle,
 }: AudioOverlayProps) {
   const [activeBars, setActiveBars] = useState(0);
+  const [isPulsing, setIsPulsing] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const hasShownMutedToast = useRef<boolean>(false);
+  const lastAlertTime = useRef<number>(0);
+  const detectionCount = useRef<number>(0);
 
   useEffect(() => {
     const audioContext = new AudioContext();
@@ -64,6 +70,46 @@ export function AudioOverlay({
     };
   }, [stream]);
 
+  // Detect speaking while muted
+  useEffect(() => {
+    // Only detect when muted (not listening) and have significant audio activity
+    if (isListening || activeBars < 4 || status !== "listening") return;
+
+    const now = Date.now();
+    // Debounce: only alert once every 3 seconds
+    if (now - lastAlertTime.current < 3000) return;
+
+    lastAlertTime.current = now;
+    detectionCount.current += 1;
+
+    if (!hasShownMutedToast.current) {
+      // First detection - show toast
+      toast.warning("You're muted! Click to unmute");
+      hasShownMutedToast.current = true;
+
+      posthog.capture("roast_me_muted_speaking_detected", {
+        detection_count: detectionCount.current,
+        alert_type: "toast",
+      });
+    } else {
+      // Subsequent detections - pulse button
+      setIsPulsing(true);
+      setTimeout(() => setIsPulsing(false), 500);
+
+      posthog.capture("roast_me_muted_speaking_detected", {
+        detection_count: detectionCount.current,
+        alert_type: "pulse",
+      });
+    }
+  }, [activeBars, isListening, status]);
+
+  // Reset toast flag when user unmutes
+  useEffect(() => {
+    if (isListening) {
+      hasShownMutedToast.current = false;
+    }
+  }, [isListening]);
+
   if (status === "idle") return null;
 
   const MicIcon = isListening ? Mic : MicOff;
@@ -72,7 +118,10 @@ export function AudioOverlay({
     <button
       onClick={onToggle}
       disabled={status === "connecting"}
-      className="absolute right-8 top-8 text-sm flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 font-semibold text-white backdrop-blur-sm transition-all cursor-pointer hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-70"
+      className={cn(
+        "absolute right-8 top-8 text-sm flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 font-semibold text-white backdrop-blur-sm transition-all cursor-pointer hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-70",
+        isPulsing && "animate-micPulse",
+      )}
     >
       {status === "connecting" && (
         <>
