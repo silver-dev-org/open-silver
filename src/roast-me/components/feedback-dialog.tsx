@@ -29,6 +29,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { FeedbackRequest, SetupAnalysis } from "../types";
+import posthog from "posthog-js";
 
 const formSchema = z.object({
   description: z.string().min(10, "Please provide more details."),
@@ -71,7 +72,16 @@ export function FeedbackDialog({
         throw new Error("Failed to send feedback.");
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      posthog.capture("roast_me_feedback_submitted", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        score: analysis.score,
+        feedback_length: variables.description.length,
+        green_flags_count: analysis.flags.green.length,
+        yellow_flags_count: analysis.flags.yellow.length,
+        red_flags_count: analysis.flags.red.length,
+      });
+
       form.reset();
       setOpen(false);
       toast.success("Thanks for your feedback!");
@@ -85,8 +95,19 @@ export function FeedbackDialog({
     send(data);
   }
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      posthog.capture("roast_me_feedback_dialog_opened", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        score: analysis.score,
+        red_flags_count: analysis.flags.red.length,
+      });
+    }
+    setOpen(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
           <MessageSquare />

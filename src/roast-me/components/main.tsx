@@ -23,6 +23,7 @@ import { GtaOverlay } from "./gta-overlay";
 import { MessageChat } from "./message-chat";
 import { usePathname } from "next/dist/client/components/navigation";
 import { useRealtimeTranscription } from "../hooks/use-realtime-transcription";
+import posthog from "posthog-js";
 
 export function RoastMe() {
   const pathname = usePathname();
@@ -33,6 +34,11 @@ export function RoastMe() {
   const [gtaAnimationComplete, setGtaAnimationComplete] = useState(false);
   const [gtaTextShown, setGtaTextShown] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [triggerMethod, setTriggerMethod] = useState<"voice" | "button" | null>(
+    null,
+  );
+  const [captureStartTime, setCaptureStartTime] = useState<number | null>(null);
+  const hasTrackedCompletion = useRef(false);
   const isUnhinged = pathname?.endsWith("unhinged");
 
   const { object, submit } = useObject({
@@ -40,6 +46,11 @@ export function RoastMe() {
     schema: setupAnalysisSchema,
     onError: (error) => {
       console.error("Analysis error:", error);
+      posthog.capture("roast_me_analysis_error", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        error_message: error.message,
+        trigger_method: triggerMethod || "unknown",
+      });
       toast.error("Failed to analyze setup", {
         description: "Please try again or check your connection.",
       });
@@ -52,10 +63,37 @@ export function RoastMe() {
     useState<typeof object>(undefined);
 
   useEffect(() => {
-    if (object) {
+    // Only sync object to analysisResult when camera is frozen (analyzing)
+    if (object && cameraStatus === "frozen") {
       setAnalysisResult(object);
+
+      // Track analysis completed when we have complete results (only once)
+      if (
+        !hasTrackedCompletion.current &&
+        object.score &&
+        object.flags?.green &&
+        object.flags?.yellow &&
+        object.flags?.red &&
+        object.actionPlanSteps
+      ) {
+        hasTrackedCompletion.current = true;
+
+        const durationMs = captureStartTime
+          ? Date.now() - captureStartTime
+          : undefined;
+
+        posthog.capture("roast_me_analysis_completed", {
+          mode: isUnhinged ? "unhinged" : "standard",
+          score: object.score,
+          trigger_method: triggerMethod || "unknown",
+          green_flags_count: object.flags.green.length,
+          yellow_flags_count: object.flags.yellow.length,
+          red_flags_count: object.flags.red.length,
+          duration_ms: durationMs,
+        });
+      }
     }
-  }, [object]);
+  }, [object, cameraStatus]);
 
   useEffect(() => {
     if (analysisResult?.score && !showGtaAnimation && !gtaAnimationComplete) {
@@ -73,13 +111,26 @@ export function RoastMe() {
   }, []);
 
   const tryAgain = useCallback(() => {
+    if (analysisResult) {
+      posthog.capture("roast_me_try_again_clicked", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        previous_score: analysisResult.score,
+        previous_green_flags_count: analysisResult.flags?.green?.length || 0,
+        previous_yellow_flags_count: analysisResult.flags?.yellow?.length || 0,
+        previous_red_flags_count: analysisResult.flags?.red?.length || 0,
+      });
+    }
+
     setCameraStatus("active");
     setSnapshot(null);
     setShowGtaAnimation(false);
     setGtaAnimationComplete(false);
     setGtaTextShown(false);
     setAnalysisResult(undefined);
-  }, []);
+    setTriggerMethod(null);
+    setCaptureStartTime(null);
+    hasTrackedCompletion.current = false;
+  }, [analysisResult, isUnhinged]);
 
   const isAnalysisComplete = (
     data: typeof analysisResult,
@@ -97,6 +148,15 @@ export function RoastMe() {
     if (!snapshot || !isAnalysisComplete(analysisResult)) return;
 
     setIsSharing(true);
+
+    posthog.capture("roast_me_share_initiated", {
+      mode: isUnhinged ? "unhinged" : "standard",
+      score: analysisResult.score,
+      green_flags_count: analysisResult.flags.green.length,
+      yellow_flags_count: analysisResult.flags.yellow.length,
+      red_flags_count: analysisResult.flags.red.length,
+    });
+
     try {
       const response = await fetch("/roast-me/api/share", {
         method: "POST",
@@ -114,9 +174,27 @@ export function RoastMe() {
 
       const { id } = (await response.json()) as ShareResponse;
       const shareUrl = getShareUrl(id, analysisResult.score, !!isUnhinged);
+
+      posthog.capture("roast_me_share_completed", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        score: analysisResult.score,
+        roast_id: id,
+        share_url: shareUrl,
+        green_flags_count: analysisResult.flags.green.length,
+        yellow_flags_count: analysisResult.flags.yellow.length,
+        red_flags_count: analysisResult.flags.red.length,
+      });
+
       window.open(shareUrl, "_blank");
     } catch (error) {
       console.error("Error sharing roast:", error);
+
+      posthog.capture("roast_me_share_failed", {
+        mode: isUnhinged ? "unhinged" : "standard",
+        score: analysisResult.score,
+        error_message: error instanceof Error ? error.message : "Unknown error",
+      });
+
       toast.error("Failed to share", {
         description: "Please try again or check your connection.",
       });
@@ -125,31 +203,52 @@ export function RoastMe() {
     }
   }, [snapshot, analysisResult, isUnhinged]);
 
-  const analyzeSetup = useCallback(() => {
-    try {
-      const capturedSnapshot = cameraRef.current?.captureSnapshot();
-      if (!capturedSnapshot) {
-        toast.error("Failed to capture snapshot", {
-          description: "Please make sure your camera is working properly.",
+  const analyzeSetup = useCallback(
+    (method?: "voice" | "button") => {
+      try {
+        const capturedSnapshot = cameraRef.current?.captureSnapshot();
+        if (!capturedSnapshot) {
+          toast.error("Failed to capture snapshot", {
+            description: "Please make sure your camera is working properly.",
+          });
+          return;
+        }
+
+        // Set trigger method if provided
+        if (method) {
+          setTriggerMethod(method);
+        }
+
+        // Set capture start time for duration tracking
+        setCaptureStartTime(Date.now());
+
+        posthog.capture("roast_me_capture_triggered", {
+          mode: isUnhinged ? "unhinged" : "standard",
+          trigger_method: method || triggerMethod || "unknown",
         });
-        return;
+
+        posthog.capture("roast_me_snapshot_captured", {
+          mode: isUnhinged ? "unhinged" : "standard",
+          trigger_method: method || triggerMethod || "unknown",
+        });
+
+        const input: SetupAnalysisRequest = {
+          snapshot: capturedSnapshot,
+          isUnhinged,
+        };
+
+        setSnapshot(capturedSnapshot);
+        setCameraStatus("frozen");
+        submit(input);
+      } catch (error) {
+        console.error("Error analyzing setup:", error);
+        toast.error("Failed to start analysis", {
+          description: "An unexpected error occurred. Please try again.",
+        });
       }
-
-      const input: SetupAnalysisRequest = {
-        snapshot: capturedSnapshot,
-        isUnhinged,
-      };
-
-      setSnapshot(capturedSnapshot);
-      setCameraStatus("frozen");
-      submit(input);
-    } catch (error) {
-      console.error("Error analyzing setup:", error);
-      toast.error("Failed to start analysis", {
-        description: "An unexpected error occurred. Please try again.",
-      });
-    }
-  }, [cameraRef, isUnhinged, submit]);
+    },
+    [cameraRef, isUnhinged, submit, triggerMethod],
+  );
 
   const {
     status: transcriptionStatus,
@@ -159,11 +258,13 @@ export function RoastMe() {
     onTriggerPhrase: (transcript) => {
       console.log("Trigger phrase detected:", transcript);
       if (cameraStatus === "active") {
-        analyzeSetup();
+        setTriggerMethod("voice");
+        analyzeSetup("voice");
       }
     },
     triggerPhrases: ["roast me"],
     enabled: cameraStatus === "active",
+    mode: isUnhinged ? "unhinged" : "standard",
   });
 
   useEffect(() => {
@@ -205,12 +306,12 @@ export function RoastMe() {
             isUnhinged={isUnhinged}
             cameraStatus={cameraStatus}
             data={analysisResult}
-            onRoast={analyzeSetup}
+            onRoast={() => analyzeSetup("button")}
             showResults={gtaTextShown}
           />
           <div />
         </CardContent>
-        {analysisResult && cameraStatus === "frozen" && (
+        {snapshot && isAnalysisComplete(analysisResult) && (
           <CardFooter className="flex flex-col gap-6 border-t">
             <div className="flex gap-6 w-full">
               <Button variant="default" className="flex-1" onClick={tryAgain}>
@@ -231,13 +332,11 @@ export function RoastMe() {
                 {isSharing ? "Sharing..." : "Share"}
               </Button>
             </div>
-            {snapshot && isAnalysisComplete(analysisResult) && (
-              <FeedbackDialog
-                snapshot={snapshot}
-                analysis={analysisResult}
-                isUnhinged={!!isUnhinged}
-              />
-            )}
+            <FeedbackDialog
+              snapshot={snapshot}
+              analysis={analysisResult}
+              isUnhinged={!!isUnhinged}
+            />
           </CardFooter>
         )}
       </Card>
