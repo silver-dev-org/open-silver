@@ -193,9 +193,12 @@ export function MessageChat({
                   </h2>
                   {data.actionPlanSteps.length > 0 ? (
                     <ul className="my-1.5 list-decimal pl-6">
-                      {data.actionPlanSteps.map((step, i) => (
-                        <li key={i}>{step}</li>
-                      ))}
+                      {data.actionPlanSteps.map(
+                        (step, i) =>
+                          step && (
+                            <li key={i}>{step.replace(/^\d\.\s/, "")}</li>
+                          ),
+                      )}
                     </ul>
                   ) : (
                     "Nothing required; you're ready!"
