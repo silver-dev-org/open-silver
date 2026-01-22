@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import posthog from "posthog-js";
 import { ExternalLink } from "lucide-react";
+import { TranscriptionStatus } from "../hooks/use-realtime-transcription";
 
 const MESSAGE_DELAY = 1000;
 
@@ -24,6 +25,7 @@ interface MessageChatProps {
     attemptCount: number;
   } | null;
   showMutedWarning?: boolean;
+  transcriptionStatus?: TranscriptionStatus;
 }
 
 const getMispronunciationMessage = (
@@ -62,8 +64,10 @@ export function MessageChat({
   static: isStatic,
   mispronunciation,
   showMutedWarning,
+  transcriptionStatus,
 }: MessageChatProps) {
   const [visibleMessages, setVisibleMessages] = useState(isStatic ? 3 : 0);
+  const [showInitialMessage, setShowInitialMessage] = useState(false);
 
   useEffect(() => {
     if (isStatic) return;
@@ -83,11 +87,22 @@ export function MessageChat({
     };
   }, [showResults, data, isStatic]);
 
+  // Show initial message after a short delay when transcription is listening
+  useEffect(() => {
+    if (isStatic) return;
+    if (transcriptionStatus === "listening" && !showInitialMessage) {
+      const timer = setTimeout(() => {
+        setShowInitialMessage(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [transcriptionStatus, isStatic, showInitialMessage]);
+
   const shouldShowResults = isStatic || showResults;
 
   return (
     <>
-      {(cameraStatus === "active" || cameraStatus === "frozen") && (
+      {(showInitialMessage || cameraStatus === "frozen" || isStatic) && (
         <MessageBox side="left" disabledSound={isStatic}>
           Hey! Say &quot;
           {isStatic ? (
