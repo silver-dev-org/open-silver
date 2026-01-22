@@ -193,7 +193,7 @@ export function Camera({
 
           {/* Live Indicator */}
           <div className="absolute left-8 top-8 flex flex-col gap-1">
-            <div className="bg-black/50 px-3 py-2 flex items-center gap-1 rounded-md text-sm font-semibold uppercase">
+            <div className="bg-black/50 px-3 py-2 flex items-center gap-1 rounded-md text-white text-sm font-semibold uppercase">
               <div className="h-2 w-2 animate-caret-blink rounded-full bg-red-600" />
               Live
             </div>
