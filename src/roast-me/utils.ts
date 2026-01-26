@@ -1,31 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { ORDINAL_SUFFIXES } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-export function extractJsonFromString(input: string) {
-  const match = input.match(/```json\n([\s\S]*?)\n```/);
-  if (!match) {
-    const fallbackMatch = input.match(/{[\s\S]*}/);
-    if (fallbackMatch) {
-      return JSON.parse(fallbackMatch[0]);
-    }
-    throw new Error("No valid JSON found in the string.");
-  }
-  return JSON.parse(match[1]) as Record<string, unknown> | unknown[];
-}
-
-export function getOrdinal(
-  value: number,
-  locale: Intl.LocalesArgument = "en-US",
-): string {
-  const pluralRules = new Intl.PluralRules(locale, { type: "ordinal" });
-  const rule = pluralRules.select(value);
-  const suffix = ORDINAL_SUFFIXES[rule];
-  return `${value}${suffix}`;
 }
 
 export class PreppingData {

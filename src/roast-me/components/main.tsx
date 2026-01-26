@@ -17,6 +17,7 @@ import {
   ShareRequest,
   ShareResponse,
 } from "../types";
+import { PreppingData } from "../utils";
 import { Camera } from "./camera";
 import { FeedbackDialog } from "./feedback-dialog";
 import { GtaOverlay } from "./gta-overlay";
@@ -98,6 +99,8 @@ export function RoastMe() {
           red_flags_count: object.flags.red.length,
           duration_ms: durationMs,
         });
+
+        PreppingData.setToolData("roast-me", object.score);
       }
     }
   }, [object, cameraStatus]);
