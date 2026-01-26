@@ -6,6 +6,7 @@ export const runtime = "edge";
 export const alt = "Roast Me Result";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const revalidate = 0;
 
 async function getMetadata(id: string): Promise<RoastMetadata | null> {
   try {

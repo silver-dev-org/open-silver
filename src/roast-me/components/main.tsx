@@ -193,6 +193,9 @@ export function RoastMe() {
         red_flags_count: analysisResult.flags.red.length,
       });
 
+      // Wait for Vercel Blob Storage to propagate the files before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       window.open(shareUrl, "_blank");
     } catch (error) {
       console.error("Error sharing roast:", error);
