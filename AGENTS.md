@@ -1,21 +1,26 @@
-# Instructions
+# Open Silver
 
-## Project Overview
+## Overview
 
 OpenSilver is a monorepo containing several independent tools.
 
 ## Guidelines
 
 * Use App Router, not Pages Router.
+* Use `bun`, not `npm` or `node`.
 * Name files and directories in kebab-case.
 * Define types, constants, and utils in the corresponding `types.ts`, `constants.ts`, and `utils.ts` file based on the tool you're developing.
 * Use colors from `@src/app/globals.css`, not default Tailwind colors.
-* Combine classNames using the `cn` utility, not string interpolation.
-* Check for TypeScript errors before saying something is done.
-* Use `bun`, not `npm` or `node`.
+* Combine classNames using `cn` from `@src/lib/utils.ts`, not string interpolation.
 * If any of the guidelines above aren't followed in existing code, that's because it's old code; don't write yours based on it.
 
-## Browser Automation
+## Development Workflow
+
+1. Run `bun tsc` after making changes and fix the errors, if any.
+2. Use **Browser Automation** to test your changes as a real user and ensure they work as expected.
+3. Done.
+
+### Browser Automation
 
 Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
 
