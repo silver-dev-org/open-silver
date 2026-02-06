@@ -145,7 +145,7 @@ export function Review() {
           {mutation.isPending ? (
             <p className="opacity-0 animate-[fadeIn_200ms_ease-in_3s_forwards] px-4 py-2 text-center bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-semibold rounded-lg shadow-md border border-gray-300 dark:border-gray-700">
               <span className="mr-2 text-secondary">●</span>
-              El proceso puede tardar un hasta 2 minutos...
+              El proceso puede tardar hasta 2 minutos...
             </p>
           ) : (
             <div className="flex flex-col gap-4">
