@@ -6,5 +6,4 @@ Feel free to make a PR!
 
 ## Contributing
 
-- If you see the Pages Router in use, it's because it's a legacy feature. Please use the App Router.
-- We use `bun` instead of `npm`
+Follow the guidelines at [AGENTS.md](AGENTS.md).
