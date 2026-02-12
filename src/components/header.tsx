@@ -2,13 +2,12 @@
 
 import { SilverDev } from "@/components/logos";
 import { Button } from "@/components/ui/button";
+import { TYPST_TEMPLATE_URL } from "@/resume-checker/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { spacing } from "./spacer";
-
-const RESUME_TEMPLATE_URL = "https://typst.app/universe/package/silver-dev-cv";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -40,7 +39,7 @@ export function Header() {
 
   if (pathname?.startsWith("/resume-checker")) {
     links[1].push({
-      href: RESUME_TEMPLATE_URL,
+      href: TYPST_TEMPLATE_URL,
       label: "Resume Template",
       external: true,
       button: true,
