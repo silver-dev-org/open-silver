@@ -55,7 +55,7 @@ export function BillingInformation({
               <FormItem>
                 <FormLabel>Name or Company Name</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Silver.dev LLC" />
+                  <Input {...field} placeholder="Silver.dev LLC" disabled />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -72,6 +72,7 @@ export function BillingInformation({
                     {...field}
                     placeholder="e.g., 123 Main Street, New York NY 10001, United States"
                     className="w-full"
+                    disabled
                   />
                 </FormControl>
                 <FormMessage />
