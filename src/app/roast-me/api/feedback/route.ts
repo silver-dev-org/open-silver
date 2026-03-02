@@ -21,12 +21,16 @@ export async function POST(req: NextRequest) {
 <h2>Snapshot</h2>
 `;
 
+    const base64Data = data.snapshot
+      ? data.snapshot.replace(/^data:image\/\w+;base64,/, "")
+      : null;
+
     const { error } = await resend.emails.send({
       from: "Roast Me <feedback@silver.dev>",
       to: ["nicolas@silver.dev"],
       subject: "User feedback",
-      attachments: data.snapshot
-        ? [{ filename: "analysis.png", content: data.snapshot }]
+      attachments: base64Data
+        ? [{ filename: "snapshot.png", content: base64Data }]
         : [],
       html,
     });
