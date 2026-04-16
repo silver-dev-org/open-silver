@@ -20,6 +20,18 @@ describe("getErrorMessage", () => {
     );
   });
 
+  it("returns the json message field when present", async () => {
+    const response = new Response(
+      JSON.stringify({ message: "File is too large" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+
+    await expect(getErrorMessage(response)).resolves.toBe("File is too large");
+  });
+
   it("maps plain text 413 responses to a stable message", async () => {
     const response = new Response("Request Entity Too Large", {
       status: 413,
