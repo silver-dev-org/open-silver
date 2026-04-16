@@ -17,26 +17,38 @@ function isMultipartFormData(req: NextApiRequest) {
   );
 }
 
+function isValidGetUrl(url: NextApiRequest["query"]["url"]): url is string {
+  return typeof url === "string";
+}
+
+function sendJsonError(res: NextApiResponse, status: number, error: string) {
+  return res.status(status).json({ error });
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData | { error: string }>,
 ) {
-  try {
-    if (!["POST", "GET"].includes(req.method || "")) {
-      res.status(404).send({ error: "Not Found" });
-      return;
-    }
+  if (!req.method || !["POST", "GET"].includes(req.method)) {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
 
+  if (req.method === "GET" && !isValidGetUrl(req.query.url)) {
+    res.status(400).json({ error: "MissingURL" });
+    return;
+  }
+
+  if (req.method === "POST" && !isMultipartFormData(req)) {
+    res.status(400).json({ error: "InvalidUploadRequest" });
+    return;
+  }
+
+  try {
     let pdfBuffer: Buffer;
-    if (isMultipartFormData(req)) {
-      const chunks = [];
-      for await (const chunk of req) {
-        chunks.push(chunk);
-      }
-      pdfBuffer = Buffer.concat(chunks);
-    } else {
-      const { url } = req.query;
-      if (!url || typeof url !== "string") {
+    if (req.method === "GET") {
+      const url = req.query.url;
+      if (!isValidGetUrl(url)) {
         throw new Error("MissingURL");
       }
 
@@ -49,6 +61,14 @@ export default async function handler(
       const response = await fetch(url);
       const arrayBuffer = await response.arrayBuffer();
       pdfBuffer = Buffer.from(arrayBuffer);
+    } else if (isMultipartFormData(req)) {
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      pdfBuffer = Buffer.concat(chunks);
+    } else {
+      throw new Error("InvalidUploadRequest");
     }
 
     const parsed = await pdf(pdfBuffer);
@@ -71,9 +91,7 @@ export default async function handler(
   } catch (e) {
     if (!(e instanceof Error)) {
       console.error(e);
-      res.status(500).send({
-        error: "UnknownError",
-      });
+      sendJsonError(res, 500, "UnknownError");
       return;
     }
 
@@ -82,16 +100,12 @@ export default async function handler(
       e.message.includes("Invalid PDF structure")
     ) {
       console.warn(e);
-      res.status(400).send({
-        error: "InvalidPDFException",
-      });
+      sendJsonError(res, 400, "InvalidPDFException");
       return;
     }
 
     console.error(e);
-    res.status(500).send({
-      error: e.message,
-    });
+    sendJsonError(res, 500, e.message);
   }
 }
 
