@@ -3,10 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getPostHogClient } from "@/lib/posthog-server";
 
-const resend = new Resend(process.env.RESEND_KEY);
-
 export async function POST(req: NextRequest) {
+  const resendKey = process.env.RESEND_KEY;
+
+  if (!resendKey) {
+    return NextResponse.json(
+      { error: "Resend API key not configured" },
+      { status: 500 },
+    );
+  }
+
   try {
+    const resend = new Resend(resendKey);
     const data: FeedbackRequest = await req.json();
 
     const html = `<h1>Feedback</h1>
