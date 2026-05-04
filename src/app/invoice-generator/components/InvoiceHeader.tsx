@@ -5,6 +5,7 @@ import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { enUS, es } from "date-fns/locale";
 import { Control, useWatch } from "react-hook-form";
+import type { FormData } from "../schemas";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ function getDateFormat() {
 }
 
 interface InvoiceHeaderProps {
-  control: Control<any>;
+  control: Control<FormData>;
   invoiceNumber: string;
 }
 

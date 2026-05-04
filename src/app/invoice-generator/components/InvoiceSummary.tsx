@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Control, useWatch } from "react-hook-form";
+import type { FormData } from "../schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface InvoiceItem {
@@ -10,7 +11,7 @@ interface InvoiceItem {
 }
 
 interface InvoiceSummaryProps {
-  control: Control<any>;
+  control: Control<FormData>;
 }
 
 export function InvoiceSummary({ control }: InvoiceSummaryProps) {

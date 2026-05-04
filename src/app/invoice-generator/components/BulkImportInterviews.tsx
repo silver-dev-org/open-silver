@@ -1,6 +1,7 @@
 "use client";
 
 import { Control, useWatch } from "react-hook-form";
+import type { FormData } from "../schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ interface InvoiceItem {
 }
 
 interface BulkImportInterviewsProps {
-  control: Control<any>;
+  control: Control<FormData>;
   parseInterviewsAction: () => void;
   addParsedInterviewsAction: () => void;
   clearParsedInterviewsAction: () => void;

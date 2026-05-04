@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { Control } from "react-hook-form";
+import type { FormData } from "../schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/form";
 
 interface AddItemFormProps {
-  control: Control<any>;
+  control: Control<FormData>;
   addItemAction: () => void;
 }
 

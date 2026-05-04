@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Control, useWatch } from "react-hook-form";
+import type { FormData } from "../schemas";
 import { Upload, File, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,7 @@ const courses = [
 ];
 
 interface SilverEdFormProps {
-  control: Control<any>;
+  control: Control<FormData>;
 }
 
 export function SilverEdForm({ control }: SilverEdFormProps) {
