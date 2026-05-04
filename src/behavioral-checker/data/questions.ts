@@ -21,10 +21,10 @@ export const questions: Question[] = [
     maxTime: 90,
   },
   {
-    id: "superpower",
-    text: "What's your superpower?",
+    id: "about-your-recent-work",
+    text: "What have you been working on recently?",
     minTime: 10,
-    maxTime: 90,
+    maxTime: 120,
   },
   {
     id: "company-values",
@@ -64,6 +64,12 @@ export const questions: Question[] = [
     text: "Do you have any questions for us?",
     tags: ["company"],
     minTime: 2,
-    maxTime: 20,
+    maxTime: 30,
+  },
+  {
+    id: "superpower",
+    text: "What's your superpower?",
+    minTime: 10,
+    maxTime: 90,
   },
 ];
