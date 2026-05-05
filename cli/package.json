@@ -1,0 +1,36 @@
+{
+  "name": "@ftaboadac/silver-tracker",
+  "version": "0.1.0",
+  "description": "CLI to sync Claude Code token usage to a Silver dashboard",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ftaboadac/open-silver.git",
+    "directory": "cli"
+  },
+  "type": "module",
+  "bin": {
+    "silver-tracker": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22",
+    "typescript": "^5.4.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^12.9.0"
+  }
+}

@@ -1,14 +1,16 @@
 import { formatTokens } from "@/token-tracker/utils";
-import type { ModelUsage, Provider } from "@/token-tracker/types";
+import type { ModelUsage } from "@/token-tracker/types";
 
 interface ModelTableProps {
   models: ModelUsage[];
-  provider: Provider;
   compact?: boolean;
 }
 
-export function ModelTable({ models, provider, compact }: ModelTableProps) {
-  const showCacheWrite = provider === "anthropic";
+function formatCost(usd: number): string {
+  return `$${usd.toFixed(4)}`;
+}
+
+export function ModelTable({ models, compact }: ModelTableProps) {
   const cell = compact ? "py-1" : "py-2";
 
   return (
@@ -19,9 +21,8 @@ export function ModelTable({ models, provider, compact }: ModelTableProps) {
           <th className="text-right pb-2 font-normal">Input</th>
           <th className="text-right pb-2 font-normal">Output</th>
           <th className="text-right pb-2 font-normal">Cache read</th>
-          {showCacheWrite && (
-            <th className="text-right pb-2 font-normal">Cache write</th>
-          )}
+          <th className="text-right pb-2 font-normal">Cache write</th>
+          <th className="text-right pb-2 font-normal">Cost</th>
         </tr>
       </thead>
       <tbody>
@@ -37,11 +38,12 @@ export function ModelTable({ models, provider, compact }: ModelTableProps) {
             <td className={`${cell} text-right`}>
               {formatTokens(m.cacheReadTokens)}
             </td>
-            {showCacheWrite && (
-              <td className={`${cell} text-right`}>
-                {formatTokens(m.cacheWriteTokens)}
-              </td>
-            )}
+            <td className={`${cell} text-right`}>
+              {formatTokens(m.cacheWriteTokens)}
+            </td>
+            <td className={`${cell} text-right tabular-nums`}>
+              {formatCost(m.costUsd)}
+            </td>
           </tr>
         ))}
       </tbody>

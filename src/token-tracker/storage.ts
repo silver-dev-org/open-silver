@@ -1,6 +1,10 @@
 import { BLOB_PREFIX } from "@/token-tracker/constants";
 import type { UserReport } from "@/token-tracker/types";
 import { get, list, put } from "@vercel/blob";
+import fs from "fs/promises";
+import path from "path";
+
+const localDir = process.env.TOKEN_TRACKER_LOCAL_BLOB_DIR;
 
 function isValidUserReport(value: unknown): value is UserReport {
   return (
@@ -8,48 +12,87 @@ function isValidUserReport(value: unknown): value is UserReport {
     value !== null &&
     typeof (value as UserReport).email === "string" &&
     (value as UserReport).email.includes("@") &&
-    typeof (value as UserReport).providers === "object" &&
+    Array.isArray((value as UserReport).sources) &&
     typeof (value as UserReport).updatedAt === "string"
   );
 }
 
-async function getReportByPathname(pathname: string): Promise<UserReport | null> {
+async function readBlobText(pathname: string): Promise<string | null> {
+  if (localDir) {
+    try {
+      return await fs.readFile(path.join(localDir, pathname), "utf8");
+    } catch {
+      return null;
+    }
+  }
   const result = await get(pathname, { access: "private" });
   if (!result || result.statusCode !== 200) return null;
-  const text = await new Response(result.stream).text();
-  const data: unknown = JSON.parse(text);
-  return isValidUserReport(data) ? data : null;
+  return new Response(result.stream).text();
 }
 
-export async function readReport(hashedId: string): Promise<UserReport | null> {
-  const pathname = `${BLOB_PREFIX}/${hashedId}.json`;
-  return getReportByPathname(pathname);
-}
-
-export async function writeReport(
-  pathname: string,
-  report: UserReport,
-): Promise<void> {
-  await put(pathname, JSON.stringify(report), {
+async function writeBlobText(pathname: string, body: string): Promise<void> {
+  if (localDir) {
+    const filePath = path.join(localDir, pathname);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, body, "utf8");
+    return;
+  }
+  await put(pathname, body, {
     access: "private",
     contentType: "application/json",
     addRandomSuffix: false,
   });
 }
 
+async function listBlobPathnames(prefix: string): Promise<string[]> {
+  if (localDir) {
+    const dir = path.join(localDir, prefix);
+    try {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      return entries
+        .filter((e) => e.isFile())
+        .map((e) => path.posix.join(prefix.replace(/\/$/, ""), e.name));
+    } catch {
+      return [];
+    }
+  }
+  const { blobs } = await list({ prefix });
+  return blobs.map((b) => b.pathname);
+}
+
+async function getReportByPathname(
+  pathname: string,
+): Promise<UserReport | null> {
+  const text = await readBlobText(pathname);
+  if (!text) return null;
+  const data: unknown = JSON.parse(text);
+  return isValidUserReport(data) ? data : null;
+}
+
+export async function readReport(hashedId: string): Promise<UserReport | null> {
+  return getReportByPathname(`${BLOB_PREFIX}/${hashedId}.json`);
+}
+
+export async function writeReport(
+  pathname: string,
+  report: UserReport,
+): Promise<void> {
+  await writeBlobText(pathname, JSON.stringify(report));
+}
+
 export async function listAllReports(): Promise<
   { report: UserReport; pathname: string }[]
 > {
-  const { blobs } = await list({ prefix: `${BLOB_PREFIX}/` });
+  const pathnames = await listBlobPathnames(`${BLOB_PREFIX}/`);
 
   const results = await Promise.allSettled(
-    blobs.map(async (blob) => {
-      const data = await getReportByPathname(blob.pathname);
+    pathnames.map(async (pathname) => {
+      const data = await getReportByPathname(pathname);
       if (!data) {
-        console.warn(`[token-tracker] Skipping invalid blob: ${blob.pathname}`);
+        console.warn(`[token-tracker] Skipping invalid blob: ${pathname}`);
         return null;
       }
-      return { report: data, pathname: blob.pathname };
+      return { report: data, pathname };
     }),
   );
 

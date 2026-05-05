@@ -1,11 +1,9 @@
 "use server";
 
-import { runRefreshAll } from "@/token-tracker/refresh";
 import { dashboardCookieValue } from "@/token-tracker/utils";
 import crypto from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -40,14 +38,4 @@ export async function verifyDashboardPassword(formData: FormData) {
   }
 
   redirect("/token-tracker/dashboard?error=1");
-}
-
-export async function refreshAllAction(): Promise<void> {
-  const authed = await isAuthenticated();
-  if (!authed) {
-    redirect("/token-tracker/dashboard?error=1");
-  }
-
-  await runRefreshAll();
-  revalidatePath("/token-tracker/dashboard");
 }

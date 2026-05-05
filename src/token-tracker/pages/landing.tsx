@@ -1,60 +1,66 @@
 import { Container } from "@/components/container";
 import { Description } from "@/components/description";
-import { Heading, Subheading } from "@/components/heading";
+import { Heading } from "@/components/heading";
 import { Spacer } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
-import { PROVIDER_CONFIG } from "@/token-tracker/constants";
 
 const DEPLOY_URL =
   "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsilver-dev-org%2Fopen-silver";
 
 const GITHUB_URL = "https://github.com/silver-dev-org/open-silver";
 
-const steps = [
+const configJson = `{
+  "mcpServers": {
+    "silver-tracker": {
+      "command": "npx",
+      "args": ["-y", "@ftaboadac/silver-tracker-mcp"]
+    }
+  }
+}`;
+
+const installCards = [
   {
-    number: "01",
-    title: "Deploy your own instance",
-    description:
-      "Clone and deploy this repo to Vercel in one click. Configure the required environment variables in your project settings.",
+    label: "Claude Code",
+    sublabel: null,
+    code: "claude mcp add silver-tracker --\nnpx -y @ftaboadac/silver-tracker-mcp",
   },
   {
-    number: "02",
-    title: "Share the submit link",
-    description:
-      "Send team members a link with a submit token. They enter their work email and a read-only API key for each provider they use.",
+    label: "Codex CLI",
+    sublabel: null,
+    code: "codex mcp add silver-tracker --\nnpx -y @ftaboadac/silver-tracker-mcp",
   },
   {
-    number: "03",
-    title: "Keys are encrypted and stored",
-    description:
-      "API keys are encrypted with AES-256 and stored in Vercel Blob. Usage data never leaves your own Vercel project.",
+    label: "Cursor / Gemini CLI",
+    sublabel: "~/.cursor/mcp.json or ~/.gemini/settings.json",
+    code: configJson,
   },
   {
-    number: "04",
-    title: "Usage refreshes automatically",
-    description:
-      "A cron job polls provider APIs every few hours and updates each team member's token consumption. View totals in the dashboard.",
+    label: "CLI fallback",
+    sublabel: "Any environment without MCP support",
+    code: "npx -y @ftaboadac/silver-tracker",
   },
 ];
+
+function CodeBlock({ children }: { children: string }) {
+  return (
+    <pre className="flex-1 rounded-lg border border-border bg-background px-4 py-3 font-mono text-xs text-foreground overflow-x-auto whitespace-pre-wrap break-all">
+      <code>{children}</code>
+    </pre>
+  );
+}
 
 export function LandingPage() {
   return (
     <Container>
-      <div className="flex flex-col items-center text-center">
+      <section className="flex flex-col items-center text-center max-w-2xl mx-auto">
         <Heading lvl={1} center>
           <span className="text-primary">Token</span> Tracker
         </Heading>
         <Spacer />
         <Description center>
-          A self-hosted internal tool for teams to track AI token usage across
-          Anthropic, OpenAI, Gemini, and Grok.
+          Track AI token usage across your team&apos;s coding tools —
+          self-hosted, no API keys required.
         </Description>
-        <Spacer />
-        <p className="text-sm text-muted-foreground max-w-sm text-balance">
-          The public Open Silver deployment is a reference implementation only
-          — not a shared hosted service. Deploy your own instance to use it
-          with your team.
-        </p>
         <Spacer />
         <div className="flex gap-3 flex-wrap justify-center">
           <a href={DEPLOY_URL} target="_blank" rel="noopener noreferrer">
@@ -66,85 +72,77 @@ export function LandingPage() {
             </Button>
           </a>
         </div>
-      </div>
+      </section>
 
       <Spacer size="lg" />
 
-      <div className="flex flex-col gap-6">
-        <Heading lvl={2}>
-          How it <span className="text-primary">works</span>
-        </Heading>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {steps.map((step) => (
-            <div
-              key={step.number}
-              className="flex gap-4 rounded-lg border border-border p-5"
-            >
-              <span className="text-primary font-mono text-lg font-bold shrink-0 leading-none pt-0.5">
-                {step.number}
-              </span>
-              <div className="flex flex-col gap-1.5">
-                <p className="font-medium">{step.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Spacer size="lg" />
-
-      <div className="flex flex-col gap-6">
-        <Heading lvl={2}>
-          Supported <span className="text-primary">providers</span>
-        </Heading>
-        <div className="flex flex-wrap gap-3">
-          {(
-            Object.entries(PROVIDER_CONFIG) as [
-              string,
-              (typeof PROVIDER_CONFIG)[keyof typeof PROVIDER_CONFIG],
-            ][]
-          ).map(([key, config]) => (
-            <div
-              key={key}
-              className="flex items-center gap-2.5 rounded-lg border border-border px-4 py-3"
-            >
-              <span className="font-medium">{config.label}</span>
-              <span className="text-xs text-muted-foreground">
-                {config.hasUsageApi ? "Usage API" : "Display only"}
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="text-sm text-muted-foreground max-w-prose">
-          Providers marked &ldquo;Display only&rdquo; do not expose a historical
-          usage API — token counts are only available per-request in their
-          response metadata.
+      <section className="flex flex-col gap-6 max-w-4xl mx-auto w-full">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground text-center">
+          Install
         </p>
-      </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {installCards.map((card) => (
+            <div
+              key={card.label}
+              className="flex flex-col gap-3 rounded-lg border border-border p-5"
+            >
+              <div className="flex flex-col gap-0.5">
+                <p className="font-medium text-sm">{card.label}</p>
+                {card.sublabel && (
+                  <p className="text-xs text-muted-foreground">{card.sublabel}</p>
+                )}
+              </div>
+              <CodeBlock>{card.code}</CodeBlock>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <Spacer size="lg" />
 
-      <div className="rounded-lg bg-muted p-8 flex flex-col gap-4">
-        <Heading lvl={2}>
-          Self-<span className="text-primary">hosted</span>
-        </Heading>
-        <Subheading>Why does each organization deploy their own?</Subheading>
-        <div className="flex flex-col gap-3 text-sm text-muted-foreground max-w-prose">
-          <p>
-            Token Tracker is designed to be deployed independently by each
-            organization. Your team&apos;s API keys and usage data live entirely
-            within your own Vercel project — we never see it.
-          </p>
-          <p>
-            Each instance is isolated. There is no central database, no shared
-            accounts, and no usage data crossing organizational boundaries. You
-            own the encryption key, the storage, and the dashboard password.
-          </p>
+      <section className="rounded-2xl bg-muted p-8 max-w-4xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+          <div className="flex flex-col gap-4 flex-1">
+            <Heading lvl={2}>
+              Self-<span className="text-primary">hosted</span>
+            </Heading>
+            <div className="flex flex-col gap-3 text-sm text-muted-foreground">
+              <p>
+                Each organization deploys their own instance. Usage data lives
+                entirely within your own Vercel project — we never see it.
+              </p>
+              <p>
+                Collectors read local log files from Claude Code, Codex CLI,
+                and Gemini CLI. No provider admin keys required. Reports are
+                stored in your own Vercel Blob store, behind a
+                password-protected dashboard.
+              </p>
+            </div>
+            <div className="flex gap-3 flex-wrap">
+              <a href={DEPLOY_URL} target="_blank" rel="noopener noreferrer">
+                <Button>Deploy to Vercel</Button>
+              </a>
+              <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline">View on GitHub</Button>
+              </a>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 shrink-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Supported sources
+            </p>
+            <ul className="flex flex-col gap-1 text-sm">
+              <li>Claude Code</li>
+              <li>Codex CLI</li>
+              <li>Gemini CLI</li>
+              <li className="text-muted-foreground italic text-xs mt-1">
+                Cursor 3.1+ no longer exposes local token data — see README
+              </li>
+            </ul>
+          </div>
         </div>
-      </div>
+      </section>
     </Container>
   );
 }

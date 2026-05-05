@@ -5,7 +5,6 @@ import { getTokenTrackerConfig } from "@/token-tracker/config";
 import { isAuthenticated } from "@/token-tracker/actions";
 import { DashboardTable } from "@/token-tracker/components/dashboard-table";
 import { PasswordForm } from "@/token-tracker/components/password-form";
-import { RefreshButton } from "@/token-tracker/components/refresh-button";
 import { SetupRequired } from "@/token-tracker/components/setup-required";
 import { listAllReports } from "@/token-tracker/storage";
 import type { UserReport } from "@/token-tracker/types";
@@ -53,12 +52,9 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   return (
     <Container>
-      <div className="flex items-center justify-between">
-        <Heading lvl={1}>
-          Token Usage <span className="text-primary">Dashboard</span>
-        </Heading>
-        <RefreshButton />
-      </div>
+      <Heading lvl={1}>
+        Token Usage <span className="text-primary">Dashboard</span>
+      </Heading>
       <Spacer />
       <DashboardTable reports={reports} />
     </Container>
