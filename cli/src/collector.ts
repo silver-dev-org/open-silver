@@ -1,12 +1,10 @@
 import { parseClaudeCodeUsage } from "./parsers/claude-code.js";
 import { parseCodexUsage } from "./parsers/codex.js";
-import { parseCursorUsage } from "./parsers/cursor.js";
 import { parseGeminiUsage } from "./parsers/gemini.js";
 import type { ModelUsage, SourceReport, UsageSource } from "./types.js";
 
 const PARSERS: Array<{ source: UsageSource; parse: () => Promise<ModelUsage[]> }> = [
   { source: "claude-code", parse: parseClaudeCodeUsage },
-  { source: "cursor", parse: parseCursorUsage },
   { source: "codex", parse: parseCodexUsage },
   { source: "gemini-cli", parse: parseGeminiUsage },
 ];

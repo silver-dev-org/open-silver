@@ -1,7 +1,7 @@
 {
-  "name": "@ftaboadac/silver-tracker",
-  "version": "0.1.0",
-  "description": "CLI to sync Claude Code token usage to a Silver dashboard",
+  "name": "@ftaboadac/silver-token-tracker",
+  "version": "0.2.0",
+  "description": "Read local Claude Code, Codex CLI, and Gemini CLI logs and print token usage + cost in the terminal",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
   },
   "type": "module",
   "bin": {
-    "silver-tracker": "dist/index.js"
+    "silver-token-tracker": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -24,6 +24,10 @@
   },
   "engines": {
     "node": ">=18.17.0"
+  },
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "picocolors": "^1.1.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
