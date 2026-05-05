@@ -102,6 +102,12 @@ const tools: {
           "Generate invoices for SilverEd or as a Silver.dev Interviewer.",
         href: "/invoice-generator",
       },
+      {
+        title: "Token Tracker",
+        description:
+          "Submit your API key to fetch token usage and costs across Anthropic and OpenAI.",
+        href: "/token-tracker",
+      },
     ],
   },
 ];
