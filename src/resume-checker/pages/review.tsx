@@ -12,6 +12,7 @@ import { Score } from "@/resume-checker/components/score";
 import { Skeleton } from "@/resume-checker/components/skeleton";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import type { FormState } from "@/resume-checker/types";
+import { getErrorMessage } from "@/resume-checker/utils";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
@@ -49,10 +50,7 @@ export function Review() {
       }
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(
-          "error" in err ? err.error : "Hubo un error inesperado",
-        );
+        throw new Error(await getErrorMessage(res));
       }
 
       return res.json();
