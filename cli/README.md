@@ -6,14 +6,15 @@ No account, no server, no network calls — everything runs locally.
 
 ## Install
 
-```sh
-npm install -g @ftaboadac/silver-token-tracker
-```
+This package will be published to npm by the silver-dev-org maintainers. Install instructions will be added once the official package is live.
 
-Or run without installing:
+For now, you can run the CLI directly from this repo:
 
 ```sh
-npx -y @ftaboadac/silver-token-tracker run
+git clone https://github.com/silver-dev-org/open-silver.git
+cd open-silver/cli
+bun install && bun run build
+node dist/index.js run
 ```
 
 ## Usage
@@ -29,23 +30,15 @@ silver-token-tracker --help       # show help and supported sources
 ```
   Claude Code
   ────────────────────────────────────────────────────────────────────────
-  ┌────────────────────────────┬──────────┬──────────┬────────────┬─────────────┬────────────┐
-  │ Model                      │    Input │   Output │ Cache Read │ Cache Write │ Cost (USD) │
-  ├────────────────────────────┼──────────┼──────────┼────────────┼─────────────┼────────────┤
-  │ claude-sonnet-4-6          │  124.5K  │   18.2K  │    890.1K  │      45.3K  │      $1.26 │
-  │ claude-opus-4              │   12.1K  │    2.3K  │      5.0K  │       1.1K  │      $0.89 │
-  └────────────────────────────┴──────────┴──────────┴────────────┴─────────────┴────────────┘
-
-  Codex CLI
-  ────────────────────────────────────────────────────────────────────────
-  ┌────────────────────────────┬──────────┬──────────┬────────────┬─────────────┬────────────┐
-  │ Model                      │    Input │   Output │ Cache Read │ Cache Write │ Cost (USD) │
-  ├────────────────────────────┼──────────┼──────────┼────────────┼─────────────┼────────────┤
-  │ gpt-4.1                    │   45.2K  │    6.8K  │        0   │           0 │      $0.15 │
-  └────────────────────────────┴──────────┴──────────┴────────────┴─────────────┴────────────┘
+  ┌───────────────────────────┬───────┬────────┬────────────┬─────────────┬────────────┐
+  │ Model                     │ Input │ Output │ Cache Read │ Cache Write │ Cost (USD) │
+  ├───────────────────────────┼───────┼────────┼────────────┼─────────────┼────────────┤
+  │ claude-sonnet-4-6         │  8.7K │   1.0M │      52.2M │        3.5M │     $44.57 │
+  │ claude-haiku-4-5-20251001 │  4.4K │  67.6K │       5.2M │      571.3K │      $1.26 │
+  └───────────────────────────┴───────┴────────┴────────────┴─────────────┴────────────┘
 
   ────────────────────────────────────────────────────────────────────────
-  TOTAL   2 sources · 1.1M tokens · $2.30
+  TOTAL   1 source · 62.6M tokens · $45.83
   ────────────────────────────────────────────────────────────────────────
 ```
 
@@ -65,4 +58,7 @@ Source headers and the cost column are color-highlighted in the terminal.
 
 - Token counts are aggregated across all sessions found on disk (all-time, not filtered by date).
 - Costs are estimated using public API pricing — they may differ from what you are actually billed if you are on a subscription plan.
-- This package is a reference implementation published under the author's personal scope (`@ftaboadac`). The maintainers of [silver-dev-org](https://github.com/silver-dev-org) will publish the official version under their repo with attribution. When that happens, this package will be deprecated in favor of the official one.
+
+---
+
+**Reference implementation:** A working build is published on npm under `@ftaboadac/silver-token-tracker` for early testing purposes. This is not the canonical install path — the official package will be published by the silver-dev-org maintainers once the repo is transferred.
