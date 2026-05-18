@@ -1,7 +1,7 @@
+import { getPostHogClient } from "@/lib/posthog-server";
 import { FeedbackRequest } from "@/roast-me/types";
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getPostHogClient } from "@/lib/posthog-server";
 
 const resend = new Resend(process.env.RESEND_KEY);
 
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const { error } = await resend.emails.send({
       from: "Roast Me <feedback@silver.dev>",
-      to: ["nicolas@silver.dev"],
+      to: ["paske@silver.dev"],
       subject: "User feedback",
       attachments: base64Data
         ? [{ filename: "snapshot.png", content: base64Data }]
