@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const { error } = await resend.emails.send({
       from: "Roast Me <feedback@silver.dev>",
-      to: ["paske@silver.dev"],
+      to: ["engineering@silver.dev"],
       subject: "User feedback",
       attachments: base64Data
         ? [{ filename: "snapshot.png", content: base64Data }]
