@@ -31,7 +31,7 @@ export default async function handler(
 
     const { error } = await resend.emails.send({
       from: "Take-home Checker <feedback@silver.dev>",
-      to: ["paske@silver.dev", "gabriel@silver.dev"],
+      to: ["engineering@silver.dev"],
       subject: "User feedback",
       html,
     });
