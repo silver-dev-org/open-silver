@@ -174,7 +174,7 @@ export function useRealtimeTranscription({
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
-        console.error("Failed to get realtime token:", errorText);
+        console.warn("Failed to get realtime token:", errorText);
         throw new Error("Failed to get realtime token");
       }
 
@@ -224,8 +224,7 @@ export function useRealtimeTranscription({
       };
 
       ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        console.error("WebSocket readyState:", ws.readyState);
+        console.warn("WebSocket error:", error, "readyState:", ws.readyState);
         posthog.capture("roast_me_voice_connection_error", {
           mode,
           ready_state: ws.readyState,
@@ -242,7 +241,8 @@ export function useRealtimeTranscription({
         cleanup();
       };
     } catch (error) {
-      console.error("Error connecting to realtime API:", error);
+      // Connection to OpenAI failed (often geo-block) — expected, warn only.
+      console.warn("Error connecting to realtime API:", error);
       setStatus("error");
       cleanup();
     }

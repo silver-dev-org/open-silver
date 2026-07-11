@@ -87,10 +87,15 @@ export function MessageChat({
     };
   }, [showResults, data, isStatic]);
 
-  // Show initial message after a short delay when transcription is listening
+  // Show initial message after a short delay once transcription settles —
+  // either it's listening (say it aloud) or it errored out (click instead).
   useEffect(() => {
     if (isStatic) return;
-    if (transcriptionStatus === "listening" && !showInitialMessage) {
+    if (
+      (transcriptionStatus === "listening" ||
+        transcriptionStatus === "error") &&
+      !showInitialMessage
+    ) {
       const timer = setTimeout(() => {
         setShowInitialMessage(true);
       }, 500);
@@ -112,19 +117,36 @@ export function MessageChat({
     <>
       {(showInitialMessage || cameraStatus === "frozen" || isStatic) && (
         <MessageBox side="left" disabledSound={isStatic}>
-          Hey! Say &quot;
-          {isStatic ? (
-            "Roast me"
+          {transcriptionStatus === "error" && !isStatic ? (
+            <>
+              Voice isn&apos;t available right now, but you can still get
+              roasted — just click{" "}
+              <button
+                onClick={onRoast}
+                disabled={cameraStatus === "frozen"}
+                className="link cursor-pointer"
+              >
+                Roast me
+              </button>
+              .
+            </>
           ) : (
-            <button
-              onClick={onRoast}
-              disabled={cameraStatus === "frozen"}
-              className="link cursor-pointer"
-            >
-              Roast me
-            </button>
+            <>
+              Hey! Say &quot;
+              {isStatic ? (
+                "Roast me"
+              ) : (
+                <button
+                  onClick={onRoast}
+                  disabled={cameraStatus === "frozen"}
+                  className="link cursor-pointer"
+                >
+                  Roast me
+                </button>
+              )}
+              &quot; aloud.
+            </>
           )}
-          &quot; aloud.
         </MessageBox>
       )}
       {mispronunciation &&
