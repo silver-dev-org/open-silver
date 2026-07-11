@@ -116,55 +116,65 @@ export function AudioOverlay({
   const MicIcon = isListening ? Mic : MicOff;
 
   return (
-    <button
-      onClick={onToggle}
-      disabled={status === "connecting"}
-      className={cn(
-        "absolute right-8 top-8 text-sm flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 font-semibold text-white backdrop-blur-sm transition-all cursor-pointer hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-70",
-        isPulsing && "animate-micPulse",
-      )}
-    >
-      {status === "connecting" && (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Connecting...</span>
-        </>
-      )}
+    <div className="absolute right-8 top-8 flex flex-col items-end gap-2">
+      <button
+        onClick={onToggle}
+        disabled={status === "connecting"}
+        className={cn(
+          "text-sm flex items-center gap-2 rounded-md bg-black/50 px-3 py-2 font-semibold text-white backdrop-blur-sm transition-all cursor-pointer hover:bg-black/70 disabled:cursor-not-allowed disabled:opacity-70",
+          isPulsing && "animate-micPulse",
+        )}
+      >
+        {status === "connecting" && (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Connecting...</span>
+          </>
+        )}
 
-      {status === "listening" && (
-        <>
-          <div className="relative flex items-center justify-center">
-            <MicIcon
-              className={cn(
-                "h-4 w-4",
-                isListening ? "text-white" : "text-warning",
-              )}
-            />
-          </div>
-          <div className="flex gap-1">
-            {Array.from({ length: BAR_COUNT }).map((_, i) => (
-              <div
-                key={i}
+        {status === "listening" && (
+          <>
+            <div className="relative flex items-center justify-center">
+              <MicIcon
                 className={cn(
-                  "w-2 h-5 rounded-sm transition-colors duration-100",
-                  isListening
-                    ? i < activeBars
-                      ? "bg-white"
-                      : "bg-white/30"
-                    : "bg-warning",
+                  "h-4 w-4",
+                  isListening ? "text-white" : "text-warning",
                 )}
               />
-            ))}
-          </div>
-        </>
-      )}
+            </div>
+            <div className="flex gap-1">
+              {Array.from({ length: BAR_COUNT }).map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "w-2 h-5 rounded-sm transition-colors duration-100",
+                    isListening
+                      ? i < activeBars
+                        ? "bg-white"
+                        : "bg-white/30"
+                      : "bg-warning",
+                  )}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {status === "error" && (
+          <>
+            <MicOff className="h-4 w-4 text-destructive" />
+            <span className="text-destructive">Error</span>
+          </>
+        )}
+      </button>
 
       {status === "error" && (
-        <>
-          <MicOff className="h-4 w-4 text-destructive" />
-          <span className="text-destructive">Error</span>
-        </>
+        <p className="max-w-[16rem] rounded-md bg-black/50 px-3 py-2 text-right text-xs font-medium text-white backdrop-blur-sm">
+          We couldn&apos;t connect to the voice service. It may not work on a
+          VPN or in some countries. If you&apos;re on a VPN, turn it off and try
+          again.
+        </p>
       )}
-    </button>
+    </div>
   );
 }
