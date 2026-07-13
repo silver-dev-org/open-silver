@@ -169,7 +169,7 @@ export function AudioOverlay({
       </button>
 
       {status === "error" && (
-        <p className="max-w-[16rem] rounded-md bg-black/50 px-3 py-2 text-right text-xs font-medium text-white backdrop-blur-sm">
+        <p className="max-w-[16rem] rounded-md bg-black/50 px-3 py-2 text-left text-xs font-medium text-white backdrop-blur-sm">
           We couldn&apos;t connect to the voice service. It may not work on a
           VPN or in some countries. If you&apos;re on a VPN, turn it off and try
           again.
