@@ -1,7 +1,6 @@
 import { SYSTEM_PROMPT, SYSTEM_PROMPT_UNHINGED } from "@/roast-me/constants";
 import { setupAnalysisSchema } from "@/roast-me/schemas";
 import { SetupAnalysisRequest } from "@/roast-me/types";
-import { xai } from "@ai-sdk/xai";
 import { streamObject } from "ai";
 import { NextRequest } from "next/server";
 import { getPostHogClient } from "@/lib/posthog-server";
@@ -21,9 +20,15 @@ export async function POST(req: NextRequest) {
   });
 
   const result = streamObject({
-    model: xai("grok-4-1-fast-non-reasoning"),
+    model: "openai/gpt-5.4-nano",
     schema: setupAnalysisSchema,
-    temperature: isUnhinged ? 0.2 : 0,
+    providerOptions: {
+      openai: {
+        reasoningEffort: "low",
+        structuredOutputs: true,
+        strictJsonSchema: true,
+      },
+    },
     messages: [
       {
         role: "system",
