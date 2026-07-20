@@ -5,7 +5,6 @@ import {
   ResponseSchema,
   sanitizeCompletion,
 } from "@/resume-checker/prompts/grade";
-import { google } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
 import pdf from "pdf-parse";
@@ -54,7 +53,7 @@ export default async function handler(
     const parsed = await pdf(pdfBuffer);
 
     const completion = await generateObject({
-      model: google("gemini-2.5-flash"),
+      model: "google/gemini-2.5-flash",
       temperature: 0,
       messages: messages(parsed, pdfBuffer),
       schema: ResponseSchema,
