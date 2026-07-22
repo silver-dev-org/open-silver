@@ -7,7 +7,8 @@
     "eval:dev": "evalite watch",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.17",
