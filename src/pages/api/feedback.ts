@@ -1,15 +1,19 @@
+import { getResend } from "@/lib/resend";
 import { FeedbackEmail } from "@/resume-checker/components/feedback-email";
 import formidable from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs";
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_KEY);
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const resend = getResend();
+  if (!resend) {
+    res.status(500).send({ message: "Email service is not configured" });
+    return;
+  }
+
   try {
     if (req.method !== "POST") {
       res.status(404).send({ message: "Not Found" });

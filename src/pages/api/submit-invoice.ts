@@ -1,17 +1,21 @@
 import formidable from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs";
-import { Resend } from "resend";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/app/invoice-generator/components/InvoicePDF";
 import { InvoiceEmail } from "@/app/invoice-generator/components/InvoiceEmail";
-
-const resend = new Resend(process.env.RESEND_KEY);
+import { getResend } from "@/lib/resend";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const resend = getResend();
+  if (!resend) {
+    res.status(500).send({ message: "Email service is not configured" });
+    return;
+  }
+
   try {
     if (req.method !== "POST") {
       res.status(404).send({ message: "Not Found" });

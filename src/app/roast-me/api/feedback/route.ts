@@ -1,20 +1,19 @@
 import { getPostHogClient } from "@/lib/posthog-server";
+import { getResend } from "@/lib/resend";
 import { FeedbackRequest } from "@/roast-me/types";
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
 
 export async function POST(req: NextRequest) {
-  const resendKey = process.env.RESEND_KEY;
+  const resend = getResend();
 
-  if (!resendKey) {
+  if (!resend) {
     return NextResponse.json(
-      { error: "Resend API key not configured" },
+      { error: "Email service is not configured" },
       { status: 500 },
     );
   }
 
   try {
-    const resend = new Resend(resendKey);
     const data: FeedbackRequest = await req.json();
 
     const html = `<h1>Feedback</h1>
