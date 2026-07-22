@@ -45,7 +45,7 @@ export default async function handler(
     }
 
     const { error } = await resend.emails.send({
-      from: "Resume Checker <feedback@silver.dev>",
+      from: "Resume Checker <feedback@send.silver.dev>",
       to: ["engineering@silver.dev"],
       subject: "Resume Checker",
       react: FeedbackEmail({ yellow_flags, red_flags, grade, description }),
