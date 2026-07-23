@@ -96,12 +96,6 @@ const tools: {
         description: "See our standard agreement.",
         href: "https://silver.dev/contract",
       },
-      {
-        title: "Invoice Generator",
-        description:
-          "Generate invoices for SilverEd or as a Silver.dev Interviewer.",
-        href: "/invoice-generator",
-      },
     ],
   },
 ];
