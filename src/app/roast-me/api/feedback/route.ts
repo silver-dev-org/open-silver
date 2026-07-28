@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       : null;
 
     const { error } = await resend.emails.send({
-      from: "Roast Me <feedback@send.silver.dev>",
+      from: "Roast Me <feedback@notifications.silver.dev>",
       to: ["engineering@silver.dev"],
       subject: "User feedback",
       attachments: base64Data
