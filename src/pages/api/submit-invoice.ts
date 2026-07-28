@@ -78,7 +78,7 @@ export default async function handler(
         : `SilverEd Course Invoice - ${invoiceData.silveredCourse}`;
 
     const { error } = await resend.emails.send({
-      from: "Invoice Generator <invoices@send.silver.dev>",
+      from: "Invoice Generator <invoices@notifications.silver.dev>",
       to: ["silver-dev@ap.mercury.com"],
       subject: emailSubject,
       react: InvoiceEmail({

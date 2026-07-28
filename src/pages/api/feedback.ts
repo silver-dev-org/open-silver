@@ -45,7 +45,7 @@ export default async function handler(
     }
 
     const { error } = await resend.emails.send({
-      from: "Resume Checker <feedback@send.silver.dev>",
+      from: "Resume Checker <feedback@notifications.silver.dev>",
       to: ["engineering@silver.dev"],
       subject: "Resume Checker",
       react: FeedbackEmail({ yellow_flags, red_flags, grade, description }),
@@ -60,7 +60,7 @@ export default async function handler(
   } catch (err) {
     console.error(err);
     res.status(500).send({
-      message: "Tuvimos un error inesperado al enviar tu mail, probá denuevo",
+      message: "Tuvimos un error inesperado al enviar tu mail, probá una vez más",
     });
   }
 }
