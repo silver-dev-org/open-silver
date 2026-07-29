@@ -49,7 +49,7 @@ const SERVICE_MODEL = "sm";
 const CONTINGENCY = "c";
 const STAFFING = "s";
 
-const BASE_FEE = 20;
+const BASE_FEE = 25;
 const FAST_PROCESSING_FEE = 20;
 const PAYROLL_COST = 500;
 const CONTINGENCY_MONTHS_DURATION = 3;
