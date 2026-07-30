@@ -54,15 +54,17 @@ export default async function handler(
         }));
       takeHome = { code, docs };
     } else {
-      throw new Error("Either GitHub repo or zip file is required");
+      return res.status(400).send("Either GitHub repo or zip file is required");
     }
 
     if (!takeHome.docs) {
-      throw new Error(
-        "It's mandatory for your take-home to have a README.md explaining it.",
-      );
+      return res
+        .status(400)
+        .send(
+          "It's mandatory for your take-home to have a README.md explaining it.",
+        );
     }
-    if (!takeHome.code) throw new Error("Repo is empty.");
+    if (!takeHome.code) return res.status(400).send("Repo is empty.");
 
     const analysis = await analyzeTakeHome(takeHome);
 
@@ -78,9 +80,12 @@ export default async function handler(
 
     res.status(200).json(data);
   } catch (error) {
+    console.error(error);
     res
       .status(500)
-      .send(error instanceof Error ? error.message : "Unknown error");
+      .send(
+        "Something went wrong on our end while analyzing your take-home. Please try again in a few minutes.",
+      );
   }
 }
 
