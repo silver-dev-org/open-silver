@@ -1,8 +1,16 @@
 import { Question } from "@/behavioral-checker/data/questions";
+import { extractJsonFromString } from "@/lib/utils";
 import OpenAI from "openai";
 import { ChatCompletionSystemMessageParam } from "openai/resources/index.mjs";
 import { AIClient } from "../core/domain/AIClient";
 import { AssistanceResponse } from "../core/domain/Action";
+
+export class InvalidModelResponseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "InvalidModelResponseError";
+  }
+}
 
 export class OpenAISdkAIClient implements AIClient {
   private client: OpenAI;
@@ -19,31 +27,53 @@ export class OpenAISdkAIClient implements AIClient {
     response: string,
     exampleResponses: { response: string; score: string }[]
   ): Promise<AssistanceResponse> {
-    try {
-      const message = this.getInitialMessage(
-        question,
-        response,
-        exampleResponses
+    const message = this.getInitialMessage(
+      question,
+      response,
+      exampleResponses
+    );
+    const res = await this.client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [message],
+      max_tokens: 1000,
+      response_format: { type: "json_object" },
+    });
+
+    const choice = res.choices[0];
+    const assistantMessage = choice.message.content || "";
+
+    if (choice.finish_reason === "length") {
+      throw new InvalidModelResponseError(
+        "Model response truncated at max_tokens"
       );
-      const res = await this.client.chat.completions.create({
-        model: "gpt-4o",
-        messages: [message],
-        max_tokens: 300,
-      });
-
-      const assistantMessage = res.choices[0].message.content || "";
-
-      return {
-        ...JSON.parse(
-          assistantMessage.replace("```json", "").replace("```", "")
-        ),
-        question,
-        questionId,
-        response,
-      };
-    } catch (error: unknown) {
-      throw error;
     }
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(assistantMessage);
+    } catch {
+      try {
+        parsed = extractJsonFromString(assistantMessage) as Record<
+          string,
+          unknown
+        >;
+      } catch {
+        throw new InvalidModelResponseError("Model response is not valid JSON");
+      }
+    }
+
+    if (typeof parsed.result !== "string") {
+      throw new InvalidModelResponseError(
+        "Model response missing result field"
+      );
+    }
+
+    return {
+      ...parsed,
+      question,
+      questionId,
+      response,
+    } as AssistanceResponse;
   }
 
   private getInitialMessage(

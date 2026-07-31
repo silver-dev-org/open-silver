@@ -3,12 +3,29 @@ import {
   Result,
 } from "@/behavioral-checker/client-assistance/core/domain/Action";
 import { Question } from "@/behavioral-checker/data/questions";
-import { Client } from "@notionhq/client";
+import { Client, RequestTimeoutError } from "@notionhq/client";
 import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const NOTION_TIMEOUT_MS = 5_000;
+
+const notion = new Client({
+  auth: process.env.NOTION_API_KEY,
+  timeoutMs: NOTION_TIMEOUT_MS,
+});
 
 const DATABASE_ID = process.env.NOTION_DATABASE_ID as string;
+
+export class NotionOperationError extends Error {
+  constructor(
+    message: string,
+    public readonly operation: string,
+    public readonly timedOut: boolean,
+    public readonly cause?: unknown
+  ) {
+    super(message);
+    this.name = "NotionOperationError";
+  }
+}
 
 export const addFeedbackToNotion = async (
   data: AssistanceResponse & { feedbackScore?: string; feedbackText?: string }
@@ -44,7 +61,12 @@ export const addFeedbackToNotion = async (
     return res.id;
   } catch (error: any) {
     console.error("Error añadiendo registro:", error.message);
-    throw new Error("Failed to add feedback to Notion");
+    throw new NotionOperationError(
+      "Failed to add feedback to Notion",
+      "addFeedbackToNotion",
+      RequestTimeoutError.isRequestTimeoutError(error),
+      error
+    );
   }
 };
 
@@ -97,7 +119,12 @@ export const getPromptExamples = async (questionId: Question["id"]) => {
     });
   } catch (error: any) {
     console.error("Error al obtener respuestas:", error.message);
-    throw new Error("Failed to fetch feedback from Notion");
+    throw new NotionOperationError(
+      "Failed to fetch feedback from Notion",
+      "getPromptExamples",
+      RequestTimeoutError.isRequestTimeoutError(error),
+      error
+    );
   }
 };
 
@@ -167,7 +194,12 @@ export const getLastFeedback = async (
     };
   } catch (error: any) {
     console.error("Error al obtener respuestas:", error.message);
-    throw new Error("Failed to fetch feedback from Notion");
+    throw new NotionOperationError(
+      "Failed to fetch feedback from Notion",
+      "getLastFeedback",
+      RequestTimeoutError.isRequestTimeoutError(error),
+      error
+    );
   }
 };
 
@@ -188,6 +220,11 @@ export const updateFeedbackInNotion = async (
     console.log("Registro actualizado:", pageId);
   } catch (error: any) {
     console.error("Error actualizando registro:", error.message);
-    throw new Error("Failed to update feedback in Notion");
+    throw new NotionOperationError(
+      "Failed to update feedback in Notion",
+      "updateFeedbackInNotion",
+      RequestTimeoutError.isRequestTimeoutError(error),
+      error
+    );
   }
 };

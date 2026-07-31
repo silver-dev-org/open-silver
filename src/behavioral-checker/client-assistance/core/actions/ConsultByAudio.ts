@@ -1,4 +1,5 @@
 import { Question } from "@/behavioral-checker/data/questions";
+import type { ApiLogger } from "@/lib/structured-logger";
 import { AssistanceResponse } from "../domain/Action";
 import {
   clientAssistanceService,
@@ -15,7 +16,8 @@ class ConsultByAudio {
   async invoke(
     id: Question["id"],
     question: string,
-    audioPath: string
+    audioPath: string,
+    logger?: ApiLogger
   ): Promise<AssistanceResponse> {
     console.log("Consulting by audio:", audioPath);
     console.time("Transcribe Audio");
@@ -25,7 +27,8 @@ class ConsultByAudio {
     const response = await this.clientAssistanceService.consultByText(
       id,
       question,
-      content
+      content,
+      logger
     );
     console.timeEnd("Consult By Text");
 
