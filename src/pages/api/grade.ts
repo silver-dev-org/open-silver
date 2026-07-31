@@ -57,7 +57,6 @@ export default async function handler(
       temperature: 0,
       messages: messages(parsed, pdfBuffer),
       schema: ResponseSchema,
-      mode: "json",
     });
 
     if (!completion) {
