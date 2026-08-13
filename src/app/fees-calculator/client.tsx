@@ -23,9 +23,16 @@ import { cn } from "@/lib/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import posthog from "posthog-js";
+import { captureEvent } from "@/lib/analytics/capture";
+import {
+  AnalyticsEvent,
+  AnalyticsProperty,
+  BookingSurface,
+  PageType,
+} from "@/lib/analytics/events";
 
 type ServiceModel = typeof CONTINGENCY | typeof STAFFING;
 
@@ -161,6 +168,39 @@ export function FeesCalculator() {
     ) as ContractProps,
   );
 
+  // The funnel step this page owns. silver.dev measures a buyer up to the point
+  // they leave for the calculator; these two events are the only view of what
+  // happens once they arrive. Both are ref-guarded rather than state-guarded so
+  // React's double-invoked effects in development cannot inflate the counts.
+  const hasTrackedOpen = useRef(false);
+  const hasTrackedCompletion = useRef(false);
+
+  const funnelProperties = {
+    [AnalyticsProperty.PAGE_TYPE]: PageType.CALCULATOR,
+    [AnalyticsProperty.PAGE_TOPIC]: "fees_calculator",
+  };
+
+  useEffect(() => {
+    if (hasTrackedOpen.current) return;
+    hasTrackedOpen.current = true;
+    // Once per mount: this is arrival, not a response to anything that changes.
+    captureEvent(AnalyticsEvent.FEES_CALCULATOR_OPENED, funnelProperties);
+  }, []);
+
+  /**
+   * Adjusting any term is what "completed" means here.
+   *
+   * The calculator renders a number immediately from its defaults, so a first
+   * result proves nothing — every visitor gets one just by arriving. The signal
+   * worth counting is that someone put *their* terms in and read the estimate
+   * back, which is exactly one call to setContractProp.
+   */
+  function trackCompletion() {
+    if (hasTrackedCompletion.current) return;
+    hasTrackedCompletion.current = true;
+    captureEvent(AnalyticsEvent.FEES_CALCULATOR_COMPLETED, funnelProperties);
+  }
+
   function getParamOrDefault(key: string, defaultValue: any) {
     const value = searchParams?.get(key);
     if (value === null) return defaultValue;
@@ -273,6 +313,7 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
   }
 
   function setContractProp(key: keyof ContractProps, value: any) {
+    trackCompletion();
     setContractProps((params) => ({
       ...params,
       [key]: value,
@@ -326,7 +367,23 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
             </Link>
           </Button>*/}
           <Button asChild>
-            <Link target="_blank" href="https://silver.dev/companies">
+            {/*
+              silver.dev/companies is a server redirect straight to Calendly, so
+              the booking cannot be recorded once the visitor leaves. This click
+              is the last observable moment, and the only place this particular
+              path into a meeting shows up in the funnel at all.
+            */}
+            <Link
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://silver.dev/companies"
+              onClick={() =>
+                captureEvent(AnalyticsEvent.MEETING_BOOKING_STARTED, {
+                  ...funnelProperties,
+                  [AnalyticsProperty.BOOKING_SURFACE]: BookingSurface.LINK,
+                })
+              }
+            >
               Book with Gabriel
             </Link>
           </Button>
