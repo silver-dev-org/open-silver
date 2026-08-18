@@ -62,6 +62,7 @@ const PAYROLL_COST = 500;
 const CONTINGENCY_MONTHS_DURATION = 3;
 const MONTHS_PER_YEAR = 12;
 const MONTHLY_PAYMENT_MARKUP = 10;
+const STAFFING_MONTHLY_FEE = 2000;
 
 const NUMBER_OF_HIRES_OPTIONS = [
   { value: "1", label: "1" },
@@ -102,13 +103,14 @@ const RADIO_FIELDS: CardRadioGroupProps[] = [
     name: SERVICE_MODEL,
     legend: "Service model",
     options: SERVICE_MODEL_OPTIONS,
+    description: `Contingency: a ${BASE_FEE}% placement fee per hire. Staffing: a flat $${STAFFING_MONTHLY_FEE} per hire per month, payroll management included.`,
   },
 ];
 const CHECKBOX_FIELDS: CardCheckboxProps[] = [
   {
     name: PAYROLL,
     label: "Payroll",
-    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${PAYROLL_COST} per person per month.`,
+    description: `We handle payments and contracts. You pay once per monthly cycle for all hired staff. $${PAYROLL_COST} per person per month. Included in the staffing model.`,
   },
   {
     name: MONTHLY_PAYMENT,
@@ -123,7 +125,12 @@ const CHECKBOX_FIELDS: CardCheckboxProps[] = [
 ];
 
 function calculateTotalCost(data: ContractProps) {
-  const { p: hasPayroll } = data;
+  const { p: hasPayroll, sm: serviceModel } = data;
+
+  if (serviceModel === STAFFING) {
+    return calculateStaffingMonthlyCost(data) * MONTHS_PER_YEAR;
+  }
+
   let cost = calculateHiringCost(data);
 
   if (hasPayroll) {
@@ -131,6 +138,10 @@ function calculateTotalCost(data: ContractProps) {
   }
 
   return Math.round(cost);
+}
+
+function calculateStaffingMonthlyCost({ n: numberOfHires }: ContractProps) {
+  return numberOfHires * STAFFING_MONTHLY_FEE;
 }
 
 function calculateHiringCost(data: ContractProps) {
@@ -216,17 +227,20 @@ export function FeesCalculator() {
       sm: serviceModel,
     } = contractProps;
 
+    const isStaffing = serviceModel === STAFFING;
     const chartData = [];
-    const yAxis =
-      calculateHiringCost({
-        ...contractProps,
-        [FAST_PROCESSING]: false,
-        [MONTHLY_PAYMENT]: false,
-      }) + PAYROLL_COST;
+    const staffingMonthlyCost = calculateStaffingMonthlyCost(contractProps);
+    const yAxis = isStaffing
+      ? staffingMonthlyCost
+      : calculateHiringCost({
+          ...contractProps,
+          [FAST_PROCESSING]: false,
+          [MONTHLY_PAYMENT]: false,
+        }) + PAYROLL_COST;
     const totalHiringCost = calculateHiringCost(contractProps);
     const monthlyHiringCost = Math.round(totalHiringCost / MONTHS_PER_YEAR);
     const totalMonths =
-      serviceModel === CONTINGENCY && isMonthlyPayment
+      !isStaffing && isMonthlyPayment
         ? MONTHS_PER_YEAR + CONTINGENCY_MONTHS_DURATION
         : MONTHS_PER_YEAR;
 
@@ -239,17 +253,16 @@ export function FeesCalculator() {
           month: "long",
           year: "numeric",
         }),
-        payroll: hasPayroll ? PAYROLL_COST : 0,
-        fee:
-          serviceModel === CONTINGENCY
-            ? isMonthlyPayment &&
+        payroll: !isStaffing && hasPayroll ? PAYROLL_COST : 0,
+        fee: isStaffing
+          ? staffingMonthlyCost
+          : isMonthlyPayment &&
               monthNum >= CONTINGENCY_MONTHS_DURATION &&
               monthNum < totalMonths
-              ? monthlyHiringCost
-              : monthNum === CONTINGENCY_MONTHS_DURATION
-                ? totalHiringCost
-                : 0
-            : monthlyHiringCost,
+            ? monthlyHiringCost
+            : monthNum === CONTINGENCY_MONTHS_DURATION
+              ? totalHiringCost
+              : 0,
       });
     }
 
@@ -290,7 +303,11 @@ export function FeesCalculator() {
 Expected average salary: ${expectedAverageSalary}
 Service model: ${serviceModel}
 
-Placement fee: ${fee}%
+${
+  contractProps[SERVICE_MODEL] === STAFFING
+    ? `Monthly flat fee: $${STAFFING_MONTHLY_FEE} per hire (payroll management included)`
+    : `Placement fee: ${fee}%`
+}
 Expected contract cost: ${expectedContractCost}
 ${options.length > 0 ? "\nOptions:\n- " + options.join("\n- ") + "\n" : ""}
 Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
@@ -395,10 +412,26 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
               value={cost}
               prefix="$"
             />
-            <NumberCard label="Placement Fee" value={fee} suffix="%" />
+            {contractProps[SERVICE_MODEL] === STAFFING ? (
+              <NumberCard
+                label="Monthly Flat Fee"
+                value={STAFFING_MONTHLY_FEE * contractProps[NUMBER_OF_HIRES]}
+                prefix="$"
+              />
+            ) : (
+              <NumberCard label="Placement Fee" value={fee} suffix="%" />
+            )}
           </div>
           <ChartContainer
-            config={{ fee: { label: "Fee" }, payroll: { label: "Payroll" } }}
+            config={{
+              fee: {
+                label:
+                  contractProps[SERVICE_MODEL] === STAFFING
+                    ? "Monthly fee"
+                    : "Fee",
+              },
+              payroll: { label: "Payroll" },
+            }}
             className="w-full min-h-80"
           >
             <BarChart accessibilityLayer data={chartData}>
@@ -437,6 +470,7 @@ interface CardRadioGroupProps {
     value: string;
     label: string;
   }[];
+  description?: string;
   onValueChange?: (value: string) => void;
   currentValue?: string;
 }
@@ -445,6 +479,7 @@ function CardRadioGroup({
   name,
   legend,
   options,
+  description,
   onValueChange,
   currentValue,
 }: CardRadioGroupProps) {
@@ -476,6 +511,9 @@ function CardRadioGroup({
           </Label>
         ))}
       </RadioGroup>
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
     </fieldset>
   );
 }
