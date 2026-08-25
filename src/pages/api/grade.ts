@@ -20,12 +20,26 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData | { error: string }>,
 ) {
-  try {
-    if (!["POST", "GET"].includes(req.method || "")) {
-      res.status(404).send({ error: "Not Found" });
-      return;
-    }
+  // Bad requests are answered before the try block so they stay 4xx: crawlers
+  // submit the resume-checker form as a GET and used to log a 500 per hit.
+  if (!["POST", "GET"].includes(req.method || "")) {
+    res.status(405).json({ error: "MethodNotAllowed" });
+    return;
+  }
 
+  const { url } = req.query;
+  const resumeUrl = typeof url === "string" ? url.trim() : "";
+  if (req.method === "GET" && !resumeUrl) {
+    res.status(400).json({ error: "MissingURL" });
+    return;
+  }
+
+  if (req.method === "POST" && !isMultipartFormData(req)) {
+    res.status(400).json({ error: "InvalidUploadRequest" });
+    return;
+  }
+
+  try {
     let pdfBuffer: Buffer;
     if (isMultipartFormData(req)) {
       const chunks = [];
@@ -34,18 +48,13 @@ export default async function handler(
       }
       pdfBuffer = Buffer.concat(chunks);
     } else {
-      const { url } = req.query;
-      if (!url || typeof url !== "string") {
-        throw new Error("MissingURL");
-      }
-
-      const exampleResponse = exampleResponses.get(url);
+      const exampleResponse = exampleResponses.get(resumeUrl);
       if (exampleResponse) {
         res.status(200).json(exampleResponse);
         return;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(resumeUrl);
       const arrayBuffer = await response.arrayBuffer();
       pdfBuffer = Buffer.from(arrayBuffer);
     }
@@ -69,7 +78,7 @@ export default async function handler(
   } catch (e) {
     if (!(e instanceof Error)) {
       console.error(e);
-      res.status(500).send({
+      res.status(500).json({
         error: "UnknownError",
       });
       return;
@@ -80,15 +89,17 @@ export default async function handler(
       e.message.includes("Invalid PDF structure")
     ) {
       console.warn(e);
-      res.status(400).send({
+      res.status(400).json({
         error: "InvalidPDFException",
       });
       return;
     }
 
+    // The client renders this string straight into a badge, so it must stay a
+    // stable code rather than whatever the PDF parser or the model threw.
     console.error(e);
-    res.status(500).send({
-      error: e.message,
+    res.status(500).json({
+      error: "GradingError",
     });
   }
 }
