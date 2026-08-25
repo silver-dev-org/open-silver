@@ -5,17 +5,23 @@ import { Spacer } from "@/components/spacer";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { DEFAULT_OPEN_GRAPH, DEFAULT_TWITTER, SITE_URL } from "@/lib/seo";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     template: "%s • Open Silver",
     default: "Open Silver",
   },
-  description: "Open Source Software made by Silver.dev",
+  description:
+    "Open Source Software made by Silver.dev and its contributors: free tools for engineers and employers, from resume checkers to salary calculators.",
+  alternates: { canonical: "/" },
+  openGraph: DEFAULT_OPEN_GRAPH,
+  twitter: DEFAULT_TWITTER,
 };
 
 const geistSans = Geist({
@@ -34,7 +40,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className="scroll-smooth">
+    <html lang="en" className="scroll-smooth">
       <GoogleAnalytics gaId="G-QFVTDBRTP4" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
