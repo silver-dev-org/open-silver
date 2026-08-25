@@ -8,7 +8,6 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { DEFAULT_OPEN_GRAPH, DEFAULT_TWITTER, SITE_URL } from "@/lib/seo";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Suspense } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -50,11 +49,9 @@ export default async function RootLayout({
         <main>
           <Spacer size="lg" />
           <Spacer size="lg" />
-          <Suspense>
-            <TooltipProvider>
-              <QueryClientWrapper>{children}</QueryClientWrapper>
-            </TooltipProvider>
-          </Suspense>
+          <TooltipProvider>
+            <QueryClientWrapper>{children}</QueryClientWrapper>
+          </TooltipProvider>
           <Spacer size="lg" />
         </main>
         <Toaster />

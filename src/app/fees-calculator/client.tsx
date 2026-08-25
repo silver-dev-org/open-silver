@@ -1,9 +1,5 @@
 "use client";
 
-import { Description } from "@/components/description";
-import { Heading } from "@/components/heading";
-import { Section } from "@/components/section";
-import { Spacer } from "@/components/spacer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -321,112 +317,98 @@ Link: ${window.location.origin}/${window.location.pathname}?${queryString}`,
   }
 
   return (
-    <Section className="flex flex-col">
-      <Heading lvl={1} center>
-        Agency Fees <span className="text-primary">Explained</span>
-      </Heading>
-      <Spacer />
-      <Description center>
-        Adjust terms, explore options, and share your estimate with Silver.
-      </Description>
-      <Spacer size="lg" />
-      <div className="flex flex-col lg:flex-row gap-12 flex-grow p-4 sm:container sm:mx-auto">
-        <div className="flex flex-col gap-4 lg:max-w-xs w-full">
-          {RADIO_FIELDS.map((field, i) => (
-            <CardRadioGroup
-              key={i}
-              onValueChange={(value) => {
-                if (field.name === SERVICE_MODEL) {
-                  setContractProps({
-                    ...contractProps,
-                    [MONTHLY_PAYMENT]: false,
-                    [FAST_PROCESSING]: false,
-                    [PAYROLL]: false,
-                  });
-                }
-                setContractProp(field.name, value);
-              }}
-              currentValue={contractProps[field.name].toString()}
-              {...field}
-            />
-          ))}
-          {CHECKBOX_FIELDS.map((field, i) => (
-            <CardCheckbox
-              key={i}
-              onCheckedChange={(checked) => {
-                setContractProp(field.name, checked);
-              }}
-              disabled={contractProps[SERVICE_MODEL] === STAFFING}
-              checked={Boolean(contractProps[field.name])}
-              {...field}
-            />
-          ))}
-          {/*<Button asChild onClick={share}>
+    <div className="flex flex-col lg:flex-row gap-12 flex-grow p-4 sm:container sm:mx-auto">
+      <div className="flex flex-col gap-4 lg:max-w-xs w-full">
+        {RADIO_FIELDS.map((field, i) => (
+          <CardRadioGroup
+            key={i}
+            onValueChange={(value) => {
+              if (field.name === SERVICE_MODEL) {
+                setContractProps({
+                  ...contractProps,
+                  [MONTHLY_PAYMENT]: false,
+                  [FAST_PROCESSING]: false,
+                  [PAYROLL]: false,
+                });
+              }
+              setContractProp(field.name, value);
+            }}
+            currentValue={contractProps[field.name].toString()}
+            {...field}
+          />
+        ))}
+        {CHECKBOX_FIELDS.map((field, i) => (
+          <CardCheckbox
+            key={i}
+            onCheckedChange={(checked) => {
+              setContractProp(field.name, checked);
+            }}
+            disabled={contractProps[SERVICE_MODEL] === STAFFING}
+            checked={Boolean(contractProps[field.name])}
+            {...field}
+          />
+        ))}
+        {/*<Button asChild onClick={share}>
             <Link target="_blank" href={shareLink}>
               Share with Gabriel
             </Link>
           </Button>*/}
-          <Button asChild>
-            {/*
+        <Button asChild>
+          {/*
               silver.dev/companies is a server redirect straight to Calendly, so
               the booking cannot be recorded once the visitor leaves. This click
               is the last observable moment, and the only place this particular
               path into a meeting shows up in the funnel at all.
             */}
-            <Link
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://silver.dev/companies"
-              onClick={() =>
-                captureEvent(AnalyticsEvent.MEETING_BOOKING_STARTED, {
-                  ...funnelProperties,
-                  [AnalyticsProperty.BOOKING_SURFACE]: BookingSurface.LINK,
-                })
-              }
-            >
-              Book with Gabriel
-            </Link>
-          </Button>
-        </div>
-        <div className="flex flex-col flex-grow">
-          <div className="flex gap-1.5 mb-12">
-            <NumberCard
-              label="Expected Contract Cost"
-              value={cost}
-              prefix="$"
-            />
-            <NumberCard label="Placement Fee" value={fee} suffix="%" />
-          </div>
-          <ChartContainer
-            config={{ fee: { label: "Fee" }, payroll: { label: "Payroll" } }}
-            className="w-full min-h-80"
+          <Link
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://silver.dev/companies"
+            onClick={() =>
+              captureEvent(AnalyticsEvent.MEETING_BOOKING_STARTED, {
+                ...funnelProperties,
+                [AnalyticsProperty.BOOKING_SURFACE]: BookingSurface.LINK,
+              })
+            }
           >
-            <BarChart accessibilityLayer data={chartData}>
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="payroll" fill="var(--primary)" stackId={1} />
-              <Bar dataKey="fee" fill="var(--foreground)" stackId={1} />
-              <YAxis
-                tickLine={false}
-                orientation="right"
-                dataKey="yAxis"
-                tickFormatter={
-                  new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    maximumFractionDigits: 0,
-                  }).format
-                }
-              />
-              <XAxis
-                dataKey="month"
-                tickFormatter={(month) => month.slice(0, 3)}
-                tickMargin={12}
-              />
-            </BarChart>
-          </ChartContainer>
-        </div>
+            Book with Gabriel
+          </Link>
+        </Button>
       </div>
-    </Section>
+      <div className="flex flex-col flex-grow">
+        <div className="flex gap-1.5 mb-12">
+          <NumberCard label="Expected Contract Cost" value={cost} prefix="$" />
+          <NumberCard label="Placement Fee" value={fee} suffix="%" />
+        </div>
+        <ChartContainer
+          config={{ fee: { label: "Fee" }, payroll: { label: "Payroll" } }}
+          className="w-full min-h-80"
+        >
+          <BarChart accessibilityLayer data={chartData}>
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="payroll" fill="var(--primary)" stackId={1} />
+            <Bar dataKey="fee" fill="var(--foreground)" stackId={1} />
+            <YAxis
+              tickLine={false}
+              orientation="right"
+              dataKey="yAxis"
+              tickFormatter={
+                new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  maximumFractionDigits: 0,
+                }).format
+              }
+            />
+            <XAxis
+              dataKey="month"
+              tickFormatter={(month) => month.slice(0, 3)}
+              tickMargin={12}
+            />
+          </BarChart>
+        </ChartContainer>
+      </div>
+    </div>
   );
 }
 
