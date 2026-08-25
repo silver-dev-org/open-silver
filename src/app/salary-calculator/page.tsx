@@ -15,6 +15,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SalaryCalculator } from "@/salary-calculator";
 import { Divider } from "@/components/divider";
+import { Suspense } from "react";
 
 export const metadata: Metadata = pageMetadata({
   title: "Argentina Salary Calculator: EOR vs AOR",
@@ -38,7 +39,9 @@ export default function Page() {
         Argentina.
       </Description>
       <Spacer size="lg" />
-      <SalaryCalculator />
+      <Suspense>
+        <SalaryCalculator />
+      </Suspense>
       <Divider />
       <Card className="max-w-prose mx-auto text-balance">
         <CardHeader>

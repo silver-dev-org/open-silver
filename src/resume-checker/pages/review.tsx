@@ -1,3 +1,5 @@
+"use client";
+
 import { Spacer } from "@/components/spacer";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
