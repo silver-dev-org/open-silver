@@ -3,6 +3,17 @@ import { Heading } from "@/components/heading";
 import { Spacer } from "@/components/spacer";
 import { RoastMe } from "@/roast-me";
 import { METADATA } from "@/roast-me/constants";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Roast Me Unhinged: Brutal Setup Feedback",
+  description:
+    "How do other people see you on a video call? Snap your setup and get honest feedback on lighting, framing, and background before your next interview.",
+  path: "/roast-me/unhinged",
+  ogTitle: "Roast Me Unhinged • Open Silver",
+  ogDescription: METADATA.description,
+});
 
 export default function Page() {
   return (

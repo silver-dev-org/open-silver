@@ -109,7 +109,7 @@ export function Review() {
             {!mutation.isPending && isVictorVigon ? (
               <p>
                 Este CV fue elaborado en{" "}
-                <Link href="https://ready.silver.dev" className="link">
+                <Link href="https://ir.silver.dev/l" className="link">
                   Interview Ready
                 </Link>{" "}
                 con la siguiente{" "}

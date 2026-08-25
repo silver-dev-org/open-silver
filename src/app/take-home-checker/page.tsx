@@ -1,20 +1,18 @@
-import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import TakeHomeCheckerClient from "./client";
 import { cookieName } from "@/takehome-checker/constants";
 
-export const metadata: Metadata = {
-  title: "Take-home Checker",
+export const metadata: Metadata = pageMetadata({
+  title: "Take-home Checker: Instant Project Feedback",
   description:
+    "Upload your take-home project and get instant, detailed feedback on code quality and structure to improve your technical interview performance.",
+  path: "/take-home-checker",
+  ogTitle: "Take-home Checker • Open Silver",
+  ogDescription:
     "Upload your take-home project and get instant feedback to improve your technical interview performance.",
-  openGraph: {
-    title: "Take-home Checker",
-    siteName: "Open Silver",
-    description:
-      "Upload your take-home and get instant feedback on the project.",
-    type: "website",
-  },
-};
+});
 
 export default async function Page({
   searchParams,

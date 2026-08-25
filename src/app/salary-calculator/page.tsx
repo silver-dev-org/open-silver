@@ -10,20 +10,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SalaryCalculator } from "@/salary-calculator";
 import { Divider } from "@/components/divider";
 
-export const metadata: Metadata = {
-  title: "Argentina Salary Calculator",
-  description: "Understand salary in Argentina, comparing EOR vs AOR.",
-  openGraph: {
-    title: "Argentina Salary Calculator",
-    description: "Understand salary in Argentina, comparing EOR vs AOR.",
-    type: "website",
-  },
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Argentina Salary Calculator: EOR vs AOR",
+  description:
+    "Understand what a salary in Argentina really costs and pays out. Compare Employer of Record (EOR) against Agency of Record (AOR) for any gross amount.",
+  path: "/salary-calculator",
+  ogTitle: "Argentina Salary Calculator • Open Silver",
+  ogDescription:
+    "Understand what a salary in Argentina really costs and pays out, comparing EOR vs AOR.",
+});
 
 export default function Page() {
   return (

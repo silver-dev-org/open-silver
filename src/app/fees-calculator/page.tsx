@@ -1,17 +1,16 @@
-import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 import { FeesCalculator } from "./client";
 
-export const metadata: Metadata = {
-  title: "Fees Calculator",
+export const metadata: Metadata = pageMetadata({
+  title: "Recruiting Agency Fees Calculator",
   description:
-    "Calculate and understand agency fees. Adjust terms, explore options, and share your estimate with Silver.",
-  openGraph: {
-    title: "Fees Calculator • Open Silver",
-    description:
-      "Calculate and understand agency fees with our interactive calculator",
-    type: "website",
-  },
-};
+    "Calculate and understand recruiting agency fees. Adjust hiring terms, compare options, and share your estimate with Silver to plan your next hire.",
+  path: "/fees-calculator",
+  ogTitle: "Fees Calculator • Open Silver",
+  ogDescription:
+    "Calculate and understand recruiting agency fees with our interactive calculator.",
+});
 
 export default function FeesCalculatorPage() {
   return <FeesCalculator />;
