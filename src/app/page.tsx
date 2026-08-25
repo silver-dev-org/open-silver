@@ -6,17 +6,16 @@ import { Spacer, spacing } from "@/components/spacer";
 import { ToolCard, ToolCardProps } from "@/components/tool-card";
 import { cn } from "@/lib/utils";
 import { METADATA as ROAST_ME_METADATA } from "@/roast-me/constants";
-import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  title: { absolute: "Open Silver: Free Tools by Silver.dev" },
   description:
-    "Open Source Software made by Silver.dev and its contributors. Explore our collection of tools for talent and employers.",
-  openGraph: {
-    title: "Open Silver",
-    description: "Open Source Software made by Silver.dev and its contributors",
-    type: "website",
-  },
-};
+    "Open Source Software made by Silver.dev and its contributors. Explore our collection of free tools for engineers and employers.",
+  path: "/",
+  ogTitle: "Open Silver",
+});
 
 const tools: {
   section: React.ReactNode;
@@ -62,7 +61,7 @@ const tools: {
         title: "Practice Repo",
         description:
           "A repository with dozens of challenges for interview practice.",
-        href: "http://silver.dev/repo",
+        href: "https://silver.dev/repo",
       },
       {
         title: "Open Silver Repo",
