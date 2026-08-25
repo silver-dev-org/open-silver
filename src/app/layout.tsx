@@ -19,7 +19,6 @@ export const metadata: Metadata = {
   },
   description:
     "Open Source Software made by Silver.dev and its contributors: free tools for engineers and employers, from resume checkers to salary calculators.",
-  alternates: { canonical: "/" },
   openGraph: DEFAULT_OPEN_GRAPH,
   twitter: DEFAULT_TWITTER,
 };
