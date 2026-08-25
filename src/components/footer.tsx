@@ -45,7 +45,7 @@ const links: {
     links: [
       { href: "https://silver.dev/jobs", label: "Jobs" },
       { href: "https://app.silver.dev", label: "Platform" },
-      { href: "https://ready.silver.dev", label: "Interview Ready" },
+      { href: "https://ir.silver.dev/l", label: "Interview Ready" },
       { href: "https://silver.dev/referrals", label: "Refer Engineers" },
       {
         href: "https://wpm.silver.dev",
@@ -65,10 +65,13 @@ const links: {
       },
       { href: "https://silver.dev/podcast", label: "Podcast" },
       { href: "https://silver.dev/community", label: "Community" },
-      { href: "https://ready.silver.dev/blog", label: "Career Blog" },
+      { href: "https://ir.silver.dev/blog", label: "Career Blog" },
       { href: "https://silver.dev/library", label: "Recommended Books" },
       { href: "https://docs.silver.dev", label: "Documentation" },
-      { href: "https://silver.dev/ed", label: "SilverEd" },
+      {
+        href: "https://docs.silver.dev/resources-and-programs/silver-ed/about-silver-ed",
+        label: "SilverEd",
+      },
       { href: "https://silver.dev/mentors", label: "Mentoring" },
       { href: "https://silver.dev/english", label: "English Coaching" },
     ],
@@ -81,11 +84,11 @@ export function Footer() {
       className={`flex flex-col ${spacing.lg.gap} border-t border-foreground/25 text-nowrap ${spacing.sm.px} ${spacing.lg.py}`}
     >
       <section className="container mx-auto">
-        <h1 className="sr-only">Useful links</h1>
+        <h2 className="sr-only">Useful links</h2>
         <div className="flex flex-wrap gap-16 justify-center">
           {links.map(({ group: title, links }, index) => (
             <section className="w-min" key={index}>
-              <h1 className="text-primary uppercase">{title}</h1>
+              <h2 className="text-primary uppercase">{title}</h2>
               <ul className="-ml-4 w-min flex flex-col sm:grid grid-flow-col grid-rows-4">
                 {links.map(({ href, label }) => (
                   <li key={href}>
