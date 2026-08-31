@@ -1,4 +1,9 @@
 import {
+  fetchRemoteResume,
+  MAX_RESUME_BYTES,
+  ResumeFetchError,
+} from "@/resume-checker/fetch-resume";
+import {
   exampleResponses,
   messages,
   ResponseData,
@@ -42,8 +47,17 @@ export default async function handler(
   try {
     let pdfBuffer: Buffer;
     if (isMultipartFormData(req)) {
-      const chunks = [];
+      // bodyParser is off, so nothing else bounds this stream: without the
+      // running total a single request could buffer the whole heap away.
+      const chunks: Buffer[] = [];
+      let size = 0;
       for await (const chunk of req) {
+        size += chunk.length;
+        if (size > MAX_RESUME_BYTES) {
+          req.destroy();
+          res.status(413).json({ error: "ResumeTooLarge" });
+          return;
+        }
         chunks.push(chunk);
       }
       pdfBuffer = Buffer.concat(chunks);
@@ -54,9 +68,7 @@ export default async function handler(
         return;
       }
 
-      const response = await fetch(resumeUrl);
-      const arrayBuffer = await response.arrayBuffer();
-      pdfBuffer = Buffer.from(arrayBuffer);
+      pdfBuffer = await fetchRemoteResume(resumeUrl);
     }
 
     const parsed = await pdf(pdfBuffer);
@@ -81,6 +93,14 @@ export default async function handler(
       res.status(500).json({
         error: "UnknownError",
       });
+      return;
+    }
+
+    // Bad or hostile resume URLs are the caller's fault, and each carries a
+    // stable code the badge can render.
+    if (e instanceof ResumeFetchError) {
+      console.warn(e);
+      res.status(e.status).json({ error: e.code });
       return;
     }
 
