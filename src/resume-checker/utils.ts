@@ -9,9 +9,17 @@ export const PAYLOAD_TOO_LARGE_MESSAGE =
 
 /* Keys are the error codes /api/grade answers with. */
 const ERROR_MESSAGES: Record<string, string> = {
+  BlockedResumeURL: "Ese link no apunta a un CV que podamos descargar.",
   InvalidPDFException: "No pudimos leer el PDF. Probá con otro archivo.",
+  InvalidResumeURL: "El link no es válido. Tiene que ser un PDF con https.",
   InvalidUploadRequest: "No pudimos leer el archivo que subiste.",
   MissingURL: "No encontramos el CV que querías analizar.",
+  ResumeFetchTimeout:
+    "El link tardó demasiado en responder. Probá subiendo el archivo.",
+  ResumeTooLarge:
+    "El PDF es demasiado grande. Probá con uno de menos de 10 MB.",
+  ResumeURLUnreachable: "No pudimos descargar el CV desde ese link.",
+  TooManyRedirects: "No pudimos descargar el CV desde ese link.",
 };
 
 async function readErrorCode(response: Response) {
@@ -31,11 +39,16 @@ async function readErrorCode(response: Response) {
  * and platform failures (413, gateway timeouts) are not JSON at all.
  */
 export async function getErrorMessage(response: Response) {
+  /* The route's own 413 carries a code and its own limit; Vercel's does not. */
+  const code = await readErrorCode(response);
+
+  if (code && ERROR_MESSAGES[code]) {
+    return ERROR_MESSAGES[code];
+  }
+
   if (response.status === 413) {
     return PAYLOAD_TOO_LARGE_MESSAGE;
   }
 
-  const code = await readErrorCode(response);
-
-  return (code && ERROR_MESSAGES[code]) || DEFAULT_ERROR_MESSAGE;
+  return DEFAULT_ERROR_MESSAGE;
 }

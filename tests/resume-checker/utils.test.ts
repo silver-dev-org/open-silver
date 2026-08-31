@@ -32,6 +32,26 @@ describe("getErrorMessage", () => {
     ).resolves.toBe("No encontramos el CV que querías analizar.");
   });
 
+  it("translates the codes the SSRF guard answers with", async () => {
+    await expect(
+      getErrorMessage(json(400, { error: "BlockedResumeURL" })),
+    ).resolves.toBe("Ese link no apunta a un CV que podamos descargar.");
+    await expect(
+      getErrorMessage(json(504, { error: "ResumeFetchTimeout" })),
+    ).resolves.toBe(
+      "El link tardó demasiado en responder. Probá subiendo el archivo.",
+    );
+  });
+
+  /* Our own 413 knows the route's limit; Vercel's plain-text one does not. */
+  it("prefers the route's own limit over the platform message on a 413", async () => {
+    await expect(
+      getErrorMessage(json(413, { error: "ResumeTooLarge" })),
+    ).resolves.toBe(
+      "El PDF es demasiado grande. Probá con uno de menos de 10 MB.",
+    );
+  });
+
   /* Vercel rejects oversized uploads itself, with a plain-text body. */
   it("explains a payload rejected before the route ran", async () => {
     await expect(

@@ -106,6 +106,41 @@ describe("/api/grade", () => {
     expect(res.body).toEqual({ error: "MissingURL" });
   });
 
+  /* The URL is caller-supplied, so the route must not be a proxy into the VPC. */
+  it.each([
+    ["loopback", "https://127.0.0.1/cv.pdf"],
+    ["cloud metadata", "https://169.254.169.254/latest/meta-data/"],
+    ["decimal-encoded loopback", "https://2130706433/cv.pdf"],
+  ])("answers 400 to a GET for %s", async (_label, url) => {
+    const res = await call(request({ query: { url } }));
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "BlockedResumeURL" });
+    expect(pdf).not.toHaveBeenCalled();
+  });
+
+  it("answers 400 to a GET for a non-https url", async () => {
+    const res = await call(request({ query: { url: "file:///etc/passwd" } }));
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "InvalidResumeURL" });
+  });
+
+  /* bodyParser is off, so nothing else bounds the upload stream. */
+  it("answers 413 to an upload over the size cap", async () => {
+    const res = await call(
+      request({
+        method: "POST",
+        headers: MULTIPART,
+        body: "x".repeat(10 * 1024 * 1024 + 1),
+      }),
+    );
+
+    expect(res.status).toBe(413);
+    expect(res.body).toEqual({ error: "ResumeTooLarge" });
+    expect(pdf).not.toHaveBeenCalled();
+  });
+
   it("answers 405 to unsupported methods", async () => {
     const res = await call(request({ method: "PUT" }));
 
