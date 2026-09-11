@@ -1,3 +1,4 @@
+import { AhrefsAnalytics } from "@/components/ahrefs-analytics";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { QueryClientWrapper } from "@/components/query-client-wrapper";
@@ -40,6 +41,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <GoogleAnalytics gaId="G-QFVTDBRTP4" />
+      <AhrefsAnalytics />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
