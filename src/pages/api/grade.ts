@@ -5,6 +5,7 @@ import {
 } from "@/resume-checker/fetch-resume";
 import {
   exampleResponses,
+  getSysPrompt,
   messages,
   ResponseData,
   ResponseSchema,
@@ -76,7 +77,8 @@ export default async function handler(
     const completion = await generateObject({
       model: "google/gemini-2.5-flash",
       temperature: 0,
-      messages: messages(parsed, pdfBuffer),
+      system: getSysPrompt(parsed?.info?.Author),
+      messages: messages(pdfBuffer),
       schema: ResponseSchema,
     });
 

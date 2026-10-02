@@ -17,10 +17,8 @@ export async function analyzeTakeHome(
 
   const { text } = await generateText({
     model: openai("gpt-4o-mini"),
-    messages: [
-      { role: "system", content: prompt },
-      { role: "user", content },
-    ],
+    system: prompt,
+    messages: [{ role: "user", content }],
     maxOutputTokens: 10000,
     temperature: 0,
   });
