@@ -157,10 +157,7 @@ function createInput(data: Buffer): ModelMessage {
 }
 
 /* Moving the fs.readFileSync call deeper causes an error when reading files */
-export function messages(
-  parsed: { text: string; info?: any },
-  pdfBuffer: Buffer,
-): ModelMessage[] {
+export function messages(pdfBuffer: Buffer): ModelMessage[] {
   const trainMessages: ModelMessage[] = [
     {
       data: fs.readFileSync(path.join(process.cwd(), "public/s_resume.pdf")),
@@ -183,11 +180,7 @@ export function messages(
     createAssistantResponse(response),
   ]);
 
-  return [
-    { role: "system", content: getSysPrompt(parsed?.info?.Author) },
-    ...trainMessages,
-    createInput(pdfBuffer),
-  ];
+  return [...trainMessages, createInput(pdfBuffer)];
 }
 
 function hasGmail(flag: string) {

@@ -29,13 +29,10 @@ export async function POST(req: NextRequest) {
         strictJsonSchema: true,
       },
     },
-    messages: [
-      {
-        role: "system",
-        content: isUnhinged ? SYSTEM_PROMPT_UNHINGED : SYSTEM_PROMPT,
-      },
-      { role: "user", content: [{ type: "image", image: snapshot }] },
-    ],
+    system: isUnhinged ? SYSTEM_PROMPT_UNHINGED : SYSTEM_PROMPT,
+    messages: [{ role: "user", content: [{ type: "image", image: snapshot }] }],
+    onError: ({ error }) =>
+      console.error("[roast-me/analyze] stream failed", error),
   });
 
   return result.toTextStreamResponse();
