@@ -1,8 +1,10 @@
+import { GRADING_TIMEOUT_MS } from "@/resume-checker/constants";
 import {
   fetchRemoteResume,
   MAX_RESUME_BYTES,
   ResumeFetchError,
 } from "@/resume-checker/fetch-resume";
+import { parseResume } from "@/resume-checker/parse-resume";
 import {
   exampleResponses,
   getSysPrompt,
@@ -11,9 +13,9 @@ import {
   ResponseSchema,
   sanitizeCompletion,
 } from "@/resume-checker/prompts/grade";
+import { GatewayError } from "@ai-sdk/gateway";
 import { generateObject } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
-import pdf from "pdf-parse";
 
 function isMultipartFormData(req: NextApiRequest) {
   return (
@@ -45,6 +47,8 @@ export default async function handler(
     return;
   }
 
+  const gradingSignal = AbortSignal.timeout(GRADING_TIMEOUT_MS);
+
   try {
     let pdfBuffer: Buffer;
     if (isMultipartFormData(req)) {
@@ -72,7 +76,7 @@ export default async function handler(
       pdfBuffer = await fetchRemoteResume(resumeUrl);
     }
 
-    const parsed = await pdf(pdfBuffer);
+    const parsed = await parseResume(pdfBuffer);
 
     const completion = await generateObject({
       model: "google/gemini-2.5-flash",
@@ -80,6 +84,7 @@ export default async function handler(
       system: getSysPrompt(parsed?.info?.Author),
       messages: messages(pdfBuffer),
       schema: ResponseSchema,
+      abortSignal: gradingSignal,
     });
 
     if (!completion) {
@@ -114,6 +119,20 @@ export default async function handler(
       res.status(400).json({
         error: "InvalidPDFException",
       });
+      return;
+    }
+
+    if (gradingSignal.aborted) {
+      console.error(e);
+      res.status(504).json({ error: "GradingTimeout" });
+      return;
+    }
+
+    // The SDK only retries APICallError, so a gateway 5xx surfaces on the
+    // first attempt. It is an upstream outage, not a bug in this route.
+    if (GatewayError.isInstance(e) && e.statusCode >= 500) {
+      console.error(e);
+      res.status(503).json({ error: "GradingUnavailable" });
       return;
     }
 

@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ai-sdk/gateway": "^2.0.122",
     "@ai-sdk/google": "^2.0.86",
     "@ai-sdk/openai": "^2.0.117",
     "@ai-sdk/react": "^3.0.240",

@@ -43,6 +43,17 @@ describe("getErrorMessage", () => {
     );
   });
 
+  it("translates the codes for a slow or unavailable model", async () => {
+    await expect(
+      getErrorMessage(json(504, { error: "GradingTimeout" })),
+    ).resolves.toBe("El análisis tardó demasiado. Probá de nuevo en un rato.");
+    await expect(
+      getErrorMessage(json(503, { error: "GradingUnavailable" })),
+    ).resolves.toBe(
+      "El servicio de análisis no está disponible ahora. Probá de nuevo en unos minutos.",
+    );
+  });
+
   /* Our own 413 knows the route's limit; Vercel's plain-text one does not. */
   it("prefers the route's own limit over the platform message on a 413", async () => {
     await expect(
