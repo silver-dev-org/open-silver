@@ -1,4 +1,8 @@
 import handler from "@/pages/api/grade";
+import {
+  GatewayInternalServerError,
+  GatewayRateLimitError,
+} from "@ai-sdk/gateway";
 import { exampleResponses } from "@/resume-checker/prompts/grade";
 import { generateObject } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -188,6 +192,53 @@ describe("/api/grade", () => {
 
     expect(res.status).toBe(500);
     expect(res.body).toEqual({ error: "GradingError" });
+  });
+
+  /* The SDK does not retry gateway 5xx, so an outage reaches the route as-is. */
+  it("answers 503 when the AI gateway is down", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new GatewayInternalServerError({ statusCode: 503 }),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ error: "GradingUnavailable" });
+  });
+
+  it("keeps a gateway 4xx as a grading error", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new GatewayRateLimitError(),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "GradingError" });
+  });
+
+  it("answers 504 when grading outlives its deadline", async () => {
+    vi.spyOn(AbortSignal, "timeout").mockReturnValueOnce(AbortSignal.abort());
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new DOMException("The operation was aborted", "TimeoutError"),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    expect(res.status).toBe(504);
+    expect(res.body).toEqual({ error: "GradingTimeout" });
+    expect(
+      vi.mocked(generateObject).mock.calls[0][0].abortSignal?.aborted,
+    ).toBe(true);
   });
 
   it("answers 500 to a thrown non-Error", async () => {
