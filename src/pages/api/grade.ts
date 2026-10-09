@@ -59,6 +59,7 @@ export default async function handler(
   }
 
   const gradingSignal = AbortSignal.timeout(GRADING_TIMEOUT_MS);
+  let unparseablePdf = false;
 
   try {
     let pdfBuffer: Buffer;
@@ -87,12 +88,21 @@ export default async function handler(
       pdfBuffer = await fetchRemoteResume(resumeUrl);
     }
 
-    const parsed = await parseResume(pdfBuffer);
+    // pdf.js only supplies the author; Gemini reads the raw bytes itself, so
+    // a PDF pdf.js chokes on can still be graded.
+    let author: string | undefined;
+    try {
+      author = (await parseResume(pdfBuffer))?.info?.Author;
+    } catch (e) {
+      if (!(e instanceof InvalidResumePdfError)) throw e;
+      console.warn(e.cause);
+      unparseablePdf = true;
+    }
 
     const completion = await generateObject({
       model: "google/gemini-2.5-flash",
       temperature: 0,
-      system: getSysPrompt(parsed?.info?.Author),
+      system: getSysPrompt(author),
       messages: messages(pdfBuffer),
       schema: ResponseSchema,
       abortSignal: gradingSignal,
@@ -137,8 +147,14 @@ export default async function handler(
       return;
     }
 
-    if (e instanceof InvalidResumePdfError) {
-      console.warn(e.cause);
+    // Only a document both pdf.js and the model reject counts as unreadable;
+    // a 400 on a PDF that parsed is a bug in this request, not the file.
+    if (
+      unparseablePdf &&
+      GatewayError.isInstance(e) &&
+      e.statusCode === 400
+    ) {
+      console.warn(e);
       res.status(400).json({
         error: "InvalidPDFException",
       });
