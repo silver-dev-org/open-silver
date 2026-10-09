@@ -1,9 +1,10 @@
 import handler from "@/pages/api/grade";
 import {
   GatewayInternalServerError,
+  GatewayInvalidRequestError,
   GatewayRateLimitError,
 } from "@ai-sdk/gateway";
-import { exampleResponses } from "@/resume-checker/prompts/grade";
+import { exampleResponses, getSysPrompt } from "@/resume-checker/prompts/grade";
 import { generateObject, NoObjectGeneratedError } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { IncomingHttpHeaders } from "node:http";
@@ -208,9 +209,36 @@ describe("/api/grade", () => {
     expect(pdf).not.toHaveBeenCalled();
   });
 
-  it("answers 400 to an unreadable PDF", async () => {
+  /* pdf.js only supplies the author; Gemini reads the raw bytes on its own. */
+  it("grades a PDF that pdf.js cannot parse", async () => {
     vi.mocked(pdf).mockRejectedValueOnce(
-      new Error("InvalidPDFException: nope"),
+      Object.assign(new Error("Command token too long: 128"), {
+        name: "UnknownErrorException",
+        details: "FormatError: Command token too long: 128",
+      }),
+    );
+    vi.mocked(generateObject).mockResolvedValueOnce({
+      object: { grade: "B", red_flags: [], yellow_flags: [] },
+    } as never);
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "garbled-pdf" }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ grade: "B", red_flags: [], yellow_flags: [] });
+    expect(vi.mocked(generateObject).mock.calls[0][0].system).toBe(
+      getSysPrompt(undefined),
+    );
+  });
+
+  /* The candidate-portal cron stores a placeholder grade on this exact code. */
+  it("answers 400 when the model also rejects a PDF pdf.js cannot parse", async () => {
+    vi.mocked(pdf).mockRejectedValueOnce(new Error("Invalid PDF structure"));
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new GatewayInvalidRequestError({
+        message: "The document has no pages.",
+      }),
     );
 
     const res = await call(
@@ -219,25 +247,20 @@ describe("/api/grade", () => {
 
     expect(res.status).toBe(400);
     expect(res.body).toEqual({ error: "InvalidPDFException" });
-    expect(generateObject).not.toHaveBeenCalled();
   });
 
-  /* pdf.js wraps lexer failures such as a malformed command token this way. */
-  it("answers 400 to any PDF the parser rejects", async () => {
-    vi.mocked(pdf).mockRejectedValueOnce(
-      Object.assign(new Error("Command token too long: 128"), {
-        name: "UnknownErrorException",
-        details: "FormatError: Command token too long: 128",
-      }),
+  it("keeps a gateway 400 on a PDF that parsed as a grading error", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new GatewayInvalidRequestError({ message: "Invalid schema" }),
     );
 
     const res = await call(
-      request({ method: "POST", headers: MULTIPART, body: "garbled-pdf" }),
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
     );
 
-    expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: "InvalidPDFException" });
-    expect(generateObject).not.toHaveBeenCalled();
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "GradingError" });
   });
 
   /* The client renders this straight into a badge, so it must stay a code. */
