@@ -132,7 +132,7 @@ export function Home() {
 
   return (
     <>
-      {error && <ErrorBadge error={error || mutationError} />}
+      <ErrorBadge error={error || mutationError} />
       <Container>
         <Heading lvl={1} center>
           <span className="text-primary">Resume</span> Checker

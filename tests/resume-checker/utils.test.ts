@@ -50,7 +50,7 @@ describe("getErrorMessage", () => {
     await expect(
       getErrorMessage(json(503, { error: "GradingUnavailable" })),
     ).resolves.toBe(
-      "El servicio de análisis no está disponible ahora. Probá de nuevo en unos minutos.",
+      "Perdón, no podemos analizar tu CV en este momento. Probá de nuevo en unos minutos.",
     );
   });
 

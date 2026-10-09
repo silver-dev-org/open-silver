@@ -1,6 +1,13 @@
 import pdf from "pdf-parse";
 import { PDFJS_WARNING_PREFIX } from "./constants";
 
+export class InvalidResumePdfError extends Error {
+  constructor(readonly cause: unknown) {
+    super("InvalidPDFException");
+    this.name = "InvalidResumePdfError";
+  }
+}
+
 let activeParses = 0;
 let restoreConsoleLog = () => {};
 
@@ -28,13 +35,24 @@ function forwardPdfjsWarnings() {
   };
 }
 
+/*
+ * Grading only reads the PDF metadata. Rendering page text makes pdf.js load
+ * and sanitize every embedded font, which is where "TT: undefined function"
+ * warnings come from.
+ */
+function skipPageText() {
+  return "";
+}
+
 export async function parseResume(buffer: Buffer) {
   if (activeParses++ === 0) {
     forwardPdfjsWarnings();
   }
 
   try {
-    return await pdf(buffer);
+    return await pdf(buffer, { pagerender: skipPageText });
+  } catch (e) {
+    throw new InvalidResumePdfError(e);
   } finally {
     if (--activeParses === 0) {
       restoreConsoleLog();

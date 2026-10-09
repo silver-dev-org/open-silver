@@ -36,6 +36,16 @@ describe("parseResume", () => {
     expect(log).not.toHaveBeenCalledWith("Warning: TT: undefined function: 21");
   });
 
+  /* Rendering page text loads every font, which is what emits "TT:" warnings. */
+  it("reads the metadata without rendering page text", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "" } as never);
+
+    await parseResume(Buffer.from("pdf"));
+
+    const [, options] = vi.mocked(pdf).mock.calls[0];
+    expect(await options?.pagerender?.({})).toBe("");
+  });
+
   it("restores console.log once the last concurrent parse settles", async () => {
     let finishFirst = () => {};
     vi.mocked(pdf)
