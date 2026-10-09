@@ -1,10 +1,17 @@
-import { GRADING_TIMEOUT_MS } from "@/resume-checker/constants";
+import {
+  GRADING_MAX_OUTPUT_TOKENS,
+  GRADING_THINKING_BUDGET,
+  GRADING_TIMEOUT_MS,
+} from "@/resume-checker/constants";
 import {
   fetchRemoteResume,
   MAX_RESUME_BYTES,
   ResumeFetchError,
 } from "@/resume-checker/fetch-resume";
-import { parseResume } from "@/resume-checker/parse-resume";
+import {
+  InvalidResumePdfError,
+  parseResume,
+} from "@/resume-checker/parse-resume";
 import {
   exampleResponses,
   getSysPrompt,
@@ -14,7 +21,7 @@ import {
   sanitizeCompletion,
 } from "@/resume-checker/prompts/grade";
 import { GatewayError } from "@ai-sdk/gateway";
-import { generateObject } from "ai";
+import { generateObject, NoObjectGeneratedError } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 function isMultipartFormData(req: NextApiRequest) {
@@ -22,6 +29,10 @@ function isMultipartFormData(req: NextApiRequest) {
     req.method === "POST" &&
     req.headers["content-type"]?.includes("multipart/form-data")
   );
+}
+
+function isGatewayUnavailable(statusCode: number) {
+  return statusCode === 402 || statusCode === 429 || statusCode >= 500;
 }
 
 export default async function handler(
@@ -85,11 +96,26 @@ export default async function handler(
       messages: messages(pdfBuffer),
       schema: ResponseSchema,
       abortSignal: gradingSignal,
+      // A degenerate generation used to run until the 60s deadline; capping
+      // tokens makes it fail fast instead of holding the request.
+      maxOutputTokens: GRADING_MAX_OUTPUT_TOKENS,
+      providerOptions: {
+        google: { thinkingConfig: { thinkingBudget: GRADING_THINKING_BUDGET } },
+      },
     });
 
     if (!completion) {
       throw new Error("GradingError");
     }
+
+    console.info(
+      JSON.stringify({
+        "http.route": "/api/grade",
+        outcome: "graded",
+        finishReason: completion.finishReason,
+        usage: completion.usage,
+      }),
+    );
 
     const sanitized = sanitizeCompletion(completion);
 
@@ -111,11 +137,8 @@ export default async function handler(
       return;
     }
 
-    if (
-      e.message.includes("InvalidPDFException") ||
-      e.message.includes("Invalid PDF structure")
-    ) {
-      console.warn(e);
+    if (e instanceof InvalidResumePdfError) {
+      console.warn(e.cause);
       res.status(400).json({
         error: "InvalidPDFException",
       });
@@ -129,10 +152,24 @@ export default async function handler(
     }
 
     // The SDK only retries APICallError, so a gateway 5xx surfaces on the
-    // first attempt. It is an upstream outage, not a bug in this route.
-    if (GatewayError.isInstance(e) && e.statusCode >= 500) {
+    // first attempt. It is an upstream outage, not a bug in this route. A 402
+    // (team budget exceeded) or 429 (rate limited) clears up on its own too.
+    if (GatewayError.isInstance(e) && isGatewayUnavailable(e.statusCode)) {
       console.error(e);
       res.status(503).json({ error: "GradingUnavailable" });
+      return;
+    }
+
+    if (NoObjectGeneratedError.isInstance(e)) {
+      console.error(
+        JSON.stringify({
+          "http.route": "/api/grade",
+          outcome: "no_object_generated",
+          finishReason: e.finishReason,
+          usage: e.usage,
+        }),
+      );
+      res.status(500).json({ error: "GradingError" });
       return;
     }
 

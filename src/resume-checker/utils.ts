@@ -12,7 +12,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   BlockedResumeURL: "Ese link no apunta a un CV que podamos descargar.",
   GradingTimeout: "El análisis tardó demasiado. Probá de nuevo en un rato.",
   GradingUnavailable:
-    "El servicio de análisis no está disponible ahora. Probá de nuevo en unos minutos.",
+    "Perdón, no podemos analizar tu CV en este momento. Probá de nuevo en unos minutos.",
   InvalidPDFException: "No pudimos leer el PDF. Probá con otro archivo.",
   InvalidResumeURL: "El link no es válido. Tiene que ser un PDF con https.",
   InvalidUploadRequest: "No pudimos leer el archivo que subiste.",

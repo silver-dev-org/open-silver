@@ -4,7 +4,7 @@ import {
   GatewayRateLimitError,
 } from "@ai-sdk/gateway";
 import { exampleResponses } from "@/resume-checker/prompts/grade";
-import { generateObject } from "ai";
+import { generateObject, NoObjectGeneratedError } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { IncomingHttpHeaders } from "node:http";
 import { Readable } from "node:stream";
@@ -12,7 +12,10 @@ import pdf from "pdf-parse";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("pdf-parse", () => ({ default: vi.fn() }));
-vi.mock("ai", () => ({ generateObject: vi.fn() }));
+vi.mock("ai", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("ai")>()),
+  generateObject: vi.fn(),
+}));
 
 const MULTIPART = { "content-type": "multipart/form-data; boundary=abc" };
 
@@ -63,6 +66,7 @@ describe("/api/grade", () => {
     vi.resetAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "info").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -95,6 +99,45 @@ describe("/api/grade", () => {
       yellow_flags: [],
     });
     expect(vi.mocked(pdf).mock.calls[0][0]).toEqual(Buffer.from("pdf-bytes"));
+  });
+
+  /* An unbounded generation used to hold the request until the 60s deadline. */
+  it("bounds the model's output and thinking tokens", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockResolvedValueOnce({
+      object: { grade: "B", red_flags: [], yellow_flags: [] },
+    } as never);
+
+    await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    const [options] = vi.mocked(generateObject).mock.calls[0];
+    expect(options.maxOutputTokens).toBe(8_192);
+    expect(options.providerOptions).toEqual({
+      google: { thinkingConfig: { thinkingBudget: 4_096 } },
+    });
+  });
+
+  it("answers 500 and logs usage when the model returns no object", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new NoObjectGeneratedError({
+        response: {} as never,
+        usage: { inputTokens: 1, outputTokens: 8_192, totalTokens: 8_193 },
+        finishReason: "length",
+      }),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "GradingError" });
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('"finishReason":"length"'),
+    );
   });
 
   /* Crawlers submit the resume-checker form as a GET, so these must not be 500s. */
@@ -179,6 +222,24 @@ describe("/api/grade", () => {
     expect(generateObject).not.toHaveBeenCalled();
   });
 
+  /* pdf.js wraps lexer failures such as a malformed command token this way. */
+  it("answers 400 to any PDF the parser rejects", async () => {
+    vi.mocked(pdf).mockRejectedValueOnce(
+      Object.assign(new Error("Command token too long: 128"), {
+        name: "UnknownErrorException",
+        details: "FormatError: Command token too long: 128",
+      }),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "garbled-pdf" }),
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "InvalidPDFException" });
+    expect(generateObject).not.toHaveBeenCalled();
+  });
+
   /* The client renders this straight into a badge, so it must stay a code. */
   it("hides the underlying message when grading fails", async () => {
     vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
@@ -209,10 +270,42 @@ describe("/api/grade", () => {
     expect(res.body).toEqual({ error: "GradingUnavailable" });
   });
 
-  it("keeps a gateway 4xx as a grading error", async () => {
+  /* Vercel answers 402 once the team's AI Gateway budget is spent. */
+  it("answers 503 when the AI gateway budget is exceeded", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new GatewayInternalServerError({
+        message: "Team budget exceeded. Current spend: $100.62, limit: $100.00.",
+        statusCode: 402,
+      }),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ error: "GradingUnavailable" });
+  });
+
+  it("answers 503 when the AI gateway rate limits us", async () => {
     vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
     vi.mocked(generateObject).mockRejectedValueOnce(
       new GatewayRateLimitError(),
+    );
+
+    const res = await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    expect(res.status).toBe(503);
+    expect(res.body).toEqual({ error: "GradingUnavailable" });
+  });
+
+  it("keeps any other gateway 4xx as a grading error", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce(
+      new GatewayInternalServerError({ statusCode: 400 }),
     );
 
     const res = await call(
@@ -242,7 +335,8 @@ describe("/api/grade", () => {
   });
 
   it("answers 500 to a thrown non-Error", async () => {
-    vi.mocked(pdf).mockRejectedValueOnce("boom");
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockRejectedValueOnce("boom");
 
     const res = await call(
       request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
