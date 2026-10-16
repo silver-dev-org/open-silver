@@ -20,6 +20,7 @@ import {
   ResponseSchema,
   sanitizeCompletion,
 } from "@/resume-checker/prompts/grade";
+import { createPhaseTimer } from "@/resume-checker/utils";
 import { GatewayError } from "@ai-sdk/gateway";
 import { generateObject, NoObjectGeneratedError } from "ai";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -33,6 +34,21 @@ function isMultipartFormData(req: NextApiRequest) {
 
 function isGatewayUnavailable(statusCode: number) {
   return statusCode === 402 || statusCode === 429 || statusCode >= 500;
+}
+
+function logGrade(
+  log: (line: string) => void,
+  fields: Record<string, unknown>,
+) {
+  log(JSON.stringify({ "http.route": "/api/grade", ...fields }));
+}
+
+function describeError(e: Error) {
+  return {
+    name: e.name,
+    message: e.message,
+    statusCode: GatewayError.isInstance(e) ? e.statusCode : undefined,
+  };
 }
 
 export default async function handler(
@@ -59,11 +75,24 @@ export default async function handler(
   }
 
   const gradingSignal = AbortSignal.timeout(GRADING_TIMEOUT_MS);
+  const timer = createPhaseTimer<"upload" | "fetch" | "parse" | "model">();
+  const source = isMultipartFormData(req) ? "upload" : "url";
+  let pdfBytes: number | undefined;
   let unparseablePdf = false;
+
+  // One line per request says where the time went, so a timeout shows
+  // whether the model, the resume download or the upload stalled.
+  const context = () => ({
+    source,
+    pdfBytes,
+    unparseablePdf,
+    ...timer.summary(),
+  });
 
   try {
     let pdfBuffer: Buffer;
-    if (isMultipartFormData(req)) {
+    if (source === "upload") {
+      timer.start("upload");
       // bodyParser is off, so nothing else bounds this stream: without the
       // running total a single request could buffer the whole heap away.
       const chunks: Buffer[] = [];
@@ -85,12 +114,15 @@ export default async function handler(
         return;
       }
 
+      timer.start("fetch");
       pdfBuffer = await fetchRemoteResume(resumeUrl);
     }
+    pdfBytes = pdfBuffer.length;
 
     // pdf.js only supplies the author; Gemini reads the raw bytes itself, so
     // a PDF pdf.js chokes on can still be graded.
     let author: string | undefined;
+    timer.start("parse");
     try {
       author = (await parseResume(pdfBuffer))?.info?.Author;
     } catch (e) {
@@ -99,6 +131,7 @@ export default async function handler(
       unparseablePdf = true;
     }
 
+    timer.start("model");
     const completion = await generateObject({
       model: "google/gemini-2.5-flash",
       temperature: 0,
@@ -118,14 +151,13 @@ export default async function handler(
       throw new Error("GradingError");
     }
 
-    console.info(
-      JSON.stringify({
-        "http.route": "/api/grade",
-        outcome: "graded",
-        finishReason: completion.finishReason,
-        usage: completion.usage,
-      }),
-    );
+    logGrade(console.info, {
+      outcome: "graded",
+      ...context(),
+      finishReason: completion.finishReason,
+      usage: completion.usage,
+      gateway: completion.providerMetadata?.gateway,
+    });
 
     const sanitized = sanitizeCompletion(completion);
 
@@ -142,19 +174,23 @@ export default async function handler(
     // Bad or hostile resume URLs are the caller's fault, and each carries a
     // stable code the badge can render.
     if (e instanceof ResumeFetchError) {
-      console.warn(e);
+      logGrade(console.warn, {
+        outcome: "resume_fetch_failed",
+        ...context(),
+        error: describeError(e),
+      });
       res.status(e.status).json({ error: e.code });
       return;
     }
 
     // Only a document both pdf.js and the model reject counts as unreadable;
     // a 400 on a PDF that parsed is a bug in this request, not the file.
-    if (
-      unparseablePdf &&
-      GatewayError.isInstance(e) &&
-      e.statusCode === 400
-    ) {
-      console.warn(e);
+    if (unparseablePdf && GatewayError.isInstance(e) && e.statusCode === 400) {
+      logGrade(console.warn, {
+        outcome: "invalid_pdf",
+        ...context(),
+        error: describeError(e),
+      });
       res.status(400).json({
         error: "InvalidPDFException",
       });
@@ -162,7 +198,11 @@ export default async function handler(
     }
 
     if (gradingSignal.aborted) {
-      console.error(e);
+      logGrade(console.error, {
+        outcome: "timeout",
+        ...context(),
+        error: describeError(e),
+      });
       res.status(504).json({ error: "GradingTimeout" });
       return;
     }
@@ -171,28 +211,33 @@ export default async function handler(
     // first attempt. It is an upstream outage, not a bug in this route. A 402
     // (team budget exceeded) or 429 (rate limited) clears up on its own too.
     if (GatewayError.isInstance(e) && isGatewayUnavailable(e.statusCode)) {
-      if (e.statusCode === 402) console.warn(e);
-      else console.error(e);
+      logGrade(e.statusCode === 402 ? console.warn : console.error, {
+        outcome: "gateway_unavailable",
+        ...context(),
+        error: describeError(e),
+      });
       res.status(503).json({ error: "GradingUnavailable" });
       return;
     }
 
     if (NoObjectGeneratedError.isInstance(e)) {
-      console.error(
-        JSON.stringify({
-          "http.route": "/api/grade",
-          outcome: "no_object_generated",
-          finishReason: e.finishReason,
-          usage: e.usage,
-        }),
-      );
+      logGrade(console.error, {
+        outcome: "no_object_generated",
+        ...context(),
+        finishReason: e.finishReason,
+        usage: e.usage,
+      });
       res.status(500).json({ error: "GradingError" });
       return;
     }
 
     // The client renders this string straight into a badge, so it must stay a
     // stable code rather than whatever the PDF parser or the model threw.
-    console.error(e);
+    logGrade(console.error, {
+      outcome: "error",
+      ...context(),
+      error: { ...describeError(e), stack: e.stack },
+    });
     res.status(500).json({
       error: "GradingError",
     });
