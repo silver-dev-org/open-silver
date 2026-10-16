@@ -102,6 +102,34 @@ describe("/api/grade", () => {
     expect(vi.mocked(pdf).mock.calls[0][0]).toEqual(Buffer.from("pdf-bytes"));
   });
 
+  it("logs where the time went and how the gateway routed a graded request", async () => {
+    vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
+    vi.mocked(generateObject).mockResolvedValueOnce({
+      object: { grade: "B", red_flags: [], yellow_flags: [] },
+      finishReason: "stop",
+      providerMetadata: { gateway: { generationId: "gen_1" } },
+    } as never);
+
+    await call(
+      request({ method: "POST", headers: MULTIPART, body: "pdf-bytes" }),
+    );
+
+    const [line] = vi.mocked(console.info).mock.calls[0];
+    expect(JSON.parse(line)).toMatchObject({
+      outcome: "graded",
+      source: "upload",
+      pdfBytes: 9,
+      phase: "model",
+      durationsMs: {
+        upload: expect.any(Number),
+        parse: expect.any(Number),
+        model: expect.any(Number),
+      },
+      totalMs: expect.any(Number),
+      gateway: { generationId: "gen_1" },
+    });
+  });
+
   /* An unbounded generation used to hold the request until the 60s deadline. */
   it("bounds the model's output and thinking tokens", async () => {
     vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
@@ -298,7 +326,8 @@ describe("/api/grade", () => {
     vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
     vi.mocked(generateObject).mockRejectedValueOnce(
       new GatewayInternalServerError({
-        message: "Team budget exceeded. Current spend: $100.62, limit: $100.00.",
+        message:
+          "Team budget exceeded. Current spend: $100.62, limit: $100.00.",
         statusCode: 402,
       }),
     );
@@ -354,6 +383,13 @@ describe("/api/grade", () => {
 
     expect(res.status).toBe(504);
     expect(res.body).toEqual({ error: "GradingTimeout" });
+    expect(JSON.parse(vi.mocked(console.error).mock.calls[0][0])).toMatchObject(
+      {
+        outcome: "timeout",
+        phase: "model",
+        error: { name: "TimeoutError" },
+      },
+    );
     expect(
       vi.mocked(generateObject).mock.calls[0][0].abortSignal?.aborted,
     ).toBe(true);
