@@ -171,7 +171,8 @@ export default async function handler(
     // first attempt. It is an upstream outage, not a bug in this route. A 402
     // (team budget exceeded) or 429 (rate limited) clears up on its own too.
     if (GatewayError.isInstance(e) && isGatewayUnavailable(e.statusCode)) {
-      console.error(e);
+      if (e.statusCode === 402) console.warn(e);
+      else console.error(e);
       res.status(503).json({ error: "GradingUnavailable" });
       return;
     }
