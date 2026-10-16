@@ -294,7 +294,7 @@ describe("/api/grade", () => {
   });
 
   /* Vercel answers 402 once the team's AI Gateway budget is spent. */
-  it("answers 503 when the AI gateway budget is exceeded", async () => {
+  it("answers 503 and logs a warning when the AI gateway budget is exceeded", async () => {
     vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
     vi.mocked(generateObject).mockRejectedValueOnce(
       new GatewayInternalServerError({
@@ -309,6 +309,8 @@ describe("/api/grade", () => {
 
     expect(res.status).toBe(503);
     expect(res.body).toEqual({ error: "GradingUnavailable" });
+    expect(console.warn).toHaveBeenCalled();
+    expect(console.error).not.toHaveBeenCalled();
   });
 
   it("answers 503 when the AI gateway rate limits us", async () => {
