@@ -370,7 +370,7 @@ describe("/api/grade", () => {
     expect(res.body).toEqual({ error: "GradingError" });
   });
 
-  it("answers 504 when grading outlives its deadline", async () => {
+  it("answers 504 and logs a warning when grading outlives its deadline", async () => {
     vi.spyOn(AbortSignal, "timeout").mockReturnValueOnce(AbortSignal.abort());
     vi.mocked(pdf).mockResolvedValueOnce({ text: "cv" } as never);
     vi.mocked(generateObject).mockRejectedValueOnce(
@@ -383,7 +383,8 @@ describe("/api/grade", () => {
 
     expect(res.status).toBe(504);
     expect(res.body).toEqual({ error: "GradingTimeout" });
-    expect(JSON.parse(vi.mocked(console.error).mock.calls[0][0])).toMatchObject(
+    expect(console.error).not.toHaveBeenCalled();
+    expect(JSON.parse(vi.mocked(console.warn).mock.calls[0][0])).toMatchObject(
       {
         outcome: "timeout",
         phase: "model",
