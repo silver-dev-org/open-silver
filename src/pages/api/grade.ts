@@ -197,8 +197,10 @@ export default async function handler(
       return;
     }
 
+    // A stalled provider call is upstream and clears on retry; the same PDF
+    // usually grades fine seconds later.
     if (gradingSignal.aborted) {
-      logGrade(console.error, {
+      logGrade(console.warn, {
         outcome: "timeout",
         ...context(),
         error: describeError(e),
