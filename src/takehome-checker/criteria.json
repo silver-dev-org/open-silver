@@ -1,0 +1,505 @@
+{
+  "README": {
+    "title": "README",
+    "check": "code",
+    "detects": "A README or primary write-up exists (README.md, readme.txt, NOTES.md…).",
+    "feedback": "Add a README.md at the root.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "RUN_INSTRUCTIONS": {
+    "title": "Run instructions",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "The README has no copy-pasteable command to install and run the project.",
+    "feedback": "Add the exact commands to install and run the project at the top of the README.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "README_WHAT_HOW_WHY": {
+    "title": "What, how and why",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "The documentation (README plus the docs it links to) has no passage saying what the project is, no technical decision or trade-off, or nothing about what was left out. The AI must quote each one; anything it can't quote is flagged.",
+    "feedback": "Explain what the project does, how you approached it, the decisions and trade-offs you made, and what you'd do next.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "README_TEMPLATE": {
+    "title": "Your own README",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "The README is the assignment's or the starter repo's text, a placeholder section left unfilled, or a framework template (create-next-app, Vite, Create React App, Rails), with no sentence where the candidate describes their own solution. A pasted assignment copied into the README also counts.",
+    "feedback": "Replace the template with your own README: what you built, how to run it, and the decisions you made. Keep the assignment text in a separate file if you need it.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "README_DESCRIPTION": {
+    "title": "Project description",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "Nothing in the docs says what the project is about (a title naming it, a summary, a features list or a section describing the solution all count). The AI must quote it.",
+    "feedback": "Open the README with one or two sentences on what the project is and what it does.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "README_SETUP": {
+    "title": "Setup steps",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "No instruction at all in the docs to install or run the project locally; one command is enough. The AI must quote it. Whether the steps work is out of scope (nothing is run); \"README matches the code\" and \"Everything referenced is included\" check that what they mention exists.",
+    "feedback": "Add the exact commands to install and run the project locally, in order.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "README_DECISIONS": {
+    "title": "Decisions and trade-offs",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "No technical decision or trade-off mentioned anywhere in the docs; a passing mention of a chosen library, pattern or approach is enough, no reason needed. The AI must quote it.",
+    "feedback": "Good to have: mention the main technical decisions you made and what you traded off.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "README_RESULTS": {
+    "title": "Results and next steps",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "Nothing in the docs about results, limitations, what was left out or what would come next. The AI must quote it.",
+    "feedback": "Say what works, what you left out or simplified, and what you'd do next. For a model, show the results and how you measured them.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "NOTES_OUTSIDE_SUBMISSION": {
+    "title": "Everything referenced is included",
+    "check": "code",
+    "detects": "The README links to a file, or a run command uses an input file (input.txt, data/x.json, sample.env…), that isn't in the submission.",
+    "feedback": "Include every file the README links to or the run commands use.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "ENGLISH_ONLY": {
+    "title": "Written in English",
+    "check": "code",
+    "detects": "README, docs and comments are in English.",
+    "feedback": "Write the README, docs and comments in English.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "SILVER_REFERENCE": {
+    "title": "No Silver references",
+    "check": "code",
+    "detects": "Any mention of Silver in the submission's text files: docs, code, names, variables, URLs, package names (Silver.dev, silver-app, a link to Silver). Words that only contain it (Silverlight, Silverado) and generated migration names don't count.",
+    "feedback": "Remove mentions of Silver or the recruiting process.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "TEMPLATE_LEFTOVERS": {
+    "title": "No template leftovers",
+    "check": "code",
+    "detects": "Template or AI placeholders: 'Visuals (Optional)', '<your-api-key>', '[insert …]', 'add screenshots here'.",
+    "feedback": "Remove leftover template or AI placeholder text.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "DEFENSIVE_TONE": {
+    "title": "Confident tone",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "Apologies, rants, defensive AI disclaimers or soft claims about seniority.",
+    "feedback": "Remove apologies and defensive disclaimers. State your decisions plainly.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "SECRETS": {
+    "title": "No leaked secrets",
+    "check": "code",
+    "detects": "Real credentials: provider keys, private keys, DB/SMTP URLs with a password, hardcoded tokens, and secrets written in the docs (a client secret, API key, token or password with a long random value). Ignores localhost URLs, placeholders and .env.example values.",
+    "feedback": "Remove this credential from the code and rotate it. Load it from an environment variable instead.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "ENV_FILE": {
+    "title": "No committed .env",
+    "check": "code",
+    "detects": "A committed .env file holding values that look like real credentials: long random keys or tokens, or a database URL with a password on a non-local host. Dummy, empty and local values don't count.",
+    "feedback": "Remove the committed .env and ship a .env.example with placeholder values.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "CONFIG_EXAMPLE": {
+    "title": "Configuration example",
+    "check": "code",
+    "detects": "The code reads environment variables, but there's no .env.example (or similar) and the README doesn't mention any of them.",
+    "feedback": "Add a .env.example or explain each configuration value and where to get it.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "DEPENDENCIES_SHIPPED": {
+    "title": "No dependencies or builds shipped",
+    "check": "code",
+    "detects": "Dependencies, builds or caches: node_modules, .venv/venv, __pycache__, .pytest_cache, .mypy_cache, .next, .turbo, target, .gradle, Pods.",
+    "feedback": "Remove dependency and build folders from the submission.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "HEAVY_FILES": {
+    "title": "No heavy files",
+    "check": "code",
+    "detects": "Archives inside the submission, videos over 1 MB, and logs or other files over 5 MB. Datasets and model weights the app needs don't count.",
+    "feedback": "Remove heavy files and stray archives from the submission. Link videos instead of shipping them.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "OS_JUNK": {
+    "title": "No OS metadata files",
+    "check": "code",
+    "detects": "__MACOSX, .DS_Store, Thumbs.db.",
+    "feedback": "Your zip has macOS metadata the reviewer will see. __MACOSX isn't in your folder: Finder's Compress adds it to the zip, and Finder hides .DS_Store files. Zip from the terminal instead: `git archive -o submission.zip HEAD`, or `zip -r -X submission.zip your-folder -x '*.DS_Store'`.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "AI_TOOL_CONFIG": {
+    "title": "No AI tool config",
+    "check": "code",
+    "detects": ".claude, .cursor, .windsurf, .aider*, CLAUDE.md, AGENTS.md, copilot-instructions.md.",
+    "feedback": "Remove AI tool configuration files from the submission.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "PERSONAL_NOTES": {
+    "title": "No personal notes",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "Task lists, process notes or drafts meant for the candidate, not the reviewer.",
+    "feedback": "Remove personal notes and drafts that aren't meant for the reviewer.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "PASSWORD_PROTECTED": {
+    "title": "Opens without a password",
+    "check": "code",
+    "detects": "Password-protected or unsupported archive.",
+    "feedback": "Use a standard .zip without a password.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "CODE_QUALITY": {
+    "title": "Code quality",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Real bugs, dead or duplicated code, one-file structure, idempotency or concurrency issues. Only what can be quoted.",
+    "feedback": "Consider fixing this.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "BUGS": {
+    "title": "Bugs",
+    "check": "ai",
+    "reads": "code",
+    "detects": "A definite bug in one of the main source files: a crash or wrong result on a reachable path. Found file by file, then confirmed by a second, stronger model that traces the code; unconfirmed claims are dropped.",
+    "feedback": "Fix this bug.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "DEAD_CODE": {
+    "title": "Dead or duplicated code",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Functions, components, files or exports that are never used, or blocks copied verbatim in more than one place.",
+    "feedback": "Remove unused code and merge duplicated blocks.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "LIVE_DEMO": {
+    "title": "Live demo",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "The documentation has no link to a hosted, running version of the app or API (localhost, repository links and placeholders don't count).",
+    "feedback": "Host the app and put the link at the top of the README.",
+    "severity": {
+      "frontend": "yellow",
+      "backend": "yellow",
+      "fullstack": "yellow",
+      "ml": "yellow"
+    }
+  },
+  "ERROR_STATES": {
+    "title": "Error handling in the UI",
+    "check": "ai",
+    "reads": "code",
+    "detects": "A failed request leaves a blank page, shows a raw error, shows nothing at all, or wipes data that was already loaded.",
+    "feedback": "Show a clear message when a request fails and keep the data that was already loaded.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "LOADING_STATES": {
+    "title": "Loading and empty states",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Loading and empty states exist for async data.",
+    "feedback": "Add loading and empty states for async data.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "SKELETON_USE": {
+    "title": "Skeletons while loading",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Skeletons or placeholders that match the layout while content loads, avoiding layout shifts.",
+    "feedback": "Use skeletons that match the final layout while content loads.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "UI_POLISH": {
+    "title": "UI polish",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Styled controls, no layout shifts, works on resize and zoom, follows the company's look when given.",
+    "feedback": "Polish the UI: style the controls, avoid layout shifts, and check it on different screen sizes.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "COMPONENT_STRUCTURE": {
+    "title": "Component structure",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Components split sensibly; data fetching not mixed into presentational components; no hand-rolled fetcher where the library already covers it.",
+    "feedback": "Split this into smaller components and keep data fetching out of presentational ones.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "SCREENSHOTS": {
+    "title": "Screenshot or GIF",
+    "check": "code",
+    "detects": "A screenshot or short GIF of the app in the README.",
+    "feedback": "Add a screenshot or short GIF of the app to the README.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "HARDCODED_DATA": {
+    "title": "No hardcoded data",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Data that should come from an API, mock file or config is hardcoded in code (const users = [{…}]). Placeholder text in inputs doesn't count.",
+    "feedback": "Move this data to a mock file, config or API instead of hardcoding it.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "DOCKER": {
+    "title": "Docker",
+    "check": "code",
+    "detects": "A Dockerfile or docker-compose, and docker build/run commands in the README.",
+    "feedback": "Add a Dockerfile and the docker build/run commands to the README.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "DOCKER_IN_README": {
+    "title": "Docker in the README",
+    "check": "code",
+    "detects": "The submission has a Dockerfile or Docker Compose file, but neither the README nor any top-level doc mentions Docker.",
+    "feedback": "Put the docker build/run (or docker compose up) commands in the README.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "API_EXAMPLES": {
+    "title": "Example requests",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "curl/HTTPie examples with concrete values, or a Swagger/OpenAPI link, for the happy path.",
+    "feedback": "Add curl examples with real values for the main endpoints, or a Swagger link.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "DB_SETUP": {
+    "title": "Self-contained database",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Database is self-contained: migrations, seeds or an in-memory store are included or explained. No remote or pre-existing database needed.",
+    "feedback": "Make the database self-contained: include migrations and seed data, or use a local/in-memory store.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "INPUT_VALIDATION": {
+    "title": "Input validation",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Request input is validated and errors return meaningful status codes, not only 200/500.",
+    "feedback": "Validate request input and return meaningful error codes.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "TESTS": {
+    "title": "Tests",
+    "check": "code",
+    "detects": "No test files anywhere in the submission (tests/, __tests__/, *_Tests/, *.test.*, *_test.go, test_*.py, tests.py, *Tests.cs…). Off for frontend for now.",
+    "feedback": "Add tests for the core logic and the command to run them.",
+    "severity": {
+      "*": "yellow",
+      "frontend": "off"
+    }
+  },
+  "SAMPLE_INPUT": {
+    "title": "Sample input",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "The input file the program needs (input.txt, sample.env, data/…) is shipped and used in the README's run command.",
+    "feedback": "Include a sample input file and use it in the README's run command.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "EXPECTED_OUTPUT": {
+    "title": "Expected output",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "README shows what a successful run prints or writes.",
+    "feedback": "Show in the README what a successful run prints or writes.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "CLI_USABILITY": {
+    "title": "CLI usability",
+    "check": "ai",
+    "reads": "code",
+    "detects": "--help exists, arguments are clear, bad input and EOF don't crash or hang.",
+    "feedback": "Add --help and handle bad input without crashing.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "HAPPY_PATH_DATA": {
+    "title": "Demo data",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "The project starts empty: no seed, fixture, mock or sample input in the submission and no data provided by the assignment, so the reviewer has to create their own data to try it. Skipped when a seed-like file exists; the AI must answer \"none\" to flag.",
+    "feedback": "Ship seed data or a sample input and say in the README how it's loaded.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "SETUP_FRICTION": {
+    "title": "Setup friction",
+    "check": "code",
+    "detects": "The example env file has variables with an empty or placeholder value (your_token, changeme, <secret>…), so the reviewer must fill them in before it runs. Any key counts, AI provider keys included; lines marked optional are skipped.",
+    "feedback": "Make it run without manual setup: working defaults in the example env file, services in Docker Compose, and mocks or a sandbox for third-party APIs.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "DATA_AND_RESULTS": {
+    "title": "Data and results",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "README says where the data comes from, how to get it, and what results or metrics were obtained.",
+    "feedback": "Explain where the data comes from, how to get it, and the results you obtained.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "PINNED_DEPENDENCIES": {
+    "title": "Pinned dependencies",
+    "check": "code",
+    "detects": "requirements.txt, pyproject or a lock file with pinned versions.",
+    "feedback": "Pin your dependencies in a requirements.txt, pyproject or lock file.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "NOTEBOOK_ONLY": {
+    "title": "Runnable code, not only notebooks",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "Core logic lives only in notebooks, with no runnable script or module.",
+    "feedback": "Move the core logic from notebooks into a runnable script or module.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "README_MATCHES_CODE": {
+    "title": "README matches the code",
+    "check": "code",
+    "detects": "The README sets an environment variable the code never reads, or runs an npm script or make target that doesn't exist.",
+    "feedback": "Make the README match the code: fix the variable, script or target name.",
+    "severity": {
+      "*": "yellow"
+    }
+  },
+  "AI_COMMENTS": {
+    "title": "No AI-style comments",
+    "check": "ai",
+    "reads": "code",
+    "detects": "Comments that narrate obvious code line by line, tutorial-style explanations, or leftover assistant text ('Here is the updated…', 'As an AI…'). Normal doc comments, short explanations and TODOs don't count.",
+    "feedback": "Remove comments that narrate obvious code or read like AI output. The take-home guide treats them as grounds for rejection.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "TYPOS": {
+    "title": "No typos",
+    "check": "ai",
+    "reads": "docs",
+    "detects": "Spelling and grammar mistakes in the README.",
+    "feedback": "Fix the typos in the README.",
+    "severity": {
+      "*": "off"
+    }
+  },
+  "REPO_ACCESSIBLE": {
+    "title": "Repository is public",
+    "check": "code",
+    "detects": "For GitHub submissions, the repository is public so the reviewer can open it.",
+    "feedback": "Make your repository public or use a zip.",
+    "severity": {
+      "*": "red"
+    }
+  },
+  "SPEC_REQUIREMENTS": {
+    "title": "Assignment requirements",
+    "check": "ai",
+    "reads": "assignment",
+    "detects": "When the assignment is provided: an explicit requirement of the assignment (e.g. 'include docker run instructions', a required endpoint or output format) that the submission doesn't implement at all. Limitations the documentation already acknowledges, how thoroughly something was tested or evaluated, and suggestions about wording are not findings. Tests, configs and tooling scripts are not read.",
+    "feedback": "Cover the assignment's core requirements before adding extras.",
+    "severity": {
+      "*": "red"
+    }
+  }
+}
