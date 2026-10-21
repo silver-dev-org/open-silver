@@ -3,7 +3,7 @@ import { App, Octokit, RequestError } from "octokit";
 const fileCacheDuration = 1000 * 60 * 2;
 const repoFilesCache = new Map<
   string,
-  { files: string[]; timestamp: number }
+  { files: { path: string; size: number }[]; timestamp: number }
 >();
 const fileContentCache = new Map<
   string,
@@ -24,22 +24,6 @@ export async function getOctokit(installationId: number) {
   return octokit;
 }
 
-export async function getReadmeContent(octokit: Octokit, repoFullName: string) {
-  try {
-    const { data } = await octokit.request(
-      `GET /repos/${repoFullName}/contents/README.md`,
-    );
-    if (data?.content) {
-      return Buffer.from(data.content, "base64").toString("utf-8");
-    }
-  } catch (error) {
-    if (error instanceof RequestError && error.status !== 404) {
-      console.error("Error fetching README:", error);
-    }
-    return;
-  }
-}
-
 export async function getRepoFilePaths(octokit: Octokit, repoFullName: string) {
   const cachedData = repoFilesCache.get(repoFullName);
   const now = Date.now();
@@ -49,9 +33,13 @@ export async function getRepoFilePaths(octokit: Octokit, repoFullName: string) {
   const response = await octokit.request(
     `GET /repos/${repoFullName}/git/trees/HEAD?recursive=1`,
   );
-  const files = response.data.tree.map((entry: { path: string }) => entry.path);
+  const files = (
+    response.data.tree as { path: string; type: string; size?: number }[]
+  )
+    .filter(({ type }) => type === "blob")
+    .map(({ path, size }) => ({ path, size: size ?? 0 }));
   repoFilesCache.set(repoFullName, { files, timestamp: now });
-  return files as string[];
+  return files;
 }
 
 export async function getFileContent(
