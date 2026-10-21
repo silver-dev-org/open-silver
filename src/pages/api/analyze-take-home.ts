@@ -18,6 +18,7 @@ import {
   isJunk,
 } from "@/takehome-checker/utils";
 import { getFileContent, getOctokit, getRepoFilePaths } from "@/lib/github";
+import { APIError } from "@anthropic-ai/sdk";
 import AdmZip from "adm-zip";
 import formidable from "formidable";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -29,10 +30,47 @@ export const config = {
   maxDuration: 120,
 };
 
+const failureMessage =
+  "Something went wrong on our end while analyzing your take-home. Please try again in a few minutes.";
+
+function logTakeHome(
+  log: (line: string) => void,
+  fields: Record<string, unknown>,
+) {
+  log(JSON.stringify({ "http.route": "/api/analyze-take-home", ...fields }));
+}
+
+function describeError(e: Error) {
+  return {
+    name: e.name,
+    message: e.message,
+    statusCode: e instanceof APIError ? e.status : undefined,
+  };
+}
+
+function isGatewayUnavailable(statusCode: number | undefined) {
+  return (
+    statusCode === 402 ||
+    statusCode === 429 ||
+    (statusCode !== undefined && statusCode >= 500)
+  );
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const startedAt = Date.now();
+  let source: "repo" | "upload" | undefined;
+  let fileCount: number | undefined;
+  let isPrivate: boolean | undefined;
+  const context = () => ({
+    source,
+    fileCount,
+    isPrivate,
+    durationMs: Date.now() - startedAt,
+  });
+
   try {
     const form = formidable();
     const [fields, files] = await form.parse(req);
@@ -47,10 +85,10 @@ export default async function handler(
     let takeHome: TakeHome;
     let submissionFiles: SubmissionFile[];
     let texts: Map<string, string>;
-    let isPrivate: boolean | undefined;
     let encrypted: string[] = [];
 
     if (installationId && repoFullName) {
+      source = "repo";
       const octokit = await getOctokit(parseInt(installationId));
       const [repoFiles, repo] = await Promise.all([
         getRepoFilePaths(octokit, repoFullName),
@@ -81,6 +119,7 @@ export default async function handler(
         code: fetched.filter(({ path }) => isProcessableFile(path)),
       };
     } else if (file) {
+      source = "upload";
       const entries = new AdmZip(files.file?.at(0)?.filepath)
         .getEntries()
         .filter((entry) => !entry.isDirectory);
@@ -124,16 +163,40 @@ export default async function handler(
           .map((path) => ({ path, content: texts.get(path) ?? "" })),
       };
     } else {
+      logTakeHome(console.warn, {
+        outcome: "missing_submission",
+        ...context(),
+      });
       return res.status(400).send("Either GitHub repo or zip file is required");
     }
 
-    if (!submissionFiles.length) return res.status(400).send("Repo is empty.");
+    fileCount = submissionFiles.length;
+    if (!submissionFiles.length) {
+      logTakeHome(console.info, { outcome: "empty", ...context() });
+      return res.status(400).send("Repo is empty.");
+    }
     const problems = contentProblems(
       submissionFiles,
       findReadme(submissionFiles.filter(({ path }) => !isJunk(path)))?.path,
       takeHome.docs,
     );
-    if (problems.length) return res.status(422).json({ problems });
+    if (problems.length) {
+      logTakeHome(console.info, {
+        outcome: "rejected",
+        ...context(),
+        problems: problems.map(({ reason }) => reason),
+      });
+      return res.status(422).json({ problems });
+    }
+
+    if (!process.env.AI_GATEWAY_API_KEY) {
+      logTakeHome(console.error, {
+        outcome: "misconfigured",
+        ...context(),
+        error: { message: "AI_GATEWAY_API_KEY is not set" },
+      });
+      return res.status(503).send(failureMessage);
+    }
 
     const analysis = await analyzeTakeHome({
       takeHome,
@@ -149,14 +212,34 @@ export default async function handler(
       takeHome,
     } as TakeHomeCheckerData;
 
+    logTakeHome(console.info, {
+      outcome: "analyzed",
+      ...context(),
+      rubric: analysis.rubric,
+      findings: analysis.findings.length,
+    });
     res.status(200).json(data);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .send(
-        "Something went wrong on our end while analyzing your take-home. Please try again in a few minutes.",
-      );
+  } catch (e) {
+    if (!(e instanceof Error)) {
+      logTakeHome(console.error, { outcome: "error", ...context(), error: e });
+      return res.status(500).send(failureMessage);
+    }
+
+    if (e instanceof APIError && isGatewayUnavailable(e.status)) {
+      logTakeHome(e.status === 402 ? console.warn : console.error, {
+        outcome: "gateway_unavailable",
+        ...context(),
+        error: describeError(e),
+      });
+      return res.status(503).send(failureMessage);
+    }
+
+    logTakeHome(console.error, {
+      outcome: "error",
+      ...context(),
+      error: { ...describeError(e), stack: e.stack },
+    });
+    res.status(500).send(failureMessage);
   }
 }
 
