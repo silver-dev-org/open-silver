@@ -3,7 +3,7 @@ import {
   getPromptExamples,
   NotionOperationError,
 } from "@/behavioral-checker/notion/database";
-import type { ApiLogger } from "@/lib/structured-logger";
+import { describeError, type RouteLog } from "@/lib/route-log";
 import { AssistanceResponse } from "./Action";
 import { aiClient, AIClient } from "./AIClient";
 
@@ -14,14 +14,14 @@ export class ClientAssistanceService {
     questionId: Question["id"],
     question: string,
     response: string,
-    logger?: ApiLogger
+    log: RouteLog,
   ): Promise<AssistanceResponse> {
     let exampleResponses: { response: string; score: string }[] = [];
     try {
       exampleResponses = await getPromptExamples(questionId);
     } catch (error) {
-      console.error("Proceeding without prompt examples:", error);
-      logger?.setContext({
+      log.set({
+        "notion.error": describeError(error),
         "notion.operation": "getPromptExamples",
         "notion.timed_out":
           error instanceof NotionOperationError && error.timedOut,
@@ -32,7 +32,7 @@ export class ClientAssistanceService {
       questionId,
       question,
       response,
-      exampleResponses
+      exampleResponses,
     );
   }
 }

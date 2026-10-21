@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
+import { createRouteLog } from "@/lib/route-log";
 
 export async function POST() {
+  const log = createRouteLog("/roast-me/api/realtime-token");
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
+    log.misconfigured("OPENAI_API_KEY");
     return NextResponse.json(
       { error: "OpenAI API key not configured" },
-      { status: 500 }
+      { status: 503 }
     );
   }
 
@@ -48,8 +51,13 @@ export async function POST() {
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Failed to create realtime session:", error);
+      log.error("openai_rejected", {
+        error: {
+          name: "OpenAIError",
+          message: await response.text(),
+          statusCode: response.status,
+        },
+      });
       return NextResponse.json(
         { error: "Failed to create realtime session" },
         { status: response.status }
@@ -57,9 +65,10 @@ export async function POST() {
     }
 
     const data = await response.json();
+    log.info("issued");
     return NextResponse.json({ token: data.value });
   } catch (error) {
-    console.error("Error creating realtime session:", error);
+    log.unexpected(error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

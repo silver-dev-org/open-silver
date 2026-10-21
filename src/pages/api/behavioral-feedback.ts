@@ -3,12 +3,15 @@ import {
   addFeedbackToNotion,
   updateFeedbackInNotion,
 } from "../../behavioral-checker/notion/database";
+import { createRouteLog } from "@/lib/route-log";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  const log = createRouteLog("/api/behavioral-feedback");
   if (req.method !== "POST") {
+    log.info("method_not_allowed");
     return res.status(405).json({ message: "Method not allowed" });
   }
 
@@ -16,6 +19,7 @@ export default async function handler(
     const { pageId, feedbackScore, feedbackText, ...feedbackData } = req.body;
 
     if (!feedbackScore) {
+      log.info("bad_request");
       return res.status(400).json({ message: "Feedback score is required" });
     }
 
@@ -32,9 +36,10 @@ export default async function handler(
       });
     }
 
+    log.info(pageId ? "updated" : "created");
     return res.status(200).json({ success: true, pageId: recordId });
-  } catch (error: any) {
-    console.error("Error processing feedback:", error);
-    return res.status(500).json({ message: error.message });
+  } catch (error) {
+    log.unexpected(error);
+    return res.status(500).json({ message: "Could not save your feedback." });
   }
 }

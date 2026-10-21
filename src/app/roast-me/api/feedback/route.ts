@@ -2,14 +2,17 @@ import { getPostHogClient } from "@/lib/posthog-server";
 import { getResend } from "@/lib/resend";
 import { FeedbackRequest } from "@/roast-me/types";
 import { NextRequest, NextResponse } from "next/server";
+import { createRouteLog } from "@/lib/route-log";
 
 export async function POST(req: NextRequest) {
+  const log = createRouteLog("/roast-me/api/feedback");
   const resend = getResend();
 
   if (!resend) {
+    log.misconfigured("RESEND_KEY");
     return NextResponse.json(
       { error: "Email service is not configured" },
-      { status: 500 },
+      { status: 503 },
     );
   }
 
@@ -60,9 +63,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    log.info("sent");
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error sending feedback:", error);
+    log.unexpected(error);
     return NextResponse.json(
       { error: "Failed to send feedback" },
       { status: 500 },

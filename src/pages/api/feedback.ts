@@ -3,19 +3,23 @@ import { FeedbackEmail } from "@/resume-checker/components/feedback-email";
 import formidable from "formidable";
 import type { NextApiRequest, NextApiResponse } from "next";
 import fs from "node:fs";
+import { createRouteLog } from "@/lib/route-log";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const log = createRouteLog("/api/feedback");
   const resend = getResend();
   if (!resend) {
-    res.status(500).send({ message: "Email service is not configured" });
+    log.misconfigured("RESEND_KEY");
+    res.status(503).send({ message: "Email service is not configured" });
     return;
   }
 
   try {
     if (req.method !== "POST") {
+      log.info("not_found");
       res.status(404).send({ message: "Not Found" });
       return;
     }
@@ -56,9 +60,10 @@ export default async function handler(
       throw new Error(error.message);
     }
 
+    log.info("sent");
     res.status(200).send({ success: true });
   } catch (err) {
-    console.error(err);
+    log.unexpected(err);
     res.status(500).send({
       message: "Tuvimos un error inesperado al enviar tu mail, probá una vez más",
     });

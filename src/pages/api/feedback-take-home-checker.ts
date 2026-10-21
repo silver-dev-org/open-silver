@@ -4,14 +4,17 @@ import { getResend } from "@/lib/resend";
 import { TakeHomeCheckerData } from "@/takehome-checker/types";
 import { codebaseToString } from "@/takehome-checker/utils";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { createRouteLog } from "@/lib/route-log";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const log = createRouteLog("/api/feedback-take-home-checker");
   const resend = getResend();
   if (!resend) {
-    res.status(500).send({ message: "Email service is not configured" });
+    log.misconfigured("RESEND_KEY");
+    res.status(503).send({ message: "Email service is not configured" });
     return;
   }
 
@@ -45,9 +48,10 @@ export default async function handler(
       throw new Error(error.message);
     }
 
+    log.info("sent");
     res.status(200).send({ success: true });
   } catch (err) {
-    console.error(err);
+    log.unexpected(err);
     res.status(500).send({ success: false });
   }
 }

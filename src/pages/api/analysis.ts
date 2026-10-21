@@ -4,7 +4,7 @@ import {
   addFeedbackToNotion,
   NotionOperationError,
 } from "@/behavioral-checker/notion/database";
-import { ApiLogger, createApiLogger } from "@/lib/structured-logger";
+import { createRouteLog, describeError, type RouteLog } from "@/lib/route-log";
 import { promises as fs } from "fs";
 import multer from "multer";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -25,63 +25,48 @@ const upload = multer({ storage });
 const handler = async (
   req: NextApiRequest,
   res: NextApiResponse,
-  logger: ApiLogger
+  log: RouteLog,
 ) => {
-  let status = 500;
-  let outcome = "error";
-
   try {
     if (req.method !== "POST") {
-      status = 405;
-      outcome = "method_not_allowed";
+      log.info("method_not_allowed");
       return res.status(405).json({ error: "Method not allowed" });
     }
 
     const file = (req as any).file;
     if (!file) {
-      status = 400;
-      outcome = "no_file";
+      log.info("no_file");
       return res.status(400).json({ error: "No file uploaded" });
     }
 
     const filePath = path.join(os.tmpdir(), file.filename);
     const id = req.body.id as string;
     const question = req.body.question as string;
-    logger.setContext({ questionId: id });
+    log.set({ questionId: id });
 
-    const result = await consultByAudio.invoke(id, question, filePath, logger);
+    const result = await consultByAudio.invoke(id, question, filePath, log);
 
-    let notionPersisted = true;
     try {
+      log.phase("notion");
       await addFeedbackToNotion(result);
     } catch (error) {
-      notionPersisted = false;
-      logger.error(error);
-      logger.setContext({
+      log.warn("notion_write_failed", {
         "notion.operation": "addFeedbackToNotion",
         "notion.timed_out":
           error instanceof NotionOperationError && error.timedOut,
+        error: describeError(error),
       });
+      return res.status(202).json({ ...result, notionPersisted: false });
     }
 
-    if (notionPersisted) {
-      status = 200;
-      outcome = "success";
-      res.status(200).json(result);
-    } else {
-      status = 202;
-      outcome = "notion_write_failed";
-      res.status(202).json({ ...result, notionPersisted: false });
-    }
+    log.info("success");
+    res.status(200).json(result);
   } catch (error) {
-    logger.error(error);
     if (error instanceof InvalidModelResponseError) {
-      status = 502;
-      outcome = "invalid_model_response";
+      log.error("invalid_model_response", { error: describeError(error) });
       res.status(502).json({ error: "invalid_model_response" });
     } else {
-      status = 500;
-      outcome = "error";
+      log.unexpected(error);
       res.status(500).json({ error: "Error processing audio" });
     }
   } finally {
@@ -93,21 +78,14 @@ const handler = async (
         console.error("Error deleting temporary file:", error);
       }
     }
-    logger.setContext({ "http.response.status_code": status, outcome });
-    logger.emit();
   }
 };
 
 const middleware = upload.single("audio");
-const multerMiddleware = (req: any, res: any, logger: ApiLogger, next: any) =>
+const multerMiddleware = (req: any, res: any, log: RouteLog, next: any) =>
   middleware(req, res, (err) => {
     if (err) {
-      logger.error(err);
-      logger.setContext({
-        "http.response.status_code": 500,
-        outcome: "upload_error",
-      });
-      logger.emit();
+      log.error("upload_error", { error: describeError(err) });
       return res.status(500).json({ error: "File upload error" });
     }
     next();
@@ -120,10 +98,8 @@ export const config = {
 };
 
 export default (req: NextApiRequest, res: NextApiResponse) => {
-  const logger = createApiLogger(
+  const log = createRouteLog<"transcribe" | "consult" | "notion">(
     "/api/analysis",
-    req.method ?? "UNKNOWN",
-    "analysis"
   );
-  return multerMiddleware(req, res, logger, () => handler(req, res, logger));
+  return multerMiddleware(req, res, log, () => handler(req, res, log));
 };
