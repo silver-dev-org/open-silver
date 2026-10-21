@@ -55,31 +55,3 @@ export async function getErrorMessage(response: Response) {
 
   return DEFAULT_ERROR_MESSAGE;
 }
-
-export function createPhaseTimer<Phase extends string>() {
-  const startedAt = performance.now();
-  const durationsMs: Partial<Record<Phase, number>> = {};
-  let phase: Phase | undefined;
-  let phaseStartedAt = startedAt;
-
-  function stop() {
-    if (phase)
-      durationsMs[phase] = Math.round(performance.now() - phaseStartedAt);
-  }
-
-  return {
-    start(next: Phase) {
-      stop();
-      phase = next;
-      phaseStartedAt = performance.now();
-    },
-    summary() {
-      stop();
-      return {
-        phase,
-        durationsMs,
-        totalMs: Math.round(performance.now() - startedAt),
-      };
-    },
-  };
-}

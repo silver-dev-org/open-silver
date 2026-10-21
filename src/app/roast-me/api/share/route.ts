@@ -2,8 +2,10 @@ import { put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
 import type { ShareRequest, ShareResponse, RoastMetadata } from "@/roast-me/types";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { createRouteLog } from "@/lib/route-log";
 
 export async function POST(req: NextRequest) {
+  const log = createRouteLog("/roast-me/api/share");
   try {
     const { snapshot, analysis, isUnhinged }: ShareRequest = await req.json();
 
@@ -43,9 +45,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    log.info("shared", { roastId: id });
     return NextResponse.json({ id } satisfies ShareResponse);
   } catch (error) {
-    console.error("Error saving roast:", error);
+    log.unexpected(error);
     return NextResponse.json(
       { error: "Failed to save roast" },
       { status: 500 }

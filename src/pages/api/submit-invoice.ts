@@ -5,19 +5,23 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/app/invoice-generator/components/InvoicePDF";
 import { InvoiceEmail } from "@/app/invoice-generator/components/InvoiceEmail";
 import { getResend } from "@/lib/resend";
+import { createRouteLog } from "@/lib/route-log";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const log = createRouteLog("/api/submit-invoice");
   const resend = getResend();
   if (!resend) {
-    res.status(500).send({ message: "Email service is not configured" });
+    log.misconfigured("RESEND_KEY");
+    res.status(503).send({ message: "Email service is not configured" });
     return;
   }
 
   try {
     if (req.method !== "POST") {
+      log.info("not_found");
       res.status(404).send({ message: "Not Found" });
       return;
     }
@@ -100,9 +104,10 @@ export default async function handler(
       throw new Error(error.message);
     }
 
+    log.info("sent", { invoiceType });
     res.status(200).send({ success: true });
   } catch (err) {
-    console.error(err);
+    log.unexpected(err);
     res.status(500).send({
       message: "Error sending invoice email. Please try again.",
     });
