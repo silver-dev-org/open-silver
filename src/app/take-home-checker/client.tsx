@@ -70,6 +70,7 @@ import {
   criteriaFor,
   inspectZip,
   runCodeChecks,
+  ratingReason,
   scoreFor,
 } from "../../takehome-checker/utils";
 import {
@@ -619,7 +620,14 @@ function SuccessState({
             </span>
           </div>
         ) : (
-          <RatingBar active={scoreFor(findings)} />
+          <div className="flex flex-col gap-3">
+            <RatingBar active={scoreFor(findings)} />
+            {ratingReason(findings) && (
+              <p className="text-center text-sm text-muted-foreground">
+                {ratingReason(findings)}
+              </p>
+            )}
+          </div>
         )}
         {skipped.length > 0 && (
           <section className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/5 p-5">

@@ -1,6 +1,6 @@
 {
   "README": {
-    "title": "README",
+    "title": "Has a README",
     "check": "code",
     "detects": "A README or primary write-up exists (README.md, readme.txt, NOTES.md…).",
     "feedback": "Add a README.md at the root.",
@@ -29,7 +29,7 @@
     }
   },
   "README_TEMPLATE": {
-    "title": "Your own README",
+    "title": "README is yours, not a template",
     "check": "ai",
     "reads": "docs",
     "detects": "The README is the assignment's or the starter repo's text, a placeholder section left unfilled, or a framework template (create-next-app, Vite, Create React App, Rails), with no sentence where the candidate describes their own solution. A pasted assignment copied into the README also counts.",
@@ -55,7 +55,8 @@
     "detects": "No instruction at all in the docs to install or run the project locally; one command is enough. The AI must quote it. Whether the steps work is out of scope (nothing is run); \"README matches the code\" and \"Everything referenced is included\" check that what they mention exists.",
     "feedback": "Add the exact commands to install and run the project locally, in order.",
     "severity": {
-      "*": "red"
+      "*": "red",
+      "written": "off"
     }
   },
   "README_DECISIONS": {
@@ -84,7 +85,8 @@
     "detects": "The README links to a file, or a run command uses an input file (input.txt, data/x.json, sample.env…), that isn't in the submission.",
     "feedback": "Include every file the README links to or the run commands use.",
     "severity": {
-      "*": "red"
+      "*": "red",
+      "written": "off"
     }
   },
   "ENGLISH_ONLY": {
@@ -130,7 +132,8 @@
     "detects": "Real credentials: provider keys, private keys, DB/SMTP URLs with a password, hardcoded tokens, and secrets written in the docs (a client secret, API key, token or password with a long random value). Ignores localhost URLs, placeholders and .env.example values.",
     "feedback": "Remove this credential from the code and rotate it. Load it from an environment variable instead.",
     "severity": {
-      "*": "red"
+      "*": "red",
+      "written": "off"
     }
   },
   "ENV_FILE": {
@@ -139,7 +142,8 @@
     "detects": "A committed .env file holding values that look like real credentials: long random keys or tokens, or a database URL with a password on a non-local host. Dummy, empty and local values don't count.",
     "feedback": "Remove the committed .env and ship a .env.example with placeholder values.",
     "severity": {
-      "*": "yellow"
+      "*": "yellow",
+      "written": "off"
     }
   },
   "CONFIG_EXAMPLE": {
@@ -321,10 +325,12 @@
   "DOCKER": {
     "title": "Docker",
     "check": "code",
-    "detects": "A Dockerfile or docker-compose, and docker build/run commands in the README.",
+    "detects": "A Dockerfile or docker-compose, and docker build/run commands in the README. Off for frontend and written analyses.",
     "feedback": "Add a Dockerfile and the docker build/run commands to the README.",
     "severity": {
-      "*": "yellow"
+      "*": "yellow",
+      "frontend": "off",
+      "written": "off"
     }
   },
   "DOCKER_IN_README": {
@@ -333,7 +339,8 @@
     "detects": "The submission has a Dockerfile or Docker Compose file, but neither the README nor any top-level doc mentions Docker.",
     "feedback": "Put the docker build/run (or docker compose up) commands in the README.",
     "severity": {
-      "*": "yellow"
+      "*": "yellow",
+      "written": "off"
     }
   },
   "API_EXAMPLES": {
@@ -369,11 +376,12 @@
   "TESTS": {
     "title": "Tests",
     "check": "code",
-    "detects": "No test files anywhere in the submission (tests/, __tests__/, *_Tests/, *.test.*, *_test.go, test_*.py, tests.py, *Tests.cs…). Off for frontend for now.",
+    "detects": "No test files anywhere in the submission (tests/, __tests__/, *_Tests/, *.test.*, *_test.go, test_*.py, tests.py, *Tests.cs…). Off for frontend for now, and for written analyses.",
     "feedback": "Add tests for the core logic and the command to run them.",
     "severity": {
       "*": "yellow",
-      "frontend": "off"
+      "frontend": "off",
+      "written": "off"
     }
   },
   "SAMPLE_INPUT": {
@@ -413,7 +421,8 @@
     "detects": "The project starts empty: no seed, fixture, mock or sample input in the submission and no data provided by the assignment, so the reviewer has to create their own data to try it. Skipped when a seed-like file exists; the AI must answer \"none\" to flag.",
     "feedback": "Ship seed data or a sample input and say in the README how it's loaded.",
     "severity": {
-      "*": "red"
+      "*": "red",
+      "written": "off"
     }
   },
   "SETUP_FRICTION": {
@@ -422,7 +431,8 @@
     "detects": "The example env file has variables with an empty or placeholder value (your_token, changeme, <secret>…), so the reviewer must fill them in before it runs. Any key counts, AI provider keys included; lines marked optional are skipped.",
     "feedback": "Make it run without manual setup: working defaults in the example env file, services in Docker Compose, and mocks or a sandbox for third-party APIs.",
     "severity": {
-      "*": "yellow"
+      "*": "yellow",
+      "written": "off"
     }
   },
   "DATA_AND_RESULTS": {
@@ -460,7 +470,8 @@
     "detects": "The README sets an environment variable the code never reads, or runs an npm script or make target that doesn't exist.",
     "feedback": "Make the README match the code: fix the variable, script or target name.",
     "severity": {
-      "*": "yellow"
+      "*": "yellow",
+      "written": "off"
     }
   },
   "AI_COMMENTS": {
@@ -489,7 +500,7 @@
     "detects": "For GitHub submissions, the repository is public so the reviewer can open it.",
     "feedback": "Make your repository public or use a zip.",
     "severity": {
-      "*": "red"
+      "*": "off"
     }
   },
   "SPEC_REQUIREMENTS": {

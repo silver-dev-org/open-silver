@@ -27,7 +27,7 @@ export type TakeHome = {
 
 export type Codebase = RepoFile[];
 
-export type Rubric = "frontend" | "backend" | "cli" | "fullstack" | "ml";
+export type Rubric = "frontend" | "backend" | "cli" | "fullstack" | "ml" | "written";
 
 export type Color = "red" | "yellow" | "info";
 

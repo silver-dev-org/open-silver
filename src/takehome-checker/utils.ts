@@ -367,6 +367,20 @@ export function scoreFor(findings: Finding[]): Score {
   return yellow === 0 ? "Strong yes" : "Yes";
 }
 
+export function ratingReason(findings: Finding[]) {
+  const red = findings.filter(({ color }) => color === "red");
+  const yellow = findings.filter(({ color }) => color === "yellow");
+  if (red.length === 0 && yellow.length === 0) return undefined;
+  const count = (n: number, label: string) => (n === 0 ? [] : [`${n} ${label}`]);
+  const counts = [...count(red.length, "must fix"), ...count(yellow.length, "worth fixing")].join(" and ");
+  const quote = (titles: string[]) => titles.map((title) => `“${title}”`);
+  const list = (items: string[]) => (items.length > 1 ? `${items.slice(0, -1).join(", ")} and ${items.at(-1)}` : items[0]);
+  const extraYellow = Math.max(0, yellow.length - yesYellowFlags);
+  const toYes = [...quote(red.map(({ title }) => title)), ...(extraYellow > 0 ? [`${extraYellow} of the ${yellow.length} worth fixing`] : [])];
+  if (toYes.length === 0) return `${counts}: ${scoreFor(findings)}. Fix ${list(quote(yellow.map(({ title }) => title)))} for a Strong yes.`;
+  return `${counts}: ${scoreFor(findings)}. Fix ${list(toYes)} for a Yes.`;
+}
+
 export function isTemplateReadme(readme: string, assignment?: string) {
   if (frameworkReadmePattern.test(readme.split("\n").find((line) => line.trim()) ?? "")) return true;
   const lines = readme.split("\n").map((line) => line.trim()).filter((line) => line.length > 30);

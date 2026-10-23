@@ -121,6 +121,7 @@ export const rubrics: { value: Rubric; label: string }[] = [
   { value: "cli", label: "Backend (CLI or file processor)" },
   { value: "fullstack", label: "Full stack" },
   { value: "ml", label: "ML / AI" },
+  { value: "written", label: "Written analysis" },
 ];
 
 export const heavyFileBytes = 5_000_000;
@@ -164,6 +165,7 @@ export const rubricPrompt = `Classify the role a take-home coding challenge was 
 * cli: a command-line tool, script or file processor that reads input, writes output and exits.
 * fullstack: the company asked for both a UI and the API or service behind it. A UI the candidate added on top of a service, or route handlers that only fetch data for a UI, don't make it fullstack.
 * ml: a model, data science or AI pipeline is the core of the work (training, evaluating, detecting, classifying, extracting with an LLM), even when it is served through an API or shown on a small demo page.
+* written: the deliverable is a written analysis, review or report (a security review, an architecture or design document, an incident write-up), not software to run. Files the company provided to review don't make it a coding role.
 
 When the work centers on one side, pick that side, not fullstack.`;
 
