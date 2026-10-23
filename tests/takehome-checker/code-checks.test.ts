@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hostingUrlPattern, seedPathPattern, testFilePattern } from "@/takehome-checker/constants";
-import { criteriaFor, findReadme, isBaseCode, runCodeChecks, scoreFor } from "@/takehome-checker/utils";
+import { criteriaFor, findReadme, isBaseCode, ratingReason, runCodeChecks, scoreFor } from "@/takehome-checker/utils";
 
 function check(files: Record<string, string>, context?: Parameters<typeof runCodeChecks>[2]) {
   const list = Object.entries(files).map(([path, content]) => ({ path, size: content.length }));
@@ -83,7 +83,7 @@ describe("criteriaFor", () => {
 
   it("skips criteria the rubric doesn't list", () => {
     expect(colors("cli").LIVE_DEMO).toBeUndefined();
-    expect(colors("frontend").DOCKER).toBe("yellow");
+    expect(colors("frontend").DOCKER).toBeUndefined();
     expect(colors("cli").DOCKER).toBe("yellow");
     expect(colors("cli").SECRETS).toBe("red");
   });
@@ -207,7 +207,7 @@ describe("runCodeChecks edge cases", () => {
   });
 
   it("doesn't flag an input file whose contents the README shows", () => {
-    const shown = "\n\n```bash\njava -jar app.jar < input.txt\n```\n\n#### Example Input File (input.txt)\n```json\n[{\"id\":1}]\n```";
+    const shown = "\n\n```bash\njava -jar app.jar < input.txt\n```\n\nHere is what input.txt looks like:\n```json\n[{\"id\":1}]\n```";
     expect(check({ ...base, "README.md": readme["README.md"] + shown })).toEqual([]);
     expect(check({ ...base, "README.md": readme["README.md"] + "\n\nRun it with sample.env:\n\n```bash\n./app sample.env\n```" })).toEqual(["NOTES_OUTSIDE_SUBMISSION"]);
   });
@@ -271,6 +271,17 @@ describe("scoreFor", () => {
     expect(scoreFor([flag("yellow"), flag("yellow")])).toBe("No");
     expect(scoreFor([flag("red")])).toBe("No");
     expect(scoreFor([flag("red"), flag("red")])).toBe("Strong no");
+  });
+});
+
+describe("ratingReason", () => {
+  it("says what to fix for the next rating", () => {
+    const flag = (color: "red" | "yellow", title: string) => ({ id: title, title, color, feedback: "", evidence: [] });
+    expect(ratingReason([])).toBeUndefined();
+    expect(ratingReason([flag("yellow", "Tests")])).toBe("1 worth fixing: Yes. Fix “Tests” for a Strong yes.");
+    expect(ratingReason([flag("red", "Setup steps"), flag("yellow", "Tests"), flag("yellow", "Docker")])).toBe(
+      "1 must fix and 2 worth fixing: No. Fix “Setup steps” and 1 of the 2 worth fixing for a Yes.",
+    );
   });
 });
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { criteria } from "@/takehome-checker/constants";
 
-const rubrics = ["*", "frontend", "backend", "cli", "fullstack", "ml"];
+const rubrics = ["*", "frontend", "backend", "cli", "fullstack", "ml", "written"];
 const colors = ["red", "yellow", "info", "off"];
 
 describe("criteria", () => {
