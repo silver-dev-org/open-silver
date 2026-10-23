@@ -6,7 +6,9 @@ import { METADATA } from "@/roast-me/constants";
 import { pageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = pageMetadata({
+// Unhinged mode is shared by link and not meant to be found through search:
+// noindex, no canonical (the two contradict), and absent from the sitemap.
+const { alternates: _canonical, ...metadataWithoutCanonical } = pageMetadata({
   title: "Roast Me Unhinged: Brutal Setup Feedback",
   description:
     "How do other people see you on a video call? Snap your setup and get honest feedback on lighting, framing, and background before your next interview.",
@@ -14,6 +16,11 @@ export const metadata: Metadata = pageMetadata({
   ogTitle: "Roast Me Unhinged • Open Silver",
   ogDescription: METADATA.description,
 });
+
+export const metadata: Metadata = {
+  ...metadataWithoutCanonical,
+  robots: { index: false, follow: true },
+};
 
 export default function Page() {
   return (

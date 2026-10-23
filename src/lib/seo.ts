@@ -17,7 +17,6 @@ export const INDEXABLE_ROUTES = [
   "/resume-checker",
   "/resume-checker/privacy",
   "/roast-me",
-  "/roast-me/unhinged",
   "/salary-calculator",
   "/take-home-checker",
 ] as const;
