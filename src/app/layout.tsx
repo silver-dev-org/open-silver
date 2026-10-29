@@ -47,7 +47,7 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <Header />
-        <main>
+        <main className="min-h-lvh">
           <Spacer size="lg" />
           <Spacer size="lg" />
           <TooltipProvider>
