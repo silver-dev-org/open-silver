@@ -14,7 +14,10 @@ import { Score } from "@/resume-checker/components/score";
 import { Skeleton } from "@/resume-checker/components/skeleton";
 import { useFormState } from "@/resume-checker/hooks/form-context";
 import type { FormState } from "@/resume-checker/types";
-import { getErrorMessage } from "@/resume-checker/utils";
+import {
+  CONNECTION_LOST_MESSAGE,
+  getErrorMessage,
+} from "@/resume-checker/utils";
 import { sendGAEvent } from "@next/third-parties/google";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
@@ -38,18 +41,13 @@ export function Review() {
   >({
     mutationKey: ["resume-check"],
     mutationFn: async ({ url, formData }) => {
-      let res;
+      const request = formData
+        ? fetch("/api/grade", { method: "POST", body: formData })
+        : fetch("/api/grade?url=" + url, { method: "GET" });
 
-      if (formData) {
-        res = await fetch("/api/grade", {
-          method: "POST",
-          body: formData,
-        });
-      } else {
-        res = await fetch("/api/grade?url=" + url, {
-          method: "GET",
-        });
-      }
+      const res = await request.catch(() => {
+        throw new Error(CONNECTION_LOST_MESSAGE);
+      });
 
       if (!res.ok) {
         throw new Error(await getErrorMessage(res));
