@@ -7,6 +7,10 @@ export const DEFAULT_ERROR_MESSAGE = "Hubo un error inesperado";
 export const PAYLOAD_TOO_LARGE_MESSAGE =
   "El PDF es demasiado grande. Probá con uno de menos de 4.5 MB.";
 
+/* fetch rejects without a response when the connection drops mid-grading. */
+export const CONNECTION_LOST_MESSAGE =
+  "Se cortó la conexión mientras analizábamos tu CV. Probá de nuevo.";
+
 /* Keys are the error codes /api/grade answers with. */
 const ERROR_MESSAGES: Record<string, string> = {
   BlockedResumeURL: "Ese link no apunta a un CV que podamos descargar.",
