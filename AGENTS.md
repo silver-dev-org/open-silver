@@ -15,6 +15,14 @@ OpenSilver is a monorepo containing several independent tools.
 * Comments are code smell, as the code should be self-explanatory. Try to avoid them unless necessary.
 * If any of the guidelines above aren't followed in existing code, that's because it's old code; don't write yours based on it.
 
+## Dependency and security changes
+
+* Title dependency PRs, commits, and branches neutrally, e.g. `chore(deps): bump <pkg> to <version>`.
+* Keep everything that lands in the repo or on GitHub (PRs, commits, branch names, comments, configs, changelogs, ignore files) free of advisory ids and of descriptions of code as vulnerable, unpatched, or exploitable.
+* Do not add comments or ignore/allowlist entries that describe an unfixed issue.
+* Raise security concerns with maintainers privately (see `SECURITY.md`), never in public issues, PRs, or discussions.
+* Merge or close dependency update PRs promptly rather than leaving them open.
+
 ## Development Workflow
 
 1. Run `bun tsc` after making changes and fix the errors, if any.
