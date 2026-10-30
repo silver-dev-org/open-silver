@@ -17,6 +17,7 @@ OpenSilver is a monorepo containing several independent tools.
 
 ## Dependency and security changes
 
+* Maintainers update dependencies manually, in batches.
 * Title dependency PRs, commits, and branches neutrally, e.g. `chore(deps): bump <pkg> to <version>`.
 * Keep everything that lands in the repo or on GitHub (PRs, commits, branch names, comments, configs, changelogs, ignore files) free of advisory ids and of descriptions of code as vulnerable, unpatched, or exploitable.
 * Do not add comments or ignore/allowlist entries that describe an unfixed issue.
