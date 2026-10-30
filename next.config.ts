@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingIncludes: {
+    "/api/submit-invoice": ["./node_modules/pdfkit/js/standard-fonts/**/*"],
+  },
   redirects: async () => {
     return [
       {
