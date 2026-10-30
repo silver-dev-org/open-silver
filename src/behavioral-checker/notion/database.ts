@@ -3,14 +3,19 @@ import {
   Result,
 } from "@/behavioral-checker/client-assistance/core/domain/Action";
 import { Question } from "@/behavioral-checker/data/questions";
-import { Client, RequestTimeoutError } from "@notionhq/client";
-import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import {
+  Client,
+  isFullDatabase,
+  PageObjectResponse,
+  RequestTimeoutError,
+} from "@notionhq/client";
 
 const NOTION_TIMEOUT_MS = 5_000;
 
 const notion = new Client({
   auth: process.env.NOTION_API_KEY,
   timeoutMs: NOTION_TIMEOUT_MS,
+  retry: false,
 });
 
 const DATABASE_ID = process.env.NOTION_DATABASE_ID as string;
@@ -26,6 +31,27 @@ export class NotionOperationError extends Error {
     this.name = "NotionOperationError";
   }
 }
+
+let dataSourceId: Promise<string> | undefined;
+
+const resolveDataSourceId = async (): Promise<string> => {
+  const database = await notion.databases.retrieve({
+    database_id: DATABASE_ID,
+  });
+  const dataSource = isFullDatabase(database) && database.data_sources[0];
+  if (!dataSource) {
+    throw new Error(`Notion database ${DATABASE_ID} has no data source`);
+  }
+  return dataSource.id;
+};
+
+const getDataSourceId = (): Promise<string> => {
+  dataSourceId ??= resolveDataSourceId().catch((error) => {
+    dataSourceId = undefined;
+    throw error;
+  });
+  return dataSourceId;
+};
 
 export const addFeedbackToNotion = async (
   data: AssistanceResponse & { feedbackScore?: string; feedbackText?: string }
@@ -53,7 +79,7 @@ export const addFeedbackToNotion = async (
     }
 
     const res = await notion.pages.create({
-      parent: { database_id: DATABASE_ID },
+      parent: { data_source_id: await getDataSourceId() },
       properties,
     });
 
@@ -72,8 +98,8 @@ export const addFeedbackToNotion = async (
 
 export const getPromptExamples = async (questionId: Question["id"]) => {
   try {
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
+    const response = await notion.dataSources.query({
+      data_source_id: await getDataSourceId(),
       filter: {
         and: [
           {
@@ -133,8 +159,8 @@ export const getLastFeedback = async (
   result: Result
 ): Promise<AssistanceResponse | null> => {
   try {
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
+    const response = await notion.dataSources.query({
+      data_source_id: await getDataSourceId(),
       filter: {
         and: [
           {
