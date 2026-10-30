@@ -14,7 +14,7 @@
     "@ai-sdk/gateway": "^4.0.115",
     "@ai-sdk/google": "^2.0.86",
     "@ai-sdk/openai": "^2.0.117",
-    "@ai-sdk/react": "^3.0.240",
+    "@ai-sdk/react": "^4.0.154",
     "@ai-sdk/xai": "^2.0.84",
     "@anthropic-ai/sdk": "^0.135.0",
     "@hookform/resolvers": "^5.5.7",
