@@ -34,7 +34,7 @@ import posthog from "posthog-js";
 const formSchema = z.object({
   description: z.string().min(10, "Please provide more details."),
   consent: z.literal(true, {
-    errorMap: () => ({ message: "You must consent to share data." }),
+    error: "You must consent to share data.",
   }),
 });
 
