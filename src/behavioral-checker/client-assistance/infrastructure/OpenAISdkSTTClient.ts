@@ -1,4 +1,8 @@
 import fs from "fs";
+import {
+  OPENAI_MAX_RETRIES,
+  OPENAI_TIMEOUT_MS,
+} from "@/behavioral-checker/constants";
 import OpenAI from "openai";
 import path from "path";
 import { STTClient } from "../core/domain/STTClient";
@@ -9,6 +13,8 @@ export class OpenAISdkSTTSClient implements STTClient {
   constructor() {
     this.client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      timeout: OPENAI_TIMEOUT_MS,
+      maxRetries: OPENAI_MAX_RETRIES,
     });
   }
 

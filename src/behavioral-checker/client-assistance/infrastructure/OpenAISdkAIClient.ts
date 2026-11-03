@@ -1,5 +1,9 @@
 import { Question } from "@/behavioral-checker/data/questions";
 import { extractJsonFromString } from "@/lib/utils";
+import {
+  OPENAI_MAX_RETRIES,
+  OPENAI_TIMEOUT_MS,
+} from "@/behavioral-checker/constants";
 import OpenAI from "openai";
 import { ChatCompletionSystemMessageParam } from "openai/resources/index.mjs";
 import { AIClient } from "../core/domain/AIClient";
@@ -18,6 +22,8 @@ export class OpenAISdkAIClient implements AIClient {
   constructor() {
     this.client = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      timeout: OPENAI_TIMEOUT_MS,
+      maxRetries: OPENAI_MAX_RETRIES,
     });
   }
 
