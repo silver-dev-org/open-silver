@@ -92,6 +92,7 @@ const multerMiddleware = (req: any, res: any, log: RouteLog, next: any) =>
   });
 
 export const config = {
+  maxDuration: 120,
   api: {
     bodyParser: false,
   },
