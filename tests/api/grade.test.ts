@@ -153,7 +153,20 @@ describe("/api/grade", () => {
     vi.mocked(generateObject).mockRejectedValueOnce(
       new NoObjectGeneratedError({
         response: {} as never,
-        usage: { inputTokens: 1, outputTokens: 8_192, totalTokens: 8_193 },
+        usage: {
+          inputTokens: 1,
+          inputTokenDetails: {
+            noCacheTokens: 1,
+            cacheReadTokens: undefined,
+            cacheWriteTokens: undefined,
+          },
+          outputTokens: 8_192,
+          outputTokenDetails: {
+            textTokens: 8_192,
+            reasoningTokens: undefined,
+          },
+          totalTokens: 8_193,
+        },
         finishReason: "length",
       }),
     );
