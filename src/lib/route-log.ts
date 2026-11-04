@@ -34,9 +34,20 @@ export function gatewayStatus(e: unknown) {
   return undefined;
 }
 
+function describeCause(cause: unknown) {
+  if (!(cause instanceof Error)) return undefined;
+  const code = (cause as NodeJS.ErrnoException).code;
+  return { name: cause.name, message: cause.message, code };
+}
+
 export function describeError(e: unknown) {
   if (!(e instanceof Error)) return { name: "NonError", message: String(e) };
-  return { name: e.name, message: e.message, statusCode: gatewayStatus(e) };
+  return {
+    name: e.name,
+    message: e.message,
+    statusCode: gatewayStatus(e),
+    cause: describeCause(e.cause),
+  };
 }
 
 /**
