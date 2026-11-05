@@ -52,6 +52,13 @@ describe("GatewaySTTClient", () => {
     expect(call.abortSignal).toBeInstanceOf(AbortSignal);
     await fs.unlink(audioPath);
   });
+
+  it("refuses to read audio outside the upload directory", async () => {
+    await expect(
+      new GatewaySTTClient().transcribeAudio("../../etc/passwd"),
+    ).rejects.toThrow("Audio file must be inside the upload directory");
+    expect(experimental_transcribe).not.toHaveBeenCalled();
+  });
 });
 
 describe("GatewayAIClient", () => {
