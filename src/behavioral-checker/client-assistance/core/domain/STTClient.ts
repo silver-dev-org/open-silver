@@ -1,7 +1,7 @@
-import { OpenAISdkSTTSClient } from "@/behavioral-checker/client-assistance/infrastructure/OpenAISdkSTTClient";
+import { GatewaySTTClient } from "@/behavioral-checker/client-assistance/infrastructure/gateway-stt-client";
 
 export interface STTClient {
   transcribeAudio(audioPath: string): Promise<string>;
 }
 
-export const sttClient = new OpenAISdkSTTSClient();
+export const sttClient = new GatewaySTTClient();

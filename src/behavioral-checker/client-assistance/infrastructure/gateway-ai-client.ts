@@ -1,11 +1,15 @@
 import { Question } from "@/behavioral-checker/data/questions";
-import { extractJsonFromString } from "@/lib/utils";
 import {
-  OPENAI_MAX_RETRIES,
-  OPENAI_TIMEOUT_MS,
+  CONSULT_MODEL,
+  MODEL_MAX_RETRIES,
+  MODEL_TIMEOUT_MS,
 } from "@/behavioral-checker/constants";
-import OpenAI from "openai";
-import { ChatCompletionSystemMessageParam } from "openai/resources/index.mjs";
+import {
+  generateText,
+  NoObjectGeneratedError,
+  Output,
+  type SystemModelMessage,
+} from "ai";
 import { AIClient } from "../core/domain/AIClient";
 import { AssistanceResponse } from "../core/domain/Action";
 
@@ -16,17 +20,7 @@ export class InvalidModelResponseError extends Error {
   }
 }
 
-export class OpenAISdkAIClient implements AIClient {
-  private client: OpenAI;
-
-  constructor() {
-    this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      timeout: OPENAI_TIMEOUT_MS,
-      maxRetries: OPENAI_MAX_RETRIES,
-    });
-  }
-
+export class GatewayAIClient implements AIClient {
   async consult(
     questionId: Question["id"],
     question: string,
@@ -38,37 +32,29 @@ export class OpenAISdkAIClient implements AIClient {
       response,
       exampleResponses
     );
-    const res = await this.client.chat.completions.create({
-      model: "gpt-4o",
-      messages: [message],
-      max_tokens: 1000,
-      response_format: { type: "json_object" },
-    });
-
-    const choice = res.choices[0];
-    const assistantMessage = choice.message.content || "";
-
-    if (choice.finish_reason === "length") {
-      throw new InvalidModelResponseError(
-        "Model response truncated at max_tokens"
-      );
-    }
-
     let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(assistantMessage);
-    } catch {
-      try {
-        parsed = extractJsonFromString(assistantMessage) as Record<
-          string,
-          unknown
-        >;
-      } catch {
-        throw new InvalidModelResponseError("Model response is not valid JSON");
+      const { output } = await generateText({
+        model: CONSULT_MODEL,
+        messages: [message],
+        maxOutputTokens: 1000,
+        output: Output.json(),
+        maxRetries: MODEL_MAX_RETRIES,
+        abortSignal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+      });
+      parsed = output as Record<string, unknown>;
+    } catch (error) {
+      if (NoObjectGeneratedError.isInstance(error)) {
+        throw new InvalidModelResponseError(
+          error.finishReason === "length"
+            ? "Model response truncated at max_tokens"
+            : "Model response is not valid JSON"
+        );
       }
+      throw error;
     }
 
-    if (typeof parsed.result !== "string") {
+    if (typeof parsed?.result !== "string") {
       throw new InvalidModelResponseError(
         "Model response missing result field"
       );
@@ -86,7 +72,7 @@ export class OpenAISdkAIClient implements AIClient {
     question: string,
     response: string,
     exampleResponses: { response: string; score: string }[]
-  ): ChatCompletionSystemMessageParam {
+  ): SystemModelMessage {
     const examplesPrompt = this.getExamplesPrompt(exampleResponses);
 
     return {
