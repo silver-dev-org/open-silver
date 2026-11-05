@@ -1,5 +1,5 @@
 import { Question } from "@/behavioral-checker/data/questions";
-import { OpenAISdkAIClient } from "../../infrastructure/OpenAISdkAIClient";
+import { GatewayAIClient } from "../../infrastructure/gateway-ai-client";
 import { AssistanceResponse } from "./Action";
 
 export interface AIClient {
@@ -11,4 +11,4 @@ export interface AIClient {
   ): Promise<AssistanceResponse>;
 }
 
-export const aiClient = new OpenAISdkAIClient();
+export const aiClient = new GatewayAIClient();

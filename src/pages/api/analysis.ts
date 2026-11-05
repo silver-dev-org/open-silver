@@ -1,5 +1,5 @@
 import { consultByAudio } from "@/behavioral-checker/client-assistance/core/actions/ConsultByAudio";
-import { InvalidModelResponseError } from "@/behavioral-checker/client-assistance/infrastructure/OpenAISdkAIClient";
+import { InvalidModelResponseError } from "@/behavioral-checker/client-assistance/infrastructure/gateway-ai-client";
 import {
   addFeedbackToNotion,
   NotionOperationError,
