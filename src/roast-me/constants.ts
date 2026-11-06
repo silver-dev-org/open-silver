@@ -402,14 +402,8 @@ export const SIMILAR_PHRASES = [
 export const REALTIME_TRANSCRIPTION_MODEL = "openai/gpt-realtime-whisper";
 export const REALTIME_SAMPLE_RATE = 24000;
 export const REALTIME_TOKEN_TTL_SECONDS = 60;
+export const UTTERANCE_SILENCE_MS = 1500;
+export const TRANSCRIPT_CLEAR_DELAY_MS = 2000;
 export const REALTIME_TRANSCRIPTION_OPTIONS = {
-  openai: {
-    language: "en",
-    chunkingStrategy: {
-      type: "server_vad",
-      threshold: 0.5,
-      prefixPaddingMs: 300,
-      silenceDurationMs: 500,
-    },
-  },
+  openai: { language: "en" },
 } as const;
