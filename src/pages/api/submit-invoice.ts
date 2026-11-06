@@ -6,6 +6,7 @@ import { InvoicePDF } from "@/app/invoice-generator/components/InvoicePDF";
 import { InvoiceEmail } from "@/app/invoice-generator/components/InvoiceEmail";
 import { getResend } from "@/lib/resend";
 import { createRouteLog } from "@/lib/route-log";
+import * as z from "zod";
 
 export default async function handler(
   req: NextApiRequest,
@@ -28,6 +29,12 @@ export default async function handler(
 
     const form = formidable({});
     const [fields, files] = await form.parse(req);
+    const submitterEmail = fields.submitterEmail?.[0]?.trim();
+
+    if (submitterEmail && !z.email().safeParse(submitterEmail).success) {
+      res.status(400).send({ message: "Enter a valid email address" });
+      return;
+    }
 
     const invoiceType = fields.invoiceType?.[0] || "interviewers";
     const invoiceData = fields.invoiceData?.[0]
@@ -84,6 +91,7 @@ export default async function handler(
     const { error } = await resend.emails.send({
       from: "Invoice Generator <invoices@notifications.silver.dev>",
       to: ["silver-dev@ap.mercury.com"],
+      cc: submitterEmail ? [submitterEmail] : undefined,
       subject: emailSubject,
       react: InvoiceEmail({
         invoiceNumber: invoiceData.invoiceNumber,

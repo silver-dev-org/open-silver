@@ -17,7 +17,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Form } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 import { InvoiceHeader } from "./components/InvoiceHeader";
 import { BillingInformation } from "./components/BillingInformation";
@@ -112,6 +121,7 @@ export default function Component() {
     reValidateMode: "onChange",
     defaultValues: {
       invoiceType: "interviewers",
+      submitterEmail: "",
       invoiceName: "",
       invoiceSubtitle: "",
       bankName: "",
@@ -144,6 +154,9 @@ export default function Component() {
       const formData = new FormData();
 
       formData.append("invoiceType", data.invoiceType);
+      if (data.submitterEmail) {
+        formData.append("submitterEmail", data.submitterEmail);
+      }
       formData.append(
         "invoiceData",
         JSON.stringify({
@@ -476,7 +489,29 @@ export default function Component() {
 
           <ValidationErrors errors={formState.errors} />
 
-          <div className="flex justify-end print:hidden">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-end print:hidden">
+            <FormField
+              control={control}
+              name="submitterEmail"
+              render={({ field }) => (
+                <FormItem className="sm:w-80">
+                  <FormLabel>Your email (optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Receive a copy of this invoice by CC.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button
               size="lg"
               disabled={submitInvoiceMutation.isPending || !formState.isValid}
