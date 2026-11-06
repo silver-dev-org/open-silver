@@ -11,6 +11,11 @@ export const invoiceItemSchema = z.object({
 export const formSchema = z
   .object({
     invoiceType: z.enum(["interviewers", "silvered"]),
+    submitterEmail: z
+      .string()
+      .trim()
+      .pipe(z.email("Enter a valid email address").or(z.literal("")))
+      .optional(),
     invoiceName: z.string().min(1, "Name is required"),
     invoiceSubtitle: z.string().min(1, "Service is required"),
     bankName: z.string().min(1, "Bank name is required"),
