@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createGateway } from "@ai-sdk/gateway";
+import { experimental_streamTranscribe as streamTranscribe } from "ai";
 import posthog from "posthog-js";
-import { SIMILAR_PHRASES } from "../constants";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  REALTIME_SAMPLE_RATE,
+  REALTIME_TRANSCRIPTION_MODEL,
+  REALTIME_TRANSCRIPTION_OPTIONS,
+  SIMILAR_PHRASES,
+} from "../constants";
 
 export type TranscriptionStatus = "idle" | "connecting" | "listening" | "error";
 
@@ -23,7 +30,9 @@ export function useRealtimeTranscription({
   const [transcript, setTranscript] = useState<string>("");
   const [isListening, setIsListening] = useState<boolean>(true);
   const isListeningRef = useRef<boolean>(true);
-  const wsRef = useRef<WebSocket | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const audioControllerRef =
+    useRef<ReadableStreamDefaultController<Uint8Array> | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -42,9 +51,15 @@ export function useRealtimeTranscription({
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+    if (audioControllerRef.current) {
+      try {
+        audioControllerRef.current.close();
+      } catch {}
+      audioControllerRef.current = null;
+    }
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -96,157 +111,102 @@ export function useRealtimeTranscription({
     [triggerPhrases, onTriggerPhrase, onMispronunciation, mode],
   );
 
-  const setupAudio = useCallback(
-    async (ws: WebSocket) => {
-      try {
-        console.log("Setting up audio stream...");
+  const startAudioCapture = useCallback(async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        sampleRate: REALTIME_SAMPLE_RATE,
+        echoCancellation: true,
+        noiseSuppression: true,
+      },
+    });
+    streamRef.current = stream;
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            channelCount: 1,
-            sampleRate: 24000,
-            echoCancellation: true,
-            noiseSuppression: true,
-          },
-        });
+    const audioContext = new AudioContext({ sampleRate: REALTIME_SAMPLE_RATE });
+    audioContextRef.current = audioContext;
 
-        streamRef.current = stream;
+    const source = audioContext.createMediaStreamSource(stream);
+    sourceRef.current = source;
 
-        const audioContext = new AudioContext({ sampleRate: 24000 });
-        audioContextRef.current = audioContext;
+    const processor = audioContext.createScriptProcessor(4096, 1, 1);
+    processorRef.current = processor;
 
-        const source = audioContext.createMediaStreamSource(stream);
-        sourceRef.current = source;
+    const audio = new ReadableStream<Uint8Array>({
+      start: (controller) => {
+        audioControllerRef.current = controller;
+      },
+      cancel: () => {
+        audioControllerRef.current = null;
+      },
+    });
 
-        // Use ScriptProcessorNode for audio processing
-        const processor = audioContext.createScriptProcessor(4096, 1, 1);
-        processorRef.current = processor;
+    processor.onaudioprocess = (e) => {
+      const controller = audioControllerRef.current;
+      if (!controller || !isListeningRef.current) return;
+      const int16Data = convertFloat32ToInt16(e.inputBuffer.getChannelData(0));
+      controller.enqueue(new Uint8Array(int16Data.buffer));
+    };
 
-        processor.onaudioprocess = (e) => {
-          // Only send audio if we're listening and websocket is open
-          if (ws.readyState === WebSocket.OPEN && isListeningRef.current) {
-            const inputData = e.inputBuffer.getChannelData(0);
-            const int16Data = convertFloat32ToInt16(inputData);
-            const base64Audio = btoa(
-              String.fromCharCode.apply(
-                null,
-                Array.from(new Uint8Array(int16Data.buffer)),
-              ),
-            );
+    source.connect(processor);
+    processor.connect(audioContext.destination);
 
-            ws.send(
-              JSON.stringify({
-                type: "input_audio_buffer.append",
-                audio: base64Audio,
-              }),
-            );
-          }
-        };
-
-        source.connect(processor);
-        processor.connect(audioContext.destination);
-
-        setStatus("listening");
-        posthog.capture("roast_me_voice_listening_started", {
-          mode,
-        });
-        console.log("Audio stream setup complete");
-      } catch (error) {
-        console.error("Failed to setup audio:", error);
-        setStatus("error");
-        cleanup();
-      }
-    },
-    [convertFloat32ToInt16, cleanup, mode],
-  );
+    return audio;
+  }, [convertFloat32ToInt16]);
 
   const connect = useCallback(async () => {
     if (!enabled) return;
 
+    cleanup();
+    const abortController = new AbortController();
+    abortRef.current = abortController;
+
     try {
       setStatus("connecting");
-      console.log("Getting ephemeral token...");
 
-      // Get ephemeral token
       const tokenResponse = await fetch("/roast-me/api/realtime-token", {
         method: "POST",
       });
-
       if (!tokenResponse.ok) {
-        const errorText = await tokenResponse.text();
-        console.warn("Failed to get realtime token:", errorText);
-        throw new Error("Failed to get realtime token");
+        throw new Error(
+          `Failed to get realtime token: ${await tokenResponse.text()}`,
+        );
       }
-
       const { token } = await tokenResponse.json();
-      console.log("Got ephemeral token, connecting WebSocket...");
 
-      // Connect WebSocket without model parameter for transcription
-      const ws = new WebSocket(`wss://api.openai.com/v1/realtime`, [
-        "realtime",
-        `openai-insecure-api-key.${token}`,
-      ]);
+      const audio = await startAudioCapture();
+      const result = streamTranscribe({
+        model: createGateway({ apiKey: token }).transcriptionModel(
+          REALTIME_TRANSCRIPTION_MODEL,
+        ),
+        audio,
+        inputAudioFormat: { type: "audio/pcm", rate: REALTIME_SAMPLE_RATE },
+        providerOptions: REALTIME_TRANSCRIPTION_OPTIONS,
+        abortSignal: abortController.signal,
+      });
 
-      wsRef.current = ws;
+      setStatus("listening");
+      posthog.capture("roast_me_voice_listening_started", { mode });
 
-      ws.onopen = () => {
-        console.log("WebSocket connected");
-        // Setup audio after connection is established
-        setupAudio(ws);
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log("Received message:", data.type);
-
-          if (
-            data.type === "conversation.item.input_audio_transcription.delta"
-          ) {
-            setTranscript((prev) => prev + data.delta);
-          }
-
-          if (
-            data.type ===
-            "conversation.item.input_audio_transcription.completed"
-          ) {
-            const fullTranscript = data.transcript;
-            console.log("Transcription completed:", fullTranscript);
-            setTranscript(fullTranscript);
-            checkForTriggerPhrase(fullTranscript);
-
-            // Reset transcript after checking
-            setTimeout(() => setTranscript(""), 2000);
-          }
-        } catch (error) {
-          console.error("Error parsing WebSocket message:", error);
+      for await (const part of result.fullStream) {
+        if (part.type === "transcript-delta") {
+          setTranscript((prev) => prev + part.delta);
+        } else if (part.type === "transcript-final") {
+          setTranscript(part.text);
+          checkForTriggerPhrase(part.text);
+          setTimeout(() => setTranscript(""), 2000);
+        } else if (part.type === "error") {
+          throw part.error;
         }
-      };
-
-      ws.onerror = (error) => {
-        console.warn("WebSocket error:", error, "readyState:", ws.readyState);
-        posthog.capture("roast_me_voice_connection_error", {
-          mode,
-          ready_state: ws.readyState,
-        });
-        setStatus("error");
-      };
-
-      ws.onclose = (event) => {
-        console.log("WebSocket closed", {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
-        cleanup();
-      };
+      }
     } catch (error) {
-      // Connection to OpenAI failed (often geo-block) — expected, warn only.
-      console.warn("Error connecting to realtime API:", error);
+      if (abortController.signal.aborted) return;
+      console.warn("Error connecting to realtime transcription:", error);
+      posthog.capture("roast_me_voice_connection_error", { mode });
       setStatus("error");
-      cleanup();
+    } finally {
+      if (abortRef.current === abortController) cleanup();
     }
-  }, [enabled, setupAudio, checkForTriggerPhrase, cleanup]);
+  }, [enabled, startAudioCapture, checkForTriggerPhrase, cleanup, mode]);
 
   useEffect(() => {
     if (enabled) {

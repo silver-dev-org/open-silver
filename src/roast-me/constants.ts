@@ -398,3 +398,18 @@ export const SIMILAR_PHRASES = [
   "rastmi",
   "asked",
 ];
+
+export const REALTIME_TRANSCRIPTION_MODEL = "openai/gpt-realtime-whisper";
+export const REALTIME_SAMPLE_RATE = 24000;
+export const REALTIME_TOKEN_TTL_SECONDS = 60;
+export const REALTIME_TRANSCRIPTION_OPTIONS = {
+  openai: {
+    language: "en",
+    chunkingStrategy: {
+      type: "server_vad",
+      threshold: 0.5,
+      prefixPaddingMs: 300,
+      silenceDurationMs: 500,
+    },
+  },
+} as const;
