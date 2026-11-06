@@ -13,6 +13,7 @@ import {
   NoObjectGeneratedError,
   type FinishReason,
 } from "ai";
+import { MockLanguageModelV4 } from "ai/test";
 import { promises as fs } from "fs";
 import os from "os";
 import path from "path";
@@ -82,6 +83,31 @@ describe("GatewayAIClient", () => {
       model: CONSULT_MODEL,
       maxOutputTokens: 1000,
     });
+  });
+
+  it("sends a prompt the AI SDK accepts, with the answer as the user turn", async () => {
+    const { generateText: realGenerateText } =
+      await vi.importActual<typeof import("ai")>("ai");
+    const model = new MockLanguageModelV4({
+      doGenerate: {
+        content: [{ type: "text", text: '{"redFlags":[],"greenFlags":[],"result":"No"}' }],
+        finishReason: { unified: "stop", raw: "stop" },
+        usage: {
+          inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 1, text: 1, reasoning: 0 },
+        },
+        warnings: [],
+      },
+    });
+    vi.mocked(generateText).mockImplementationOnce((options) =>
+      realGenerateText({ ...options, model } as never)
+    );
+
+    await expect(consult()).resolves.toMatchObject({ result: "No" });
+    const [system, user] = model.doGenerateCalls[0].prompt;
+    expect(system.role).toBe("system");
+    expect(user).toMatchObject({ role: "user" });
+    expect(JSON.stringify(user.content)).toContain("A.");
   });
 
   it.each([

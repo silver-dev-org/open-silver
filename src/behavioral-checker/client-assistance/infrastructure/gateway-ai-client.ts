@@ -4,12 +4,7 @@ import {
   MODEL_MAX_RETRIES,
   MODEL_TIMEOUT_MS,
 } from "@/behavioral-checker/constants";
-import {
-  generateText,
-  NoObjectGeneratedError,
-  Output,
-  type SystemModelMessage,
-} from "ai";
+import { generateText, NoObjectGeneratedError, Output } from "ai";
 import { AIClient } from "../core/domain/AIClient";
 import { AssistanceResponse } from "../core/domain/Action";
 
@@ -27,16 +22,12 @@ export class GatewayAIClient implements AIClient {
     response: string,
     exampleResponses: { response: string; score: string }[]
   ): Promise<AssistanceResponse> {
-    const message = this.getInitialMessage(
-      question,
-      response,
-      exampleResponses
-    );
     let parsed: Record<string, unknown>;
     try {
       const { output } = await generateText({
         model: CONSULT_MODEL,
-        messages: [message],
+        instructions: this.getInstructions(exampleResponses),
+        prompt: this.getAnswerPrompt(question, response),
         maxOutputTokens: 1000,
         output: Output.json(),
         maxRetries: MODEL_MAX_RETRIES,
@@ -68,16 +59,12 @@ export class GatewayAIClient implements AIClient {
     } as AssistanceResponse;
   }
 
-  private getInitialMessage(
-    question: string,
-    response: string,
+  private getInstructions(
     exampleResponses: { response: string; score: string }[]
-  ): SystemModelMessage {
+  ): string {
     const examplesPrompt = this.getExamplesPrompt(exampleResponses);
 
-    return {
-      role: "system",
-      content: `You are an expert in evaluating behavioral interview responses. Your task is to analyze a given response based on the principles of effective storytelling and interview best practices as outlined below:
+    return `You are an expert in evaluating behavioral interview responses. Your task is to analyze a given response based on the principles of effective storytelling and interview best practices as outlined below:
 
 **Introduction and Presentation**:
 **DO**: Highlight relevant technical experience, personal projects, open-source contributions, and key skills.
@@ -144,13 +131,14 @@ Here is an example of the expected output:
 {"redFlags":["Lacks specificity","Does not mention outcomes"],"greenFlags":["Demonstrates growth","Uses a clear example aligned with company values"],"result":"Yes"}
 \`\`\`
 
-${examplesPrompt}
+${examplesPrompt}`;
+  }
 
-The user answered this question: "${question}". 
+  private getAnswerPrompt(question: string, response: string): string {
+    return `The user answered this question: "${question}".
 The user responded with: "${response}".
 
-Analyze the response and provide the JSON output as specified.`,
-    };
+Analyze the response and provide the JSON output as specified.`;
   }
 
   private getExamplesPrompt(
