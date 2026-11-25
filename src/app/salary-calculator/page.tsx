@@ -65,7 +65,7 @@ export default function Page() {
           <Button asChild size="lg" className="w-full">
             <Link
               target="_blank"
-              href="https://calendly.com/silver.dev/companies?utm_source=salarycalculator"
+              href="https://calendly.com/silver-dev/companies?utm_source=salarycalculator"
             >
               Book a Meeting
             </Link>
