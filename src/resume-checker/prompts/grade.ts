@@ -101,7 +101,7 @@ You will receive a resume in PDF format and your task is to evaluate its content
 ## Guide clarifications
 - Don't use your own opinion; use the provided guidelines.
 - NEVER say using Gmail is wrong
-${isSilver ?? "- Do NOT mention ANYTHING regarding the template"}
+${isSilver ? "- Do NOT mention ANYTHING regarding the template" : ""}
 - Don't comment on things you're not 100% sure about. Don't assume anything from the resume that isn't in it.
 - Saying "WHY COMPANY [COMPANY NAME] SHOULD HIRE ME" instead of "ABOUT ME" should NOT be penalized.
 - The location of the candidate's past jobs doesn't matter; don't mention it as a shortcoming or a "flag".
